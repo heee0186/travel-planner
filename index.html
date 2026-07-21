@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>오사카 여행 플래너</title>
+    <title>통합 여행 플래너</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
@@ -12,12 +12,19 @@
         .tab-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 16px; font-weight: bold; color: #6c757d; cursor: pointer; }
         .tab-btn.active { color: #4b0082; border-bottom: 3px solid #4b0082; }
         #map { height: 250px; width: 100%; border-radius: 8px; margin-bottom: 20px; background: #e9ecef; }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .plan-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #eee; }
+        .time { font-weight: bold; color: #4b0082; width: 60px; }
+        .details { flex-grow: 1; }
+        .place { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+        .cost { color: #e63946; font-size: 14px; }
+        .memo { color: #6c757d; font-size: 12px; margin-top: 5px; }
+
         .add-btn { width: 100%; padding: 15px; background: #4b0082; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: bold; }
         
-        /* 모달(팝업창) 스타일 */
+        /* 모달 스타일 */
         #addModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
         .modal-content input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
@@ -29,7 +36,8 @@
 </head>
 <body>
     <div class="container">
-        <h2 style="text-align: center; color: #333;">오사카 4일 여행 계획표</h2>
+        <!-- 동적으로 여행 이름이 바뀔 제목 영역 -->
+        <h2 id="tripTitle" style="text-align: center; color: #333;">로딩 중...</h2>
         
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('day1', this, 1)">1일차</button>
@@ -40,16 +48,15 @@
 
         <div id="map"></div>
 
-        <div id="day1" class="tab-content active"><h3>목요일 일정</h3><div class="plan-list"></div></div>
-        <div id="day2" class="tab-content"><h3>금요일 일정</h3><div class="plan-list"></div></div>
-        <div id="day3" class="tab-content"><h3>토요일 일정</h3><div class="plan-list"></div></div>
-        <div id="day4" class="tab-content"><h3>일요일 일정</h3><div class="plan-list"></div></div>
+        <div id="day1" class="tab-content active"><h3>1일차 일정</h3><div id="list-day1"></div></div>
+        <div id="day2" class="tab-content"><h3>2일차 일정</h3><div id="list-day2"></div></div>
+        <div id="day3" class="tab-content"><h3>3일차 일정</h3><div id="list-day3"></div></div>
+        <div id="day4" class="tab-content"><h3>4일차 일정</h3><div id="list-day4"></div></div>
 
-        <!-- 💡 버튼 클릭 시 모달창 열림 -->
         <button class="add-btn" onclick="openModal()">+ 새 일정 추가하기</button>
     </div>
 
-    <!-- 모달(팝업) 디자인 -->
+    <!-- 일정 추가 모달 -->
     <div id="addModal">
         <div class="modal-content">
             <h3>일정 추가하기</h3>
@@ -65,14 +72,64 @@
     </div>
 
     <script>
-        // 1. 수파베이스 설정 (본인의 키로 반드시 교체하세요!)
-        const supabaseUrl = 'https://pbzwcsaveufsqbmhygon.supabase.co/rest/v1/';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiendjc2F2ZXVmc3FibWh5Z29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTQ2MTgsImV4cCI6MjA5MDc3MDYxOH0.sq8gWEF7ntiA3pL9DeDQ59rVNuDzXBkJSDJmC2OHIOE';
+        // 1. 수파베이스 설정 (본인 키로 변경)
+        const supabaseUrl = '본인의_기존_프로젝트_URL';
+        const supabaseKey = '본인의_기존_anon_public_key';
         const supabaseApp = supabase.createClient(supabaseUrl, supabaseKey);
 
-        let currentDayIndex = 1; // 현재 보고 있는 탭의 일자
+        let currentDayIndex = 1;
+        let currentTripName = '2026_Osaka'; // 기본값
 
-        // 탭 전환 기능
+        // 2. 주소창에서 여행 이름(trip 파라미터) 읽어오기
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.has('trip')) {
+                currentTripName = urlParams.get('trip');
+            }
+            
+            // 화면 제목 변경 (예: 2026_Osaka 여행 계획표)
+            document.getElementById('tripTitle').innerText = currentTripName + " 여행 계획표";
+            
+            // 페이지 로딩 시 해당 여행 데이터 불러오기 실행
+            fetchPlans();
+        };
+
+        // 3. 수파베이스에서 데이터 불러오기 (Read)
+        async function fetchPlans() {
+            // 기존 리스트 비우기
+            document.getElementById('list-day1').innerHTML = '';
+            document.getElementById('list-day2').innerHTML = '';
+            document.getElementById('list-day3').innerHTML = '';
+            document.getElementById('list-day4').innerHTML = '';
+
+            const { data, error } = await supabaseApp
+                .from('travel_planner')
+                .select('*')
+                .eq('trip_name', currentTripName) // 💡 현재 여행 이름과 똑같은 데이터만 필터링!
+                .order('time_str', { ascending: true }); // 시간순 정렬
+
+            if (error) {
+                console.error("불러오기 실패:", error);
+                return;
+            }
+
+            // 가져온 데이터를 화면에 그리기
+            data.forEach(plan => {
+                const planHtml = `
+                    <div class="plan-item">
+                        <div class="time">${plan.time_str}</div>
+                        <div class="details">
+                            <div class="place">${plan.place_name}</div>
+                            <div class="cost">예상: ¥${plan.jpy_cost.toLocaleString()} (약 ₩${plan.krw_cost.toLocaleString()})</div>
+                            ${plan.memo_text ? `<div class="memo">메모: ${plan.memo_text}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+                document.getElementById(`list-day${plan.day_index}`).innerHTML += planHtml;
+            });
+        }
+
+        // 탭 전환
         function showTab(dayId, btn, dayIndex) {
             currentDayIndex = dayIndex;
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -81,7 +138,7 @@
             btn.classList.add('active');
         }
 
-        // 구글 맵 빈 영역 로드
+        // 구글 맵 초기화
         let map;
         function initMap() {
             map = new google.maps.Map(document.getElementById("map"), {
@@ -90,30 +147,23 @@
             });
         }
 
-        // 모달 열기/닫기
-        function openModal() {
-            document.getElementById('addModal').style.display = 'flex';
-        }
-        function closeModal() {
-            document.getElementById('addModal').style.display = 'none';
-        }
+        function openModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
 
-        // 수파베이스에 데이터 저장하기
+        // 4. 수파베이스에 저장하기 (Create)
         async function savePlan() {
             const time = document.getElementById('inputTime').value;
             const place = document.getElementById('inputPlace').value;
             const jpy = parseInt(document.getElementById('inputJpy').value) || 0;
-            const krw = jpy * 9; // 원화 임시 환율 계산 (x9)
+            const krw = jpy * 9; 
             const memo = document.getElementById('inputMemo').value;
 
-            if (!time || !place) {
-                alert("시간과 장소를 입력해주세요!");
-                return;
-            }
+            if (!time || !place) return alert("시간과 장소를 입력해주세요!");
 
-            const { data, error } = await supabaseApp
-                .from('osaka_plans')
+            const { error } = await supabaseApp
+                .from('travel_planner')
                 .insert([{ 
+                    trip_name: currentTripName, // 💡 현재 주소창에 있는 여행 이름으로 저장됨
                     day_index: currentDayIndex, 
                     time_str: time, 
                     place_name: place, 
@@ -123,21 +173,18 @@
                 }]);
 
             if (error) {
-                console.error("에러 원인:", error);
-                alert("일정 저장에 실패했습니다. (콘솔 창을 확인하세요)");
+                alert("저장 실패!");
             } else {
-                alert("성공적으로 저장되었습니다!");
                 closeModal();
-                // 저장 후 입력창 초기화
+                // 저장 후 입력창 비우고, 새로고침 없이 리스트 다시 불러오기
                 document.getElementById('inputTime').value = '';
                 document.getElementById('inputPlace').value = '';
                 document.getElementById('inputJpy').value = '';
                 document.getElementById('inputMemo').value = '';
+                fetchPlans(); 
             }
         }
     </script>
-    
-    <!-- 구글 맵 스크립트 (기존에 발급받으신 키를 유지해 주세요) -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAw-sboIMyqehkNYYlB2URbuDpeIhZxwxA&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&callback=initMap" async defer></script>
 </body>
 </html>
