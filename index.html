@@ -71,7 +71,10 @@
         </div>
 
         <!-- [화면 3] 개별 여행 계획표 스크린 -->
+<!-- [화면 3] 개별 여행 계획표 스크린 -->
         <div id="screen-planner" class="screen">
+            <!-- 💡 id를 추가하고 기본적으로 안 보이게(display: none) 설정했습니다 -->
+            <button id="back-btn" class="back-btn" onclick="goBackToGrid()" style="display: none;">← 목록으로</button>
             <h2 id="tripTitle" style="text-align: center; color: #333;">로딩 중...</h2>
             
             <div class="tabs">
@@ -109,107 +112,102 @@
     </div>
 
     <script>
-        // 수파베이스 기본 주소 오류 수정 완료
         const supabaseUrl = 'https://pbzwcsaveufsqbmhygon.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiendjc2F2ZXVmc3FibWh5Z29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTQ2MTgsImV4cCI6MjA5MDc3MDYxOH0.sq8gWEF7ntiA3pL9DeDQ59rVNuDzXBkJSDJmC2OHIOE';
         const supabaseApp = supabase.createClient(supabaseUrl, supabaseKey);
 
         let currentDayIndex = 1;
         let currentTripName = ''; 
+        let isAdmin = false; // 💡 내가 비밀번호를 치고 들어왔는지 기억하는 변수
 
-        // 1. 비밀번호 확인 및 화면 전환
+        // 1. 페이지 접속 시 확인
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if(urlParams.has('trip')) {
+                // 공유 링크(?trip=...)로 바로 들어온 경우 -> 비번 생략, 버튼 숨김 유지
+                currentTripName = urlParams.get('trip');
+                document.getElementById('screen-login').classList.remove('active');
+                document.getElementById('screen-planner').classList.add('active');
+                document.getElementById('tripTitle').innerText = currentTripName + " 여행 계획표";
+                
+                fetchPlans();
+            } else {
+                // 기본 주소로 들어온 경우 -> 로그인 화면(비번 입력) 띄움
+            }
+        };
+
+        // 2. 비밀번호 확인
         function checkPw() {
             const pw = document.getElementById('pw-input').value;
             if (pw === '0803') { 
-                // 친구에게 ?trip=이름 링크를 공유했을 때 바로 계획표로 넘어가게 하는 로직
-                const urlParams = new URLSearchParams(window.location.search);
+                isAdmin = true; // 💡 비번을 맞췄으니 관리자 권한 부여!
                 document.getElementById('screen-login').classList.remove('active');
-
-                if (urlParams.has('trip')) {
-                    openTrip(urlParams.get('trip'));
-                } else {
-                    document.getElementById('screen-grid').classList.add('active');
-                    loadTrips();
-                }
+                document.getElementById('screen-grid').classList.add('active');
+                loadTrips();
             } else {
                 alert('비밀번호가 틀렸습니다.');
             }
         }
 
-        // 엔터키로 로그인 가능하게 처리
         document.getElementById('pw-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') checkPw();
         });
 
-        // 2. 수파베이스에서 고유한 여행 목록(trip_name) 가져와서 그리드 만들기
+        // 3. 여행 목록 불러오기
         async function loadTrips() {
             const { data, error } = await supabaseApp.from('travel_planner').select('trip_name');
             const grid = document.getElementById('trip-grid');
             grid.innerHTML = '';
 
-            if (error) {
-                console.error("목록 불러오기 실패:", error);
-                return;
-            }
+            if (error) return console.error("목록 불러오기 실패:", error);
 
-            // 중복된 이름 제거
             const uniqueTrips = [...new Set(data.map(item => item.trip_name))];
-            
-            // 데이터가 하나도 없을 경우 기본 버튼 하나 생성
-            if(uniqueTrips.length === 0) {
-                uniqueTrips.push('2026.09._오사카');
-            }
+            if(uniqueTrips.length === 0) uniqueTrips.push('2026_Osaka');
 
-            // 카드로 만들어 화면에 붙이기
             uniqueTrips.forEach(trip => {
                 grid.innerHTML += `<div class="grid-card" onclick="openTrip('${trip}')">${trip}</div>`;
             });
         }
 
-        // 새 여행 만들기 버튼 (프롬프트로 이름 입력받기)
         function createNewTrip() {
-            const newTrip = prompt("새로운 여행 이름을 입력하세요 (예: 2026_Jeju)");
-            if(newTrip && newTrip.trim() !== "") {
-                openTrip(newTrip.trim());
-            }
+            const newTrip = prompt("새로운 여행 이름을 입력하세요 (예: Jeju_비밀번호)");
+            if(newTrip && newTrip.trim() !== "") openTrip(newTrip.trim());
         }
 
-        // 3. 그리드 카드 클릭 시 계획표 화면으로 이동
+        // 4. 여행 계획표 열기
         function openTrip(tripName) {
             currentTripName = tripName;
             
             document.getElementById('screen-grid').classList.remove('active');
             document.getElementById('screen-planner').classList.add('active');
-            
             document.getElementById('tripTitle').innerText = tripName + " 여행 계획표";
             
-            // URL에 파라미터 추가 (새로고침 없이 주소만 변경)
+            // 💡 관리자(나)일 때만 뒤로가기 버튼을 보여줌!
+            if (isAdmin) {
+                document.getElementById('back-btn').style.display = 'inline-block';
+            }
+
             window.history.replaceState({}, '', '?trip=' + tripName);
-            
             fetchPlans();
         }
 
-        // 4. 뒤로가기 (목록으로)
+        // 5. 뒤로가기 버튼 동작
         function goBackToGrid() {
             document.getElementById('screen-planner').classList.remove('active');
             document.getElementById('screen-grid').classList.add('active');
-            window.history.replaceState({}, '', window.location.pathname); // 주소창 원래대로
+            window.history.replaceState({}, '', window.location.pathname); 
             loadTrips();
         }
 
-        // 기존 수파베이스 Read 로직
+        // 6. 데이터 불러오기 및 저장 등 나머지 로직은 동일
         async function fetchPlans() {
             document.getElementById('list-day1').innerHTML = '';
             document.getElementById('list-day2').innerHTML = '';
             document.getElementById('list-day3').innerHTML = '';
             document.getElementById('list-day4').innerHTML = '';
 
-            const { data, error } = await supabaseApp
-                .from('travel_planner')
-                .select('*')
-                .eq('trip_name', currentTripName)
-                .order('time_str', { ascending: true });
-
+            const { data, error } = await supabaseApp.from('travel_planner').select('*').eq('trip_name', currentTripName).order('time_str', { ascending: true });
             if (error) return console.error(error);
 
             data.forEach(plan => {
@@ -227,7 +225,6 @@
             });
         }
 
-        // 탭 전환 및 모달 기능
         function showTab(dayId, btn, dayIndex) {
             currentDayIndex = dayIndex;
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -239,7 +236,6 @@
         function openModal() { document.getElementById('addModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('addModal').style.display = 'none'; }
 
-        // 기존 수파베이스 Create 로직
         async function savePlan() {
             const time = document.getElementById('inputTime').value;
             const place = document.getElementById('inputPlace').value;
@@ -249,17 +245,9 @@
 
             if (!time || !place) return alert("시간과 장소를 입력해주세요!");
 
-            const { error } = await supabaseApp
-                .from('travel_planner')
-                .insert([{ 
-                    trip_name: currentTripName, 
-                    day_index: currentDayIndex, 
-                    time_str: time, 
-                    place_name: place, 
-                    jpy_cost: jpy, 
-                    krw_cost: krw, 
-                    memo_text: memo 
-                }]);
+            const { error } = await supabaseApp.from('travel_planner').insert([{ 
+                trip_name: currentTripName, day_index: currentDayIndex, time_str: time, place_name: place, jpy_cost: jpy, krw_cost: krw, memo_text: memo 
+            }]);
 
             if (error) {
                 alert("저장 실패!");
@@ -273,14 +261,12 @@
             }
         }
 
-        // 구글 맵 초기화
         let map;
         function initMap() {
             map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 34.7024, lng: 135.4959 },
-                zoom: 13,
+                center: { lat: 34.7024, lng: 135.4959 }, zoom: 13,
             });
-        }
+        }    
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAw-sboIMyqehkNYYlB2URbuDpeIhZxwxA&callback=initMap" async defer></script>
 </body>
