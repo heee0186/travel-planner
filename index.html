@@ -27,6 +27,7 @@
         .memo { color: #6c757d; font-size: 12px; margin-top: 5px; }
         .add-btn { width: 100%; padding: 15px; background: #4b0082; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: bold; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
@@ -124,9 +125,40 @@
                 zoom: 13,
             });
         }
+
+        // 수파베이스 연결 초기화
+            const { createClient } = supabase;
+            const supabaseUrl = 'https://pbzwcsaveufsqbmhygon.supabase.co/rest/v1/';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiendjc2F2ZXVmc3FibWh5Z29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTQ2MTgsImV4cCI6MjA5MDc3MDYxOH0.sq8gWEF7ntiA3pL9DeDQ59rVNuDzXBkJSDJmC2OHIOE';
+            const supabaseApp = createClient(supabaseUrl, supabaseKey);
+
+            // 테스트용: 연결이 잘 되었는지 콘솔로 확인
+            console.log("수파베이스 연결 완료:", supabaseApp);
+
+            async function addPlanToSupabase(day, time, place, jpy, krw, memo) {
+            const { data, error } = await supabaseApp
+                .from('osaka_plans') // 새로 만드신 테이블 이름
+                .insert([
+                    { 
+                        day_index: day, 
+                        time_str: time, 
+                        place_name: place, 
+                        jpy_cost: jpy, 
+                        krw_cost: krw, 
+                        memo_text: memo 
+                    }
+                ]);
+
+            if (error) {
+                console.error("데이터 저장 실패:", error);
+                alert("일정 저장에 실패했습니다.");
+            } else {
+                console.log("데이터 저장 성공!");
+                // 여기서 화면에 새로운 일정을 추가로 그려주는 로직이 들어갑니다.
+            }
+        }
+
     </script>
-    
-    <!-- 💡 주의: 아래 YOUR_API_KEY_HERE 부분을 실제 발급받은 키로 바꿔야 지도가 뜹니다! -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAw-sboIMyqehkNYYlB2URbuDpeIhZxwxA&callback=initMap" async defer></script>
 </body>
 </html>
