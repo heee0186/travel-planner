@@ -1019,14 +1019,33 @@
       }
 
       const segmentTexts = [];
+
+      // Google은 좌표보다 Place ID를 경로 계산에 더 정확한 입력값으로 권장해.
+      // 특히 공항·성·대형 시설은 좌표가 활주로/건물 중앙에 찍혀 대중교통 경로가 비는 경우가 있어.
+      const toRouteLocation = item => {
+        if (item.google_place_id && PlaceClass) {
+          return new PlaceClass({ id: item.google_place_id });
+        }
+        return { lat: Number(item.latitude), lng: Number(item.longitude) };
+      };
+
+      const buildTransitDepartureTime = item => {
+        if (!item.schedule_date) return null;
+        const time = item.start_time ? String(item.start_time).slice(0, 5) : '09:00';
+        const departure = new Date(`${item.schedule_date}T${time}:00`);
+        if (Number.isNaN(departure.getTime())) return null;
+
+        // Routes API의 대중교통 시간 범위: 현재 기준 과거 7일 ~ 미래 100일.
+        const now = new Date();
+        const min = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const max = new Date(now.getTime() + 100 * 24 * 60 * 60 * 1000);
+        return departure >= min && departure <= max ? departure : null;
+      };
+
       for (let i = 0; i < items.length - 1; i++) {
         const from = items[i];
         const to = items[i + 1];
         try {
-          const origin = { lat: Number(from.latitude), lng: Number(from.longitude) };
-          const destination = { lat: Number(to.latitude), lng: Number(to.longitude) };
-          // Maps JavaScript API의 Route 클래스는 REST Routes API와 값 이름이 다르다.
-          // 여기서는 DRIVING / WALKING / TRANSIT / BICYCLING 값을 사용해야 한다.
           const routeMode = {
             DRIVING: 'DRIVING',
             WALKING: 'WALKING',
@@ -1034,29 +1053,53 @@
             BICYCLING: 'BICYCLING'
           }[from.travel_mode] || 'DRIVING';
 
-          // TRANSIT 경로의 여러 이동 구간(도보+철도 등)을 그리려면 legs도 요청해야 한다.
           const routeRequest = {
-            origin,
-            destination,
+            origin: toRouteLocation(from),
+            destination: toRouteLocation(to),
             travelMode: routeMode,
             fields: ['path', 'legs', 'distanceMeters', 'durationMillis']
           };
 
-          const { routes } = await RouteClass.computeRoutes(routeRequest);
+          let usedScheduledTime = false;
+          if (routeMode === 'TRANSIT') {
+            const departureTime = buildTransitDepartureTime(from);
+            if (departureTime) {
+              routeRequest.departureTime = departureTime;
+              usedScheduledTime = true;
+            }
+          }
+
+          let result = await RouteClass.computeRoutes(routeRequest);
+
+          // 미래 시간표가 아직 없거나 해당 시간대 결과가 비면 현재 시각 기준으로 한 번 더 시도해.
+          if ((!result.routes || !result.routes.length) && routeMode === 'TRANSIT' && usedScheduledTime) {
+            const retryRequest = { ...routeRequest };
+            delete retryRequest.departureTime;
+            result = await RouteClass.computeRoutes(retryRequest);
+            usedScheduledTime = false;
+          }
+
+          const routes = result.routes;
           if (!routes || !routes.length) {
-            segmentTexts.push(`${i + 1}→${i + 2} 경로 없음`);
+            const detail = routeMode === 'TRANSIT'
+              ? '대중교통 경로 없음(장소 접근점 또는 시간표 결과 없음)'
+              : '경로 없음';
+            segmentTexts.push(`${i + 1}→${i + 2} ${detail}`);
             continue;
           }
+
           const route = routes[0];
           const polylines = route.createPolylines();
           polylines.forEach(polyline => {
             polyline.setMap(map);
             mapPolylines.push(polyline);
           });
+
           const km = route.distanceMeters != null ? `${(route.distanceMeters / 1000).toFixed(1)}km` : '';
           const min = route.durationMillis != null ? `${Math.round(route.durationMillis / 60000)}분` : '';
           const modeLabel = { DRIVING: '자동차', WALKING: '도보', TRANSIT: '대중교통', BICYCLING: '자전거' }[from.travel_mode] || '이동';
-          segmentTexts.push(`${i + 1}→${i + 2} ${modeLabel}${km || min ? ' · ' + [km, min].filter(Boolean).join(' · ') : ''}`);
+          const timeNote = routeMode === 'TRANSIT' && usedScheduledTime ? ' · 일정 시각 기준' : '';
+          segmentTexts.push(`${i + 1}→${i + 2} ${modeLabel}${km || min ? ' · ' + [km, min].filter(Boolean).join(' · ') : ''}${timeNote}`);
         } catch (error) {
           console.warn('경로 계산 실패', error);
           const message = String(error?.message || error || '알 수 없는 오류');
