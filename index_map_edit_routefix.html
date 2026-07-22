@@ -799,12 +799,6 @@
         sub.textContent = parts.join(' · ');
 
         details.appendChild(place);
-        if (item.address) {
-          const address = document.createElement('div');
-          address.className = 'plan-sub';
-          address.textContent = item.address;
-          details.appendChild(address);
-        }
         if (parts.length) details.appendChild(sub);
         if (item.memo) {
           const memo = document.createElement('div');
@@ -922,7 +916,7 @@
         lng: Number(item.longitude)
       };
       const box = document.getElementById('selected-place');
-      box.textContent = `현재 장소: ${selectedGooglePlace.name}${selectedGooglePlace.address ? ' · ' + selectedGooglePlace.address : ''}`;
+      box.textContent = `현재 장소: ${selectedGooglePlace.name}`;
       box.classList.remove('hidden');
       openModal('item-modal');
     }
@@ -972,7 +966,7 @@
             };
             document.getElementById('item-input-place').value = selectedGooglePlace.name;
             const box = document.getElementById('selected-place');
-            box.textContent = `선택됨: ${selectedGooglePlace.name}${selectedGooglePlace.address ? ' · ' + selectedGooglePlace.address : ''}`;
+            box.textContent = `선택됨: ${selectedGooglePlace.name}`;
             box.classList.remove('hidden');
           } catch (error) {
             showToast('장소 정보를 가져오지 못했어: ' + error.message, true);
@@ -1031,10 +1025,16 @@
         try {
           const origin = { lat: Number(from.latitude), lng: Number(from.longitude) };
           const destination = { lat: Number(to.latitude), lng: Number(to.longitude) };
+          const routeMode = {
+            DRIVING: 'DRIVE',
+            WALKING: 'WALK',
+            TRANSIT: 'TRANSIT',
+            BICYCLING: 'BICYCLE'
+          }[from.travel_mode] || 'DRIVE';
           const { routes } = await RouteClass.computeRoutes({
             origin,
             destination,
-            travelMode: from.travel_mode || 'DRIVING',
+            travelMode: routeMode,
             fields: ['path', 'distanceMeters', 'durationMillis']
           });
           if (!routes || !routes.length) continue;
