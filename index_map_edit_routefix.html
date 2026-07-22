@@ -1025,19 +1025,28 @@
         try {
           const origin = { lat: Number(from.latitude), lng: Number(from.longitude) };
           const destination = { lat: Number(to.latitude), lng: Number(to.longitude) };
+          // Maps JavaScript API의 Route 클래스는 REST Routes API와 값 이름이 다르다.
+          // 여기서는 DRIVING / WALKING / TRANSIT / BICYCLING 값을 사용해야 한다.
           const routeMode = {
-            DRIVING: 'DRIVE',
-            WALKING: 'WALK',
+            DRIVING: 'DRIVING',
+            WALKING: 'WALKING',
             TRANSIT: 'TRANSIT',
-            BICYCLING: 'BICYCLE'
-          }[from.travel_mode] || 'DRIVE';
-          const { routes } = await RouteClass.computeRoutes({
+            BICYCLING: 'BICYCLING'
+          }[from.travel_mode] || 'DRIVING';
+
+          // TRANSIT 경로의 여러 이동 구간(도보+철도 등)을 그리려면 legs도 요청해야 한다.
+          const routeRequest = {
             origin,
             destination,
             travelMode: routeMode,
-            fields: ['path', 'distanceMeters', 'durationMillis']
-          });
-          if (!routes || !routes.length) continue;
+            fields: ['path', 'legs', 'distanceMeters', 'durationMillis']
+          };
+
+          const { routes } = await RouteClass.computeRoutes(routeRequest);
+          if (!routes || !routes.length) {
+            segmentTexts.push(`${i + 1}→${i + 2} 경로 없음`);
+            continue;
+          }
           const route = routes[0];
           const polylines = route.createPolylines();
           polylines.forEach(polyline => {
@@ -1054,7 +1063,7 @@
           segmentTexts.push(`${i + 1}→${i + 2} 경로 실패 (${message})`);
         }
       }
-      summary.textContent = segmentTexts.length ? segmentTexts.join(' / ') : '마커는 표시했지만 이동 경로를 계산하지 못했어. Google Cloud의 Routes API와 결제 연결 상태를 확인해 줘.';
+      summary.textContent = segmentTexts.length ? segmentTexts.join(' / ') : '마커는 표시했지만 이동 경로 결과를 받지 못했어.';
     }
 
     async function deleteCurrentTrip() {
