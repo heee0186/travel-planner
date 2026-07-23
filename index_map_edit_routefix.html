@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#6750a4">
-  <title>나만의 여행 기록</title>
+  <title>나만의 여행 기록 · 직선 동선</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({ key: "AIzaSyAw-sboIMyqehkNYYlB2URbuDpeIhZxwxA", v: "weekly", language: "ko" });
@@ -145,7 +145,7 @@
     .empty-day { padding: 35px 15px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 14px; }
     .map-card { margin-bottom: 14px; }
     #map { width: 100%; height: 330px; border-radius: 16px; background: #ece8f2; }
-    #route-summary { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    #route-summary { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.75; }
     #place-autocomplete-host { min-height: 48px; }
     gmp-place-autocomplete { width: 100%; }
     .selected-place { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--primary-soft); color: var(--primary-dark); font-size: 13px; }
@@ -273,7 +273,7 @@
       <div class="day-panel card">
         <div class="map-card">
           <div id="map"></div>
-          <div id="route-summary">지도에 표시할 장소를 일정에 추가해 줘.</div>
+          <div id="route-summary">장소를 추가하면 일정 순서대로 마커와 직선을 표시해.</div>
         </div>
         <div class="day-toolbar">
           <h3 id="day-title">일정</h3>
@@ -345,16 +345,7 @@
           <div id="place-autocomplete-host"></div>
           <input id="item-input-place" type="hidden">
           <div id="selected-place" class="selected-place hidden"></div>
-          <div class="place-help">검색 결과에서 장소를 하나 선택해야 지도와 동선에 표시돼.</div>
-        </div>
-        <div class="field">
-          <label for="item-input-travel-mode">이 장소에서 다음 장소까지 이동수단</label>
-          <select id="item-input-travel-mode">
-            <option value="DRIVING">자동차</option>
-            <option value="WALKING">도보</option>
-            <option value="TRANSIT">대중교통</option>
-            <option value="BICYCLING">자전거</option>
-          </select>
+          <div class="place-help">검색 결과에서 장소를 하나 선택해야 지도와 직선 동선에 표시돼.</div>
         </div>
         <div class="form-grid">
           <div class="field">
@@ -403,8 +394,6 @@
     let mapMarkers = [];
     let mapPolylines = [];
     let selectedGooglePlace = null;
-    let PlaceClass = null;
-    let RouteClass = null;
     let editingItemId = null;
 
     const STATUS_LABELS = {
@@ -838,7 +827,6 @@
       document.getElementById('selected-place').classList.add('hidden');
       document.getElementById('selected-place').textContent = '';
       document.getElementById('item-input-currency').value = currentTrip.default_currency || 'KRW';
-      document.getElementById('item-input-travel-mode').value = 'DRIVING';
       document.getElementById('item-input-date').value = getDateForDay(currentDayNumber) || '';
       openModal('item-modal');
     }
@@ -852,7 +840,6 @@
       const estimatedCost = Number(document.getElementById('item-input-cost').value || 0);
       const currency = document.getElementById('item-input-currency').value;
       const memo = document.getElementById('item-input-memo').value.trim();
-      const travelMode = document.getElementById('item-input-travel-mode').value;
       const submit = event.submitter;
 
       if (!place || !selectedGooglePlace) return showToast('Google 검색 결과에서 장소를 선택해.', true);
@@ -871,7 +858,6 @@
         google_place_id: selectedGooglePlace.id || null,
         latitude: selectedGooglePlace.lat,
         longitude: selectedGooglePlace.lng,
-        travel_mode: travelMode,
         estimated_cost: estimatedCost,
         currency,
         memo: memo || null
@@ -906,7 +892,6 @@
       document.getElementById('item-input-cost').value = Number(item.estimated_cost || 0);
       document.getElementById('item-input-currency').value = item.currency || currentTrip.default_currency || 'KRW';
       document.getElementById('item-input-memo').value = item.memo || '';
-      document.getElementById('item-input-travel-mode').value = item.travel_mode || 'DRIVING';
       document.getElementById('item-input-place').value = item.place_name || '';
       selectedGooglePlace = {
         id: item.google_place_id || null,
@@ -934,13 +919,10 @@
 
     async function initGoogleFeatures() {
       try {
-        const [{ Map }, placesLib, routesLib] = await Promise.all([
+        const [{ Map }, placesLib] = await Promise.all([
           google.maps.importLibrary('maps'),
-          google.maps.importLibrary('places'),
-          google.maps.importLibrary('routes')
+          google.maps.importLibrary('places')
         ]);
-        PlaceClass = placesLib.Place;
-        RouteClass = routesLib.Route;
         map = new Map(document.getElementById('map'), {
           center: { lat: 36.5, lng: 127.8 },
           zoom: 6,
@@ -991,7 +973,11 @@
       const summary = document.getElementById('route-summary');
       const items = itemsCache
         .filter(item => item.day_number === currentDayNumber && item.latitude != null && item.longitude != null)
-        .sort((a, b) => String(a.start_time || '99:99').localeCompare(String(b.start_time || '99:99')));
+        .sort((a, b) => {
+          const timeCompare = String(a.start_time || '99:99').localeCompare(String(b.start_time || '99:99'));
+          if (timeCompare !== 0) return timeCompare;
+          return String(a.created_at || '').localeCompare(String(b.created_at || ''));
+        });
 
       if (!items.length) {
         summary.textContent = '이 날짜에는 지도에 표시할 장소가 아직 없어.';
@@ -999,7 +985,7 @@
       }
 
       const bounds = new google.maps.LatLngBounds();
-      items.forEach((item, index) => {
+      const positions = items.map((item, index) => {
         const position = { lat: Number(item.latitude), lng: Number(item.longitude) };
         bounds.extend(position);
         const marker = new google.maps.Marker({
@@ -1009,104 +995,26 @@
           title: item.place_name
         });
         mapMarkers.push(marker);
+        return position;
       });
+
+      if (positions.length >= 2) {
+        const straightLine = new google.maps.Polyline({
+          map,
+          path: positions,
+          geodesic: false,
+          strokeOpacity: 0.85,
+          strokeWeight: 4
+        });
+        mapPolylines.push(straightLine);
+      }
+
       map.fitBounds(bounds);
       if (items.length === 1) map.setZoom(15);
 
-      if (items.length < 2 || !RouteClass) {
-        summary.textContent = `장소 ${items.length}개를 지도에 표시했어.`;
-        return;
-      }
-
-      const segmentTexts = [];
-
-      // Google은 좌표보다 Place ID를 경로 계산에 더 정확한 입력값으로 권장해.
-      // 특히 공항·성·대형 시설은 좌표가 활주로/건물 중앙에 찍혀 대중교통 경로가 비는 경우가 있어.
-      const toRouteLocation = item => {
-        if (item.google_place_id && PlaceClass) {
-          return new PlaceClass({ id: item.google_place_id });
-        }
-        return { lat: Number(item.latitude), lng: Number(item.longitude) };
-      };
-
-      const buildTransitDepartureTime = item => {
-        if (!item.schedule_date) return null;
-        const time = item.start_time ? String(item.start_time).slice(0, 5) : '09:00';
-        const departure = new Date(`${item.schedule_date}T${time}:00`);
-        if (Number.isNaN(departure.getTime())) return null;
-
-        // Routes API의 대중교통 시간 범위: 현재 기준 과거 7일 ~ 미래 100일.
-        const now = new Date();
-        const min = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const max = new Date(now.getTime() + 100 * 24 * 60 * 60 * 1000);
-        return departure >= min && departure <= max ? departure : null;
-      };
-
-      for (let i = 0; i < items.length - 1; i++) {
-        const from = items[i];
-        const to = items[i + 1];
-        try {
-          const routeMode = {
-            DRIVING: 'DRIVING',
-            WALKING: 'WALKING',
-            TRANSIT: 'TRANSIT',
-            BICYCLING: 'BICYCLING'
-          }[from.travel_mode] || 'DRIVING';
-
-          const routeRequest = {
-            origin: toRouteLocation(from),
-            destination: toRouteLocation(to),
-            travelMode: routeMode,
-            fields: ['path', 'legs', 'distanceMeters', 'durationMillis']
-          };
-
-          let usedScheduledTime = false;
-          if (routeMode === 'TRANSIT') {
-            const departureTime = buildTransitDepartureTime(from);
-            if (departureTime) {
-              routeRequest.departureTime = departureTime;
-              usedScheduledTime = true;
-            }
-          }
-
-          let result = await RouteClass.computeRoutes(routeRequest);
-
-          // 미래 시간표가 아직 없거나 해당 시간대 결과가 비면 현재 시각 기준으로 한 번 더 시도해.
-          if ((!result.routes || !result.routes.length) && routeMode === 'TRANSIT' && usedScheduledTime) {
-            const retryRequest = { ...routeRequest };
-            delete retryRequest.departureTime;
-            result = await RouteClass.computeRoutes(retryRequest);
-            usedScheduledTime = false;
-          }
-
-          const routes = result.routes;
-          if (!routes || !routes.length) {
-            const detail = routeMode === 'TRANSIT'
-              ? '대중교통 경로 없음(장소 접근점 또는 시간표 결과 없음)'
-              : '경로 없음';
-            segmentTexts.push(`${i + 1}→${i + 2} ${detail}`);
-            continue;
-          }
-
-          const route = routes[0];
-          const polylines = route.createPolylines();
-          polylines.forEach(polyline => {
-            polyline.setMap(map);
-            mapPolylines.push(polyline);
-          });
-
-          const km = route.distanceMeters != null ? `${(route.distanceMeters / 1000).toFixed(1)}km` : '';
-          const min = route.durationMillis != null ? `${Math.round(route.durationMillis / 60000)}분` : '';
-          const modeLabel = { DRIVING: '자동차', WALKING: '도보', TRANSIT: '대중교통', BICYCLING: '자전거' }[from.travel_mode] || '이동';
-          const timeNote = routeMode === 'TRANSIT' && usedScheduledTime ? ' · 일정 시각 기준' : '';
-          segmentTexts.push(`${i + 1}→${i + 2} ${modeLabel}${km || min ? ' · ' + [km, min].filter(Boolean).join(' · ') : ''}${timeNote}`);
-        } catch (error) {
-          console.warn('경로 계산 실패', error);
-          const message = String(error?.message || error || '알 수 없는 오류');
-          segmentTexts.push(`${i + 1}→${i + 2} 경로 실패 (${message})`);
-        }
-      }
-      summary.textContent = segmentTexts.length ? segmentTexts.join(' / ') : '마커는 표시했지만 이동 경로 결과를 받지 못했어.';
+      summary.textContent = items.length === 1
+        ? '장소 1개를 지도에 표시했어.'
+        : `마커 ${items.length}개를 일정 순서대로 직선으로 연결했어. 실제 도로 경로가 아니라 위치 흐름을 보는 선이야.`;
     }
 
     async function deleteCurrentTrip() {
