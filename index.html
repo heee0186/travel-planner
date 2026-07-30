@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#6750a4">
-  <title>여행 일정 공유 · 관리자 편집</title>
+  <title>여행 일정</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({ key: "AIzaSyAw-sboIMyqehkNYYlB2URbuDpeIhZxwxA", v: "weekly", language: "ko" });
@@ -140,6 +140,17 @@
     .plan-sub { color: var(--muted); font-size: 13px; line-height: 1.5; }
     .memo { margin-top: 6px; color: #504a58; white-space: pre-wrap; }
     .plan-actions { display:flex; gap:7px; margin-top:10px; flex-wrap:wrap; }
+    .inline-expense-block { margin-top: 10px; padding-top: 9px; border-top: 1px dashed #e3deea; }
+    .inline-expense-title { margin-bottom: 4px; color: #655f6b; font-size: 11px; font-weight: 900; }
+    .inline-expense-list { display: grid; gap: 3px; }
+    .inline-expense-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; font-size: 12px; line-height: 1.55; }
+    .inline-expense-main { min-width: 0; color: #5d5665; overflow-wrap: anywhere; }
+    .inline-expense-amount { flex: 0 0 auto; color: #38323f; font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .inline-expense-actions { display: inline-flex; gap: 2px; margin-left: 3px; vertical-align: middle; }
+    .inline-expense-actions .mini-btn { padding: 2px 5px; border: 0; background: transparent; font-size: 10px; color: var(--muted); }
+    .inline-expense-actions .mini-btn.danger { background: transparent; color: var(--danger); }
+    .expense-link-context { margin-bottom: 13px; padding: 11px 12px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-dark); font-size: 13px; font-weight: 850; line-height: 1.45; }
+    .form-help { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.45; }
     .mini-btn { border:1px solid var(--line); background:white; color:var(--primary-dark); border-radius:9px; padding:7px 10px; font-size:12px; font-weight:800; }
     .mini-btn.danger { color:var(--danger); background:#fff7f6; }
     .empty-day { padding: 35px 15px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 14px; }
@@ -150,6 +161,33 @@
     gmp-place-autocomplete { width: 100%; }
     .selected-place { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--primary-soft); color: var(--primary-dark); font-size: 13px; }
     .place-help { margin-top: 6px; color: var(--muted); font-size: 12px; }
+
+    /* 일정에 곁들이는 작은 가계부 요약 */
+    .expense-panel { margin: 12px 0 16px; padding: 0; overflow: hidden; }
+    .expense-summary-toggle { width: 100%; border: 0; background: #fff; padding: 13px 15px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; color: var(--primary-dark); text-align: left; font-weight: 900; }
+    .expense-summary-brief { min-width: 0; color: var(--muted); font-size: 12px; font-weight: 700; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .expense-summary-chevron { color: var(--muted); font-size: 12px; }
+    .expense-summary-body { display: none; padding: 0 15px 14px; border-top: 1px solid #f0edf3; }
+    .expense-summary-body.open { display: block; }
+    .expense-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0 8px; }
+    .expense-total-line { color: #4f4857; font-size: 13px; }
+    .expense-total-line strong { color: var(--primary-dark); }
+    .payer-summary { display: grid; gap: 2px; padding: 5px 0 8px; }
+    .payer-summary-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; color: #5d5665; font-size: 12px; }
+    .payer-summary-row strong { color: #38323f; }
+    .expense-list-title { margin: 7px 0 5px; color: var(--muted); font-size: 11px; font-weight: 900; }
+    .expense-list { display: grid; gap: 3px; }
+    .expense-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px dashed #ece7f0; font-size: 12px; }
+    .expense-item:first-child { border-top: 0; }
+    .expense-title { color: #514a58; overflow-wrap: anywhere; }
+    .expense-meta { margin-top: 1px; color: var(--muted); font-size: 10px; line-height: 1.4; }
+    .expense-right { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .expense-amount { color: #38323f; font-weight: 900; }
+    .expense-actions { display: inline-flex; gap: 2px; }
+    .expense-actions .mini-btn { padding: 2px 5px; border: 0; background: transparent; font-size: 10px; color: var(--muted); }
+    .expense-actions .mini-btn.danger { background: transparent; color: var(--danger); }
+    .time-select-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+    .time-colon { color: var(--muted); font-weight: 900; text-align: center; }
 
 
     /* 공개 공유 화면 */
@@ -188,6 +226,8 @@
       .planner-header-row { flex-direction: column; }
       .form-grid { grid-template-columns: 1fr; }
       .plan-item { grid-template-columns: 58px 1fr; }
+      .expense-summary-toggle { grid-template-columns: auto minmax(0, 1fr) auto; }
+      .expense-summary-brief { font-size: 11px; }
     }
   </style>
 </head>
@@ -306,6 +346,24 @@
         </div>
         <div id="plan-list" class="plan-list"></div>
       </div>
+
+      <section class="expense-panel card" aria-labelledby="expense-title">
+        <button id="expense-summary-toggle" class="expense-summary-toggle" type="button" onclick="toggleExpenseSummary()" aria-expanded="false">
+          <span id="expense-title">여행 전체 가계부</span>
+          <span id="expense-summary-brief" class="expense-summary-brief">아직 결제 기록 없음</span>
+          <span id="expense-summary-chevron" class="expense-summary-chevron">▾</span>
+        </button>
+        <div id="expense-summary-body" class="expense-summary-body">
+          <div class="expense-toolbar">
+            <div class="expense-total-line"><strong id="expense-grand-total">아직 지출 없음</strong> · <span id="expense-count">0건</span></div>
+            <button id="add-expense-btn" class="mini-btn" type="button" onclick="openExpenseModal(null)">+ 일정 외 지출</button>
+          </div>
+          <div id="payer-summary" class="payer-summary"></div>
+          <div id="expense-list-title" class="expense-list-title hidden">일정 외 지출</div>
+          <div id="expense-list" class="expense-list"></div>
+        </div>
+      </section>
+
     </section>
   </main>
 
@@ -361,8 +419,12 @@
             <input id="item-input-date" type="date">
           </div>
           <div class="field">
-            <label for="item-input-time">시간</label>
-            <input id="item-input-time" type="time">
+            <label>시간</label>
+            <div class="time-select-row">
+              <select id="item-input-hour" aria-label="시"></select>
+              <span class="time-colon" aria-hidden="true">:</span>
+              <select id="item-input-minute" aria-label="분"></select>
+            </div>
           </div>
         </div>
         <div class="field">
@@ -372,14 +434,45 @@
           <div id="selected-place" class="selected-place hidden"></div>
           <div class="place-help">검색 결과에서 장소를 하나 선택해야 지도와 직선 동선에 표시돼.</div>
         </div>
+        <input id="item-input-cost" type="hidden" value="">
+        <input id="item-input-currency" type="hidden" value="KRW">
+        <div class="field">
+          <label for="item-input-memo">메모</label>
+          <textarea id="item-input-memo" maxlength="1000" placeholder="예약 정보, 준비물, 참고사항 등을 적어줘."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-btn" type="button" onclick="closeModal('item-modal')">취소</button>
+          <button id="item-submit-btn" class="primary-btn" type="submit">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 지출 추가/수정 모달 -->
+  <div id="expense-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
+    <div class="modal-box">
+      <h3 id="expense-modal-title">지출 추가</h3>
+      <div id="expense-link-context" class="expense-link-context hidden"></div>
+      <form id="expense-form">
         <div class="form-grid">
           <div class="field">
-            <label for="item-input-cost">예상 비용</label>
-            <input id="item-input-cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0">
+            <label for="expense-input-date">결제일</label>
+            <input id="expense-input-date" type="date" required>
           </div>
           <div class="field">
-            <label for="item-input-currency">통화</label>
-            <select id="item-input-currency">
+            <label for="expense-input-payer">결제한 사람 *</label>
+            <input id="expense-input-payer" type="text" list="payer-suggestions" maxlength="40" placeholder="예: 희정, 민지" required>
+            <datalist id="payer-suggestions"></datalist>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="expense-input-amount">금액 *</label>
+            <input id="expense-input-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0" required>
+          </div>
+          <div class="field">
+            <label for="expense-input-currency">통화</label>
+            <select id="expense-input-currency">
               <option value="KRW">KRW · 원</option>
               <option value="JPY">JPY · 엔</option>
               <option value="VND">VND · 동</option>
@@ -389,12 +482,27 @@
           </div>
         </div>
         <div class="field">
-          <label for="item-input-memo">메모</label>
-          <textarea id="item-input-memo" maxlength="1000" placeholder="예약 정보, 준비물, 참고사항 등을 적어줘."></textarea>
+          <label for="expense-input-category">분류</label>
+          <select id="expense-input-category">
+            <option value="lodging">숙소</option>
+            <option value="transport">교통</option>
+            <option value="food">식비</option>
+            <option value="activity">관광·체험</option>
+            <option value="shopping">쇼핑</option>
+            <option value="other">기타</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="expense-input-description">내용</label>
+          <input id="expense-input-description" type="text" maxlength="120" placeholder="예: 공항철도, 저녁 식사, 숙소 결제">
+        </div>
+        <div class="field">
+          <label for="expense-input-memo">메모</label>
+          <textarea id="expense-input-memo" maxlength="500" placeholder="정산할 때 필요한 내용을 적어줘."></textarea>
         </div>
         <div class="modal-actions">
-          <button class="ghost-btn" type="button" onclick="closeModal('item-modal')">취소</button>
-          <button id="item-submit-btn" class="primary-btn" type="submit">저장</button>
+          <button class="ghost-btn" type="button" onclick="closeModal('expense-modal')">취소</button>
+          <button id="expense-submit-btn" class="primary-btn" type="submit">저장</button>
         </div>
       </form>
     </div>
@@ -413,6 +521,9 @@
     let currentDayNumber = 1;
     let tripsCache = [];
     let itemsCache = [];
+    let expensesCache = [];
+    let editingExpenseId = null;
+    let expenseLinkedItemId = null;
     let authReady = false;
     let map = null;
     let mapMarkers = [];
@@ -430,10 +541,21 @@
       archived: '보관됨'
     };
 
+    const EXPENSE_CATEGORIES = {
+      lodging: { label: '숙소', icon: '🏨' },
+      transport: { label: '교통', icon: '🚆' },
+      food: { label: '식비', icon: '🍜' },
+      activity: { label: '관광·체험', icon: '🎟️' },
+      shopping: { label: '쇼핑', icon: '🛍️' },
+      other: { label: '기타', icon: '🧾' }
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
       document.getElementById('trip-form').addEventListener('submit', createTrip);
       document.getElementById('item-form').addEventListener('submit', createItineraryItem);
+      document.getElementById('expense-form').addEventListener('submit', saveTripExpense);
+      initializeTimeSelects();
       initGoogleFeatures();
 
       document.querySelectorAll('.modal').forEach(modal => {
@@ -599,6 +721,7 @@
       document.getElementById('planner-owner-actions').classList.toggle('hidden', isReadOnlyMode);
       document.getElementById('planner-readonly-label').classList.toggle('hidden', !isReadOnlyMode);
       document.getElementById('add-item-btn').classList.toggle('hidden', isReadOnlyMode);
+      document.getElementById('add-expense-btn').classList.toggle('hidden', isReadOnlyMode);
       const ownerButton = document.getElementById('public-owner-btn');
       ownerButton.textContent = currentUser ? '내 여행 관리' : '관리자 로그인';
     }
@@ -800,7 +923,7 @@
       applyPlannerMode();
       updateShareControls();
       renderDayTabs();
-      await loadItineraryItems();
+      await Promise.all([loadItineraryItems(), loadExpenses()]);
     }
 
     async function openSharedTrip(shareToken) {
@@ -824,7 +947,7 @@
       showScreen('screen-planner');
       applyPlannerMode();
       renderDayTabs();
-      await loadItineraryItems();
+      await Promise.all([loadItineraryItems(), loadExpenses()]);
     }
 
     function goBackToTrips() {
@@ -920,6 +1043,7 @@
       }
 
       items.forEach(item => {
+        const linkedExpenses = expensesCache.filter(expense => expense.itinerary_item_id === item.id);
         const row = document.createElement('article');
         row.className = 'plan-item';
 
@@ -936,7 +1060,6 @@
         sub.className = 'plan-sub';
         const parts = [];
         if (item.schedule_date) parts.push(formatKoreanDate(item.schedule_date));
-        if (Number(item.estimated_cost) > 0) parts.push(`예상 ${formatMoney(item.estimated_cost, item.currency)}`);
         sub.textContent = parts.join(' · ');
 
         details.appendChild(place);
@@ -948,20 +1071,76 @@
           details.appendChild(memo);
         }
 
+        if (linkedExpenses.length) {
+          const expenseBlock = document.createElement('div');
+          expenseBlock.className = 'inline-expense-block';
+          const title = document.createElement('div');
+          title.className = 'inline-expense-title';
+          title.textContent = '결제 기록';
+          const inlineList = document.createElement('div');
+          inlineList.className = 'inline-expense-list';
+
+          linkedExpenses.forEach(expense => {
+            const expenseRow = document.createElement('div');
+            expenseRow.className = 'inline-expense-row';
+
+            const main = document.createElement('div');
+            main.className = 'inline-expense-main';
+            const noteParts = [expense.payer_name || '이름 없음'];
+            if (expense.description && expense.description !== item.place_name) noteParts.push(expense.description);
+            if (expense.memo) noteParts.push(expense.memo);
+            main.textContent = noteParts.join(' · ');
+
+            const right = document.createElement('div');
+            right.className = 'inline-expense-amount';
+            const amount = document.createElement('span');
+            amount.textContent = formatMoney(expense.amount, expense.currency);
+            right.appendChild(amount);
+
+            if (!isReadOnlyMode) {
+              const actions = document.createElement('span');
+              actions.className = 'inline-expense-actions';
+              const editExpenseBtn = document.createElement('button');
+              editExpenseBtn.type = 'button';
+              editExpenseBtn.className = 'mini-btn';
+              editExpenseBtn.textContent = '수정';
+              editExpenseBtn.addEventListener('click', () => openEditExpenseModal(expense.id));
+              const deleteExpenseBtn = document.createElement('button');
+              deleteExpenseBtn.type = 'button';
+              deleteExpenseBtn.className = 'mini-btn danger';
+              deleteExpenseBtn.textContent = '삭제';
+              deleteExpenseBtn.addEventListener('click', () => deleteTripExpense(expense.id));
+              actions.append(editExpenseBtn, deleteExpenseBtn);
+              right.appendChild(actions);
+            }
+
+            expenseRow.append(main, right);
+            inlineList.appendChild(expenseRow);
+          });
+
+          expenseBlock.append(title, inlineList);
+          details.appendChild(expenseBlock);
+        }
+
         if (!isReadOnlyMode) {
           const actions = document.createElement('div');
           actions.className = 'plan-actions';
+          const expenseBtn = document.createElement('button');
+          expenseBtn.type = 'button';
+          expenseBtn.className = 'secondary-btn';
+          expenseBtn.textContent = '+ 결제 기록';
+          expenseBtn.addEventListener('click', () => openExpenseModal(item.id));
           const editBtn = document.createElement('button');
           editBtn.type = 'button';
           editBtn.className = 'mini-btn';
-          editBtn.textContent = '수정';
+          editBtn.textContent = '일정 수정';
           editBtn.addEventListener('click', () => openEditItemModal(item.id));
           const deleteBtn = document.createElement('button');
           deleteBtn.type = 'button';
           deleteBtn.className = 'mini-btn danger';
-          deleteBtn.textContent = '삭제';
+          deleteBtn.textContent = '일정 삭제';
           deleteBtn.addEventListener('click', () => deleteItineraryItem(item.id));
-          actions.append(editBtn, deleteBtn);
+          actions.append(expenseBtn, editBtn, deleteBtn);
           details.appendChild(actions);
         }
 
@@ -976,6 +1155,7 @@
       document.getElementById('item-modal-title').textContent = '일정 추가';
       document.getElementById('item-submit-btn').textContent = '저장';
       document.getElementById('item-form').reset();
+      setTimeSelects(null);
       selectedGooglePlace = null;
       document.getElementById('item-input-place').value = '';
       document.getElementById('selected-place').classList.add('hidden');
@@ -990,7 +1170,9 @@
       if (!currentTrip || isReadOnlyMode || !currentUser) return;
       const place = document.getElementById('item-input-place').value.trim();
       const scheduleDate = document.getElementById('item-input-date').value || null;
-      const startTime = document.getElementById('item-input-time').value || null;
+      const timeResult = getSelectedTime();
+      if (timeResult.error) return showToast(timeResult.error, true);
+      const startTime = timeResult.value;
       const estimatedCost = Number(document.getElementById('item-input-cost').value || 0);
       const currency = document.getElementById('item-input-currency').value;
       const memo = document.getElementById('item-input-memo').value.trim();
@@ -1043,7 +1225,7 @@
       document.getElementById('item-modal-title').textContent = '일정 수정';
       document.getElementById('item-submit-btn').textContent = '수정 저장';
       document.getElementById('item-input-date').value = item.schedule_date || '';
-      document.getElementById('item-input-time').value = item.start_time ? item.start_time.slice(0,5) : '';
+      setTimeSelects(item.start_time ? item.start_time.slice(0, 5) : null);
       document.getElementById('item-input-cost').value = Number(item.estimated_cost || 0);
       document.getElementById('item-input-currency').value = item.currency || currentTrip.default_currency || 'KRW';
       document.getElementById('item-input-memo').value = item.memo || '';
@@ -1068,10 +1250,337 @@
       if (!confirm(`“${item.place_name}” 일정을 삭제할까?`)) return;
       const { error } = await supabaseApp.from('itinerary_items').delete().eq('id', itemId);
       if (error) return showToast('일정 삭제 실패: ' + error.message, true);
-      showToast('일정을 삭제했어.');
-      await loadItineraryItems();
+      showToast('일정을 삭제했어. 연결된 결제 기록은 일정 외 지출로 남아.');
+      await Promise.all([loadItineraryItems(), loadExpenses()]);
     }
 
+
+    function initializeTimeSelects() {
+      const hourSelect = document.getElementById('item-input-hour');
+      const minuteSelect = document.getElementById('item-input-minute');
+      hourSelect.replaceChildren(new Option('시', ''));
+      minuteSelect.replaceChildren(new Option('분', ''));
+      for (let hour = 0; hour < 24; hour++) {
+        const value = String(hour).padStart(2, '0');
+        hourSelect.appendChild(new Option(`${value}시`, value));
+      }
+      for (let minute = 0; minute < 60; minute++) {
+        const value = String(minute).padStart(2, '0');
+        minuteSelect.appendChild(new Option(`${value}분`, value));
+      }
+    }
+
+    function setTimeSelects(timeValue) {
+      const hourSelect = document.getElementById('item-input-hour');
+      const minuteSelect = document.getElementById('item-input-minute');
+      if (!timeValue) {
+        hourSelect.value = '';
+        minuteSelect.value = '';
+        return;
+      }
+      const [hour = '', minute = ''] = String(timeValue).slice(0, 5).split(':');
+      hourSelect.value = hour;
+      minuteSelect.value = minute;
+    }
+
+    function getSelectedTime() {
+      const hour = document.getElementById('item-input-hour').value;
+      const minute = document.getElementById('item-input-minute').value;
+      if (!hour && !minute) return { value: null, error: null };
+      if (!hour || !minute) return { value: null, error: '시간은 시와 분을 둘 다 선택해.' };
+      return { value: `${hour}:${minute}`, error: null };
+    }
+
+    async function loadExpenses() {
+      const list = document.getElementById('expense-list');
+      list.innerHTML = '<div class="empty-day">가계부를 불러오는 중...</div>';
+      let data;
+      let error;
+
+      if (isReadOnlyMode) {
+        const result = await supabaseApp.rpc('get_shared_expenses', { p_share_token: currentShareToken });
+        data = result.data;
+        error = result.error;
+      } else {
+        const result = await supabaseApp
+          .from('trip_expenses')
+          .select('*')
+          .eq('trip_id', currentTrip.id)
+          .order('expense_date', { ascending: false })
+          .order('created_at', { ascending: false });
+        data = result.data;
+        error = result.error;
+      }
+
+      if (error) {
+        expensesCache = [];
+        renderExpenseLedger();
+        renderCurrentDayItems();
+        return showToast('가계부 불러오기 오류: ' + error.message, true);
+      }
+
+      expensesCache = data || [];
+      renderExpenseLedger();
+      renderCurrentDayItems();
+    }
+
+    function renderExpenseLedger() {
+      const totalBox = document.getElementById('expense-grand-total');
+      const countBox = document.getElementById('expense-count');
+      const briefBox = document.getElementById('expense-summary-brief');
+      const payerSummary = document.getElementById('payer-summary');
+      const listTitle = document.getElementById('expense-list-title');
+      const list = document.getElementById('expense-list');
+      payerSummary.replaceChildren();
+      list.replaceChildren();
+
+      countBox.textContent = `${expensesCache.length.toLocaleString('ko-KR')}건`;
+      const grandTotals = sumByCurrency(expensesCache);
+      const totalText = expensesCache.length ? formatCurrencyTotals(grandTotals) : '아직 지출 없음';
+      totalBox.textContent = totalText;
+      briefBox.textContent = expensesCache.length ? totalText : '아직 결제 기록 없음';
+
+      if (!expensesCache.length) {
+        listTitle.classList.add('hidden');
+        const empty = document.createElement('div');
+        empty.className = 'plan-sub';
+        empty.textContent = isReadOnlyMode
+          ? '아직 등록된 결제 기록이 없어.'
+          : '각 일정의 “결제 기록” 버튼에서 바로 남길 수 있어.';
+        list.appendChild(empty);
+        updatePayerSuggestions();
+        return;
+      }
+
+      const byPayer = new Map();
+      expensesCache.forEach(expense => {
+        const payer = (expense.payer_name || '이름 없음').trim();
+        if (!byPayer.has(payer)) byPayer.set(payer, []);
+        byPayer.get(payer).push(expense);
+      });
+
+      [...byPayer.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0], 'ko'))
+        .forEach(([payer, rows]) => {
+          const summaryRow = document.createElement('div');
+          summaryRow.className = 'payer-summary-row';
+          const name = document.createElement('span');
+          name.textContent = payer;
+          const total = document.createElement('strong');
+          total.textContent = formatCurrencyTotals(sumByCurrency(rows));
+          summaryRow.append(name, total);
+          payerSummary.appendChild(summaryRow);
+        });
+
+      const unlinkedExpenses = expensesCache.filter(expense => !expense.itinerary_item_id);
+      listTitle.classList.toggle('hidden', !unlinkedExpenses.length);
+
+      unlinkedExpenses.forEach(expense => {
+        const row = document.createElement('article');
+        row.className = 'expense-item';
+
+        const details = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'expense-title';
+        const description = expense.description?.trim() || (EXPENSE_CATEGORIES[expense.category]?.label || '기타');
+        title.textContent = `${expense.payer_name} · ${description}`;
+        const meta = document.createElement('div');
+        meta.className = 'expense-meta';
+        const metaParts = [formatKoreanDate(expense.expense_date)];
+        if (expense.memo) metaParts.push(expense.memo);
+        meta.textContent = metaParts.filter(Boolean).join(' · ');
+        details.append(title, meta);
+
+        const right = document.createElement('div');
+        right.className = 'expense-right';
+        const amount = document.createElement('span');
+        amount.className = 'expense-amount';
+        amount.textContent = formatMoney(expense.amount, expense.currency);
+        right.appendChild(amount);
+
+        if (!isReadOnlyMode) {
+          const actions = document.createElement('span');
+          actions.className = 'expense-actions';
+          const editButton = document.createElement('button');
+          editButton.type = 'button';
+          editButton.className = 'mini-btn';
+          editButton.textContent = '수정';
+          editButton.addEventListener('click', () => openEditExpenseModal(expense.id));
+          const deleteButton = document.createElement('button');
+          deleteButton.type = 'button';
+          deleteButton.className = 'mini-btn danger';
+          deleteButton.textContent = '삭제';
+          deleteButton.addEventListener('click', () => deleteTripExpense(expense.id));
+          actions.append(editButton, deleteButton);
+          right.appendChild(actions);
+        }
+
+        row.append(details, right);
+        list.appendChild(row);
+      });
+
+      updatePayerSuggestions();
+    }
+
+    function toggleExpenseSummary() {
+      const body = document.getElementById('expense-summary-body');
+      const toggle = document.getElementById('expense-summary-toggle');
+      const chevron = document.getElementById('expense-summary-chevron');
+      const isOpen = body.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(isOpen));
+      chevron.textContent = isOpen ? '▴' : '▾';
+    }
+
+    function sumByCurrency(rows) {
+      const totals = new Map();
+      rows.forEach(row => {
+        const currency = row.currency || currentTrip?.default_currency || 'KRW';
+        totals.set(currency, (totals.get(currency) || 0) + Number(row.amount || 0));
+      });
+      return totals;
+    }
+
+    function formatCurrencyTotals(totals) {
+      return [...totals.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([currency, amount]) => formatMoney(amount, currency))
+        .join(' + ');
+    }
+
+    function updatePayerSuggestions() {
+      const datalist = document.getElementById('payer-suggestions');
+      datalist.replaceChildren();
+      const names = [...new Set(expensesCache.map(row => String(row.payer_name || '').trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'ko'));
+      names.forEach(name => datalist.appendChild(new Option(name, name)));
+    }
+
+    function openExpenseModal(linkedItemId = null) {
+      if (!currentTrip || isReadOnlyMode || !currentUser) return;
+      editingExpenseId = null;
+      expenseLinkedItemId = linkedItemId || null;
+      const linkedItem = expenseLinkedItemId ? itemsCache.find(item => item.id === expenseLinkedItemId) : null;
+      document.getElementById('expense-modal-title').textContent = linkedItem ? '일정 결제 기록' : '일정 외 지출 추가';
+      document.getElementById('expense-submit-btn').textContent = '저장';
+      document.getElementById('expense-form').reset();
+
+      const context = document.getElementById('expense-link-context');
+      if (linkedItem) {
+        const scheduleLabel = [
+          linkedItem.schedule_date ? formatKoreanDate(linkedItem.schedule_date) : null,
+          linkedItem.start_time ? linkedItem.start_time.slice(0, 5) : null,
+          linkedItem.place_name
+        ].filter(Boolean).join(' · ');
+        context.textContent = scheduleLabel;
+        context.classList.remove('hidden');
+        document.getElementById('expense-input-date').value = linkedItem.schedule_date || getDateForDay(currentDayNumber) || currentTrip.start_date || toDateInputValue(new Date());
+        document.getElementById('expense-input-currency').value = linkedItem.currency || currentTrip.default_currency || 'KRW';
+        document.getElementById('expense-input-description').value = linkedItem.place_name || '';
+      } else {
+        context.textContent = '';
+        context.classList.add('hidden');
+        document.getElementById('expense-input-date').value = getDateForDay(currentDayNumber) || currentTrip.start_date || toDateInputValue(new Date());
+        document.getElementById('expense-input-currency').value = currentTrip.default_currency || 'KRW';
+      }
+
+      document.getElementById('expense-input-category').value = 'food';
+      updatePayerSuggestions();
+      openModal('expense-modal');
+      setTimeout(() => document.getElementById('expense-input-payer').focus(), 50);
+    }
+
+    async function saveTripExpense(event) {
+      event.preventDefault();
+      if (!currentTrip || isReadOnlyMode || !currentUser) return;
+
+      const expenseDate = document.getElementById('expense-input-date').value;
+      const payerName = document.getElementById('expense-input-payer').value.trim();
+      const amount = Number(document.getElementById('expense-input-amount').value || 0);
+      const currency = document.getElementById('expense-input-currency').value;
+      const category = document.getElementById('expense-input-category').value;
+      const description = document.getElementById('expense-input-description').value.trim();
+      const memo = document.getElementById('expense-input-memo').value.trim();
+      const submit = event.submitter;
+
+      if (!expenseDate) return showToast('결제일을 선택해.', true);
+      if (!payerName) return showToast('결제한 사람 이름을 입력해.', true);
+      if (!(amount > 0)) return showToast('금액은 0보다 크게 입력해.', true);
+
+      submit.disabled = true;
+      submit.textContent = editingExpenseId ? '수정 중...' : '저장 중...';
+
+      const payload = {
+        trip_id: currentTrip.id,
+        itinerary_item_id: expenseLinkedItemId || null,
+        expense_date: expenseDate,
+        payer_name: payerName,
+        category,
+        description: description || null,
+        amount,
+        currency,
+        memo: memo || null
+      };
+
+      let result;
+      if (editingExpenseId) {
+        result = await supabaseApp.from('trip_expenses').update(payload).eq('id', editingExpenseId);
+      } else {
+        result = await supabaseApp.from('trip_expenses').insert(payload);
+      }
+
+      submit.disabled = false;
+      submit.textContent = editingExpenseId ? '수정 저장' : '저장';
+
+      if (result.error) return showToast(`지출 ${editingExpenseId ? '수정' : '저장'} 실패: ` + result.error.message, true);
+      const wasEditing = Boolean(editingExpenseId);
+      editingExpenseId = null;
+      expenseLinkedItemId = null;
+      closeModal('expense-modal');
+      showToast(wasEditing ? '지출 내역을 수정했어.' : '지출 내역을 저장했어.');
+      await loadExpenses();
+    }
+
+    function openEditExpenseModal(expenseId) {
+      if (isReadOnlyMode || !currentUser) return;
+      const expense = expensesCache.find(row => row.id === expenseId);
+      if (!expense) return showToast('수정할 지출을 찾지 못했어.', true);
+      editingExpenseId = expense.id;
+      expenseLinkedItemId = expense.itinerary_item_id || null;
+      const linkedItem = expenseLinkedItemId ? itemsCache.find(item => item.id === expenseLinkedItemId) : null;
+      document.getElementById('expense-modal-title').textContent = linkedItem ? '일정 결제 수정' : '일정 외 지출 수정';
+      document.getElementById('expense-submit-btn').textContent = '수정 저장';
+      document.getElementById('expense-input-date').value = expense.expense_date || '';
+      document.getElementById('expense-input-payer').value = expense.payer_name || '';
+      document.getElementById('expense-input-amount').value = Number(expense.amount || 0);
+      document.getElementById('expense-input-currency').value = expense.currency || currentTrip.default_currency || 'KRW';
+      document.getElementById('expense-input-category').value = expense.category || 'other';
+      document.getElementById('expense-input-description').value = expense.description || '';
+      document.getElementById('expense-input-memo').value = expense.memo || '';
+
+      const context = document.getElementById('expense-link-context');
+      if (linkedItem) {
+        context.textContent = `연결된 일정 · ${linkedItem.place_name}`;
+        context.classList.remove('hidden');
+      } else {
+        context.textContent = '';
+        context.classList.add('hidden');
+      }
+
+      updatePayerSuggestions();
+      openModal('expense-modal');
+    }
+
+    async function deleteTripExpense(expenseId) {
+      if (isReadOnlyMode || !currentUser) return;
+      const expense = expensesCache.find(row => row.id === expenseId);
+      if (!expense) return;
+      const label = expense.description?.trim() || EXPENSE_CATEGORIES[expense.category]?.label || '지출';
+      if (!confirm(`“${label}” 지출 내역을 삭제할까?`)) return;
+      const { error } = await supabaseApp.from('trip_expenses').delete().eq('id', expenseId);
+      if (error) return showToast('지출 삭제 실패: ' + error.message, true);
+      showToast('지출 내역을 삭제했어.');
+      await loadExpenses();
+    }
 
     async function initGoogleFeatures() {
       try {
