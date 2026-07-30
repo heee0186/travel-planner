@@ -1,1749 +1,344 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#6750a4">
-  <title>여행 일정</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({ key: "AIzaSyAw-sboIMyqehkNYYlB2URbuDpeIhZxwxA", v: "weekly", language: "ko" });
-  </script>
-  <style>
-    :root {
-      --primary: #6750a4;
-      --primary-dark: #4f378b;
-      --primary-soft: #f0eaff;
-      --bg: #f7f7fb;
-      --card: #ffffff;
-      --text: #25232a;
-      --muted: #716d79;
-      --line: #e5e1e9;
-      --danger: #ba1a1a;
-      --success: #237a45;
-      --shadow: 0 12px 35px rgba(44, 39, 56, 0.10);
-    }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6f5aa8">
+<title>여행 플래너 리디자인 미리보기</title>
+<style>
+:root{
+  --accent:#6f5aa8;
+  --accent-rgb:111,90,168;
+  --accent-soft:#f0ecf8;
+  --accent-ink:#524078;
+  --bg:#f5f5f3;
+  --surface:#ffffff;
+  --surface-2:#faf9f7;
+  --text:#242327;
+  --muted:#7a767f;
+  --line:#e7e4e0;
+  --danger:#b64545;
+  --shadow:0 14px 40px rgba(35,31,42,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Pretendard,"Malgun Gothic",system-ui,sans-serif;
+  color:var(--text);
+  background:radial-gradient(circle at 15% 0%,rgba(var(--accent-rgb),.08),transparent 28rem),var(--bg)
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.shell{width:min(1080px,100%);margin:0 auto;padding:22px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:4px 2px 18px}
+.back{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:#57525d;font-weight:800;padding:7px 4px}
+.top-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.82);color:#5e5963}
+.icon-btn:hover{background:#fff;border-color:#d8d3cc}
+.hero{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:24px 24px 18px;box-shadow:var(--shadow);overflow:visible}
+.hero::after{content:"";position:absolute;right:34px;top:-52px;width:150px;height:150px;border-radius:50%;background:rgba(var(--accent-rgb),.07);pointer-events:none}
+.hero-main{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;position:relative;z-index:1}
+.kicker{color:var(--accent-ink);font-weight:850;font-size:13px;letter-spacing:.02em;margin-bottom:8px}
+.title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.title-row h1{margin:0;font-size:30px;letter-spacing:-.04em}
+.edit-title{width:31px;height:31px;border:0;border-radius:10px;background:var(--surface-2);color:#6c6670;display:grid;place-items:center}
+.meta{margin-top:9px;color:var(--muted);font-size:14px}
+.share-inline{display:flex;align-items:center;gap:7px;margin-top:14px;flex-wrap:wrap}
+.share-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:#edf6f0;color:#2f7650;font-size:12px;font-weight:850}
+.dot{width:7px;height:7px;border-radius:50%;background:#45a46e}
+.compact-btn{border:1px solid var(--line);background:#fff;color:#56515b;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:850}
+.compact-btn.accent{background:var(--accent-soft);color:var(--accent-ink);border-color:transparent}
+.compact-btn:hover{filter:brightness(.985)}
+.more-wrap{position:relative}
+.menu{position:absolute;right:0;top:44px;width:190px;padding:7px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 45px rgba(36,30,42,.16);z-index:20}
+.menu button{width:100%;text-align:left;border:0;background:transparent;border-radius:9px;padding:10px 11px;color:#514c55;font-size:13px;font-weight:750}
+.menu button:hover{background:var(--surface-2)}
+.menu .danger{color:var(--danger)}
+.divider{height:1px;background:var(--line);margin:5px}
+.tabs-wrap{overflow:auto;margin-top:18px;padding-bottom:2px}
+.tabs{display:flex;gap:8px;min-width:max-content}
+.tab{border:1px solid var(--line);background:#fff;color:#6b6670;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:850}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.main-grid{display:block;margin-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:0 10px 30px rgba(36,31,42,.055)}
+.map-card{padding:16px}
+.map-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.map-toggle,.map-open{
+  border:1px solid var(--line);background:#fff;color:#615b66;border-radius:10px;
+  padding:8px 10px;font-size:11px;font-weight:850
+}
+.map-open{background:var(--accent-soft);color:var(--accent-ink);border-color:transparent}
+.map.collapsed{display:none}
+.expense-card.full{margin-top:14px}
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Pretendard", "Malgun Gothic", system-ui, sans-serif;
-      background: linear-gradient(180deg, #f2edff 0, var(--bg) 280px);
-      color: var(--text);
-    }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    .hidden { display: none !important; }
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    .app-shell { width: min(960px, 100%); margin: 0 auto; padding: 20px; }
-    .card {
-      background: var(--card);
-      border: 1px solid rgba(103, 80, 164, 0.09);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    /* 로딩 */
-    #loading-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 14px;
-      color: var(--primary-dark);
-      font-weight: 700;
-    }
-    .spinner {
-      width: 42px;
-      height: 42px;
-      border: 4px solid #ddd3f7;
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* 로그인 */
-    #screen-auth { max-width: 480px; margin: 7vh auto 0; padding: 34px; }
-    .brand { text-align: center; margin-bottom: 26px; }
-    .brand-icon { font-size: 48px; }
-    .brand h1 { margin: 8px 0 6px; font-size: 28px; }
-    .brand p { margin: 0; color: var(--muted); line-height: 1.55; }
-    .auth-tabs { display: flex; background: #f2eff7; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
-    .auth-tab { flex: 1; border: 0; padding: 11px; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 700; }
-    .auth-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 9px rgba(50, 42, 68, .08); }
-    .field { margin-bottom: 15px; }
-    .field label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 7px; }
-    .field input, .field select, .field textarea {
-      width: 100%; border: 1px solid var(--line); background: white; border-radius: 11px;
-      padding: 12px 13px; outline: none; transition: .2s;
-    }
-    .field textarea { min-height: 90px; resize: vertical; }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(103,80,164,.12); }
-    .help { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 6px; }
-    .primary-btn, .secondary-btn, .danger-btn, .ghost-btn {
-      border: 0; border-radius: 11px; padding: 12px 16px; font-weight: 800;
-    }
-    .primary-btn { background: var(--primary); color: white; }
-    .primary-btn:hover { background: var(--primary-dark); }
-    .secondary-btn { background: var(--primary-soft); color: var(--primary-dark); }
-    .ghost-btn { background: transparent; color: var(--muted); border: 1px solid var(--line); }
-    .danger-btn { background: #ffdad6; color: var(--danger); }
-    .full { width: 100%; }
-    .text-btn { border: 0; background: transparent; color: var(--primary); padding: 8px 0; font-weight: 700; }
-    .auth-footer { text-align: center; margin-top: 10px; }
-
-    /* 상단 */
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 2px 22px; }
-    .topbar h1 { margin: 0; font-size: 24px; }
-    .user-area { display: flex; align-items: center; gap: 9px; }
-    .user-email { color: var(--muted); font-size: 13px; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    /* 여행 목록 */
-    .hero { padding: 24px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-    .hero h2 { margin: 0 0 7px; }
-    .hero p { margin: 0; color: var(--muted); }
-    .trip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; }
-    .trip-card { padding: 20px; min-height: 190px; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: transform .18s, box-shadow .18s; }
-    .trip-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(44,39,56,.14); }
-    .trip-card::before { content: ""; position: absolute; width: 130px; height: 130px; border-radius: 50%; background: var(--primary-soft); right: -45px; top: -55px; }
-    .trip-card h3 { margin: 10px 0 7px; font-size: 20px; position: relative; }
-    .destination { color: var(--primary-dark); font-weight: 700; position: relative; }
-    .dates { color: var(--muted); font-size: 14px; margin-top: 8px; position: relative; }
-    .trip-card-bottom { margin-top: auto; display: flex; justify-content: space-between; align-items: center; position: relative; }
-    .status-chip { display: inline-flex; padding: 6px 10px; border-radius: 99px; background: #edf7ef; color: var(--success); font-size: 12px; font-weight: 800; }
-    .open-link { color: var(--primary); font-weight: 800; }
-    .empty { padding: 45px 25px; text-align: center; color: var(--muted); grid-column: 1 / -1; }
-    .empty-icon { font-size: 44px; margin-bottom: 12px; }
-
-    /* 여행 상세 */
-    .planner-header { padding: 22px; margin-bottom: 16px; }
-    .planner-header-row { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
-    .planner-header h2 { margin: 8px 0 5px; font-size: 27px; }
-    .planner-meta { color: var(--muted); }
-    .back-btn { border: 0; background: transparent; color: var(--primary); padding: 0; font-weight: 800; }
-    .tabs-wrap { overflow-x: auto; padding-bottom: 5px; }
-    .tabs { display: flex; gap: 8px; min-width: max-content; margin: 18px 0 4px; }
-    .tab-btn { border: 1px solid var(--line); background: white; color: var(--muted); padding: 10px 14px; border-radius: 99px; font-weight: 800; }
-    .tab-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
-    .day-panel { padding: 20px; }
-    .day-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .day-toolbar h3 { margin: 0; }
-    .plan-list { display: grid; gap: 10px; }
-    .plan-item { display: grid; grid-template-columns: 68px 1fr; gap: 13px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
-    .time { color: var(--primary); font-weight: 900; }
-    .place { font-size: 17px; font-weight: 850; margin-bottom: 5px; }
-    .plan-sub { color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .memo { margin-top: 6px; color: #504a58; white-space: pre-wrap; }
-    .plan-actions { display:flex; gap:7px; margin-top:10px; flex-wrap:wrap; }
-    .inline-expense-block { margin-top: 10px; padding-top: 9px; border-top: 1px dashed #e3deea; }
-    .inline-expense-title { margin-bottom: 4px; color: #655f6b; font-size: 11px; font-weight: 900; }
-    .inline-expense-list { display: grid; gap: 3px; }
-    .inline-expense-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; font-size: 12px; line-height: 1.55; }
-    .inline-expense-main { min-width: 0; color: #5d5665; overflow-wrap: anywhere; }
-    .inline-expense-amount { flex: 0 0 auto; color: #38323f; font-size: 12px; font-weight: 900; white-space: nowrap; }
-    .inline-expense-actions { display: inline-flex; gap: 2px; margin-left: 3px; vertical-align: middle; }
-    .inline-expense-actions .mini-btn { padding: 2px 5px; border: 0; background: transparent; font-size: 10px; color: var(--muted); }
-    .inline-expense-actions .mini-btn.danger { background: transparent; color: var(--danger); }
-    .expense-link-context { margin-bottom: 13px; padding: 11px 12px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-dark); font-size: 13px; font-weight: 850; line-height: 1.45; }
-    .form-help { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.45; }
-    .mini-btn { border:1px solid var(--line); background:white; color:var(--primary-dark); border-radius:9px; padding:7px 10px; font-size:12px; font-weight:800; }
-    .mini-btn.danger { color:var(--danger); background:#fff7f6; }
-    .empty-day { padding: 35px 15px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 14px; }
-    .map-card { margin-bottom: 14px; }
-    #map { width: 100%; height: 330px; border-radius: 16px; background: #ece8f2; }
-    #route-summary { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.75; }
-    #place-autocomplete-host { min-height: 48px; }
-    gmp-place-autocomplete { width: 100%; }
-    .selected-place { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--primary-soft); color: var(--primary-dark); font-size: 13px; }
-    .place-help { margin-top: 6px; color: var(--muted); font-size: 12px; }
-
-    /* 일정에 곁들이는 작은 가계부 요약 */
-    .expense-panel { margin: 12px 0 16px; padding: 0; overflow: hidden; }
-    .expense-summary-toggle { width: 100%; border: 0; background: #fff; padding: 13px 15px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; color: var(--primary-dark); text-align: left; font-weight: 900; }
-    .expense-summary-brief { min-width: 0; color: var(--muted); font-size: 12px; font-weight: 700; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .expense-summary-chevron { color: var(--muted); font-size: 12px; }
-    .expense-summary-body { display: none; padding: 0 15px 14px; border-top: 1px solid #f0edf3; }
-    .expense-summary-body.open { display: block; }
-    .expense-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0 8px; }
-    .expense-total-line { color: #4f4857; font-size: 13px; }
-    .expense-total-line strong { color: var(--primary-dark); }
-    .payer-summary { display: grid; gap: 2px; padding: 5px 0 8px; }
-    .payer-summary-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; color: #5d5665; font-size: 12px; }
-    .payer-summary-row strong { color: #38323f; }
-    .expense-list-title { margin: 7px 0 5px; color: var(--muted); font-size: 11px; font-weight: 900; }
-    .expense-list { display: grid; gap: 3px; }
-    .expense-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px dashed #ece7f0; font-size: 12px; }
-    .expense-item:first-child { border-top: 0; }
-    .expense-title { color: #514a58; overflow-wrap: anywhere; }
-    .expense-meta { margin-top: 1px; color: var(--muted); font-size: 10px; line-height: 1.4; }
-    .expense-right { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
-    .expense-amount { color: #38323f; font-weight: 900; }
-    .expense-actions { display: inline-flex; gap: 2px; }
-    .expense-actions .mini-btn { padding: 2px 5px; border: 0; background: transparent; font-size: 10px; color: var(--muted); }
-    .expense-actions .mini-btn.danger { background: transparent; color: var(--danger); }
-    .time-select-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
-    .time-colon { color: var(--muted); font-weight: 900; text-align: center; }
-
-
-    /* 공개 공유 화면 */
-    #screen-public-home { max-width: 560px; margin: 9vh auto 0; padding: 34px; text-align: center; }
-    .public-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-    .readonly-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 999px; background: #eef4ff; color: #315b9b; font-size: 12px; font-weight: 850; margin-bottom: 8px; }
-    .planner-owner-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .share-state { color: var(--muted); font-size: 12px; margin-top: 7px; text-align: right; }
-    .public-top-message { color: var(--muted); font-size: 13px; }
-
-    /* 모달 */
-    .modal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(22,18,28,.52); padding: 20px; align-items: center; justify-content: center; }
-    .modal.open { display: flex; }
-    .modal-box { width: min(520px, 100%); max-height: 92vh; overflow-y: auto; background: white; border-radius: 20px; padding: 23px; box-shadow: 0 20px 60px rgba(0,0,0,.24); }
-    .modal-box h3 { margin: 0 0 18px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 18px; }
-
-    /* 메시지 */
-    #toast { position: fixed; left: 50%; bottom: 25px; transform: translateX(-50%) translateY(30px); opacity: 0; pointer-events: none; background: #29252f; color: white; padding: 12px 17px; border-radius: 12px; z-index: 2000; transition: .25s; max-width: calc(100vw - 40px); text-align: center; }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    #toast.error { background: var(--danger); }
-    .inline-message { display: none; padding: 11px 13px; border-radius: 10px; margin-bottom: 14px; font-size: 14px; line-height: 1.5; }
-    .inline-message.show { display: block; }
-    .inline-message.error { background: #ffdad6; color: #760000; }
-    .inline-message.success { background: #dff5e5; color: #155c33; }
-
-    @media (max-width: 640px) {
-      .app-shell { padding: 13px; }
-      #screen-auth { margin-top: 3vh; padding: 25px 20px; }
-      .topbar { align-items: flex-start; }
-      .user-area { flex-direction: column; align-items: flex-end; }
-      .user-email { max-width: 175px; }
-      .hero { flex-direction: column; align-items: stretch; }
-      .hero .primary-btn { width: 100%; }
-      .planner-header-row { flex-direction: column; }
-      .form-grid { grid-template-columns: 1fr; }
-      .plan-item { grid-template-columns: 58px 1fr; }
-      .expense-summary-toggle { grid-template-columns: auto minmax(0, 1fr) auto; }
-      .expense-summary-brief { font-size: 11px; }
-    }
-  </style>
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.section-head h2{margin:0;font-size:17px;letter-spacing:-.02em}
+.section-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.add-btn{border:0;background:var(--accent);color:#fff;border-radius:11px;padding:9px 12px;font-size:12px;font-weight:900}
+.map{position:relative;height:300px;border-radius:17px;overflow:hidden;background:#e8eee8;border:1px solid #deded8}
+.map svg{width:100%;height:100%;display:block}
+.pin{position:absolute;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:grid;place-items:center;background:var(--accent);color:#fff;border:3px solid #fff;box-shadow:0 6px 14px rgba(var(--accent-rgb),.35);font-weight:900}
+.pin span{transform:rotate(45deg)}
+.pin.one{left:16%;top:66%}.pin.two{left:51%;top:25%}.pin.three{left:73%;top:57%}
+.map-note{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:10px;padding:7px 9px;color:#625d66;font-size:10px}
+.schedule{margin-top:14px;display:grid;gap:10px}
+.item{display:grid;grid-template-columns:62px minmax(0,1fr);gap:12px;padding:15px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.time{color:var(--accent-ink);font-weight:900;font-size:13px;padding-top:2px}
+.place{font-size:16px;font-weight:900;letter-spacing:-.02em}
+.memo{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.55}
+.expense{margin-top:9px;padding-top:8px;border-top:1px dashed #e4e1dc;color:#5f5a63;font-size:11px;display:flex;justify-content:space-between;gap:10px}
+.item-actions{display:flex;gap:5px;margin-top:9px}
+.mini{border:1px solid var(--line);background:#fff;color:#67616b;border-radius:9px;padding:5px 8px;font-size:10px;font-weight:800}
+.side{display:grid;gap:16px;align-content:start}
+.quick-card{padding:16px}
+.quick-title{margin:0 0 11px;font-size:14px}
+.quick-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid #f0eeea}
+.quick-row:first-of-type{border-top:0}
+.quick-row span{color:var(--muted);font-size:12px}.quick-row strong{font-size:13px}
+.theme-card{padding:16px}
+.swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.swatch{aspect-ratio:1;border-radius:13px;border:3px solid transparent;position:relative;background:var(--swatch)}
+.swatch.selected{border-color:#fff;box-shadow:0 0 0 2px var(--swatch)}
+.swatch::after{content:"";position:absolute;inset:7px;border-radius:8px;background:#fff;opacity:.18}
+.theme-help{margin:10px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.custom-row{display:flex;gap:8px;align-items:center;margin-top:11px}
+.custom-row input[type=color]{width:42px;height:36px;border:0;background:transparent;padding:0}
+.custom-row span{font-size:11px;color:var(--muted)}
+.expense-card{padding:0;overflow:hidden}
+.expense-toggle{width:100%;border:0;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:900;color:#4d4851}
+.expense-toggle small{color:var(--muted);font-weight:700}
+.expense-body{display:none;padding:0 16px 14px}
+.expense-body.open{display:block}
+.expense-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;color:#5f5963}
+.expense-row.total{border-top:1px dashed var(--line);margin-top:4px;padding-top:9px;font-weight:900;color:#37333a}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#242127;color:#fff;padding:10px 14px;border-radius:11px;font-size:12px;opacity:0;pointer-events:none;transition:.22s;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;background:rgba(24,20,28,.48);display:none;align-items:center;justify-content:center;padding:18px;z-index:90}
+.modal.open{display:flex}
+.modal-box{width:min(440px,100%);background:#fff;border-radius:21px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.25)}
+.modal-box h3{margin:0 0 14px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:850;margin-bottom:6px}
+.field input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;outline:none}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.12)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+.btn{border:0;border-radius:10px;padding:9px 12px;font-size:12px;font-weight:900}
+.btn.cancel{background:#f2f0ec;color:#625d66}.btn.save{background:var(--accent);color:#fff}
+@media(max-width:760px){
+  .shell{padding:13px}.hero{padding:19px 17px 14px}.title-row h1{font-size:25px}.main-grid{display:block}.map{height:240px}.item{grid-template-columns:54px minmax(0,1fr)}.hero-main{flex-direction:column}.top-actions{align-self:flex-end}
+}
+</style>
 </head>
 <body>
-  <div id="loading-screen">
-    <div class="spinner"></div>
-    <div>여행 일정 불러오는 중...</div>
+<div class="shell">
+  <div class="topbar">
+    <button class="back">← 여행 목록 <span style="font-size:10px;color:var(--muted);font-weight:700">관리자 화면</span></button>
+    <div class="top-actions">
+      <div class="more-wrap">
+        <button class="icon-btn" id="moreBtn" title="더보기">•••</button>
+        <div class="menu hidden" id="menu">
+          <button id="editInfoBtn">여행 정보 수정</button>
+          <button id="stopShareBtn">공유 중지</button>
+          <div class="divider"></div>
+          <button class="danger" id="deleteBtn">여행 삭제</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <main id="app" class="app-shell hidden">
-    <!-- 로그인하지 않은 기본 화면 -->
-    <section id="screen-public-home" class="screen card">
-      <div class="brand">
-        <div class="brand-icon">✈️</div>
-        <h1>여행 일정 공유</h1>
-        <p>공유받은 여행 링크를 열면<br>로그인 없이 일정을 볼 수 있어.</p>
-      </div>
-      <div class="public-actions">
-        <button class="ghost-btn" type="button" onclick="showAdminLogin()">관리자 로그인</button>
-      </div>
-    </section>
-
-    <!-- 관리자 로그인 -->
-    <section id="screen-auth" class="screen card">
-      <div class="brand">
-        <div class="brand-icon">🔐</div>
-        <h1>관리자 로그인</h1>
-        <p>여행을 추가하거나 수정할 때만 로그인해.</p>
-      </div>
-
-      <div id="auth-message" class="inline-message"></div>
-
-      <form id="auth-form">
-        <div class="field">
-          <label for="auth-email">이메일</label>
-          <input id="auth-email" type="email" autocomplete="email" placeholder="example@email.com" required>
+  <section class="hero">
+    <div class="hero-main">
+      <div>
+        <div class="kicker" id="destinationText">OSAKA · JAPAN</div>
+        <div class="title-row">
+          <h1 id="tripTitle">오사카 먹고 사고 구경하는 여행</h1>
+          <button class="edit-title" id="editTitleBtn" title="여행 제목 수정">✎</button>
         </div>
-        <div class="field">
-          <label for="auth-password">비밀번호</label>
-          <input id="auth-password" type="password" autocomplete="current-password" minlength="6" placeholder="6자 이상" required>
+        <div class="meta">2026. 9. 17. — 9. 20. · 3박 4일</div>
+        <div class="share-inline">
+          <span class="share-chip"><span class="dot"></span>공유 중</span>
+          <button class="compact-btn accent" id="copyBtn">링크 복사</button>
+          <span style="color:var(--muted);font-size:11px">링크를 가진 사람만 볼 수 있어</span>
         </div>
-        <button id="auth-submit" class="primary-btn full" type="submit">로그인</button>
-      </form>
-
-      <div class="auth-footer">
-        <button id="reset-password-btn" class="text-btn" type="button" onclick="sendPasswordReset()">비밀번호를 잊었어</button>
-        <span aria-hidden="true"> · </span>
-        <button class="text-btn" type="button" onclick="cancelAdminLogin()">돌아가기</button>
       </div>
-    </section>
+    </div>
 
-    <!-- 여행 목록 -->
-    <section id="screen-trips" class="screen">
-      <header class="topbar">
-        <h1>나의 여행 ✈️</h1>
-        <div class="user-area">
-          <span id="user-email" class="user-email"></span>
-          <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
-        </div>
-      </header>
+    <div class="tabs-wrap">
+      <div class="tabs">
+        <button class="tab active">9/17 목</button>
+        <button class="tab">9/18 금</button>
+        <button class="tab">9/19 토</button>
+        <button class="tab">9/20 일</button>
+      </div>
+    </div>
+  </section>
 
-      <div class="hero card">
+  <div class="main-grid">
+    <section class="card map-card">
+      <div class="section-head">
         <div>
-          <h2>어디로 떠날까?</h2>
-          <p>새 여행을 만들고 일정과 추억을 차곡차곡 기록해.</p>
+          <h2>9월 17일 목요일</h2>
+          <p>간사이공항 → 오사카성 → 난바</p>
         </div>
-        <button class="primary-btn" type="button" onclick="openTripModal()">+ 새 여행</button>
+        <div class="map-actions">
+          <button class="map-toggle" id="mapToggle">지도 접기</button>
+          <button class="map-open" id="mapOpen">Google 지도에서 보기 ↗</button>
+          <button class="add-btn">+ 일정</button>
+        </div>
       </div>
 
-      <div id="trip-grid" class="trip-grid"></div>
-    </section>
+      <div class="map" id="dayMap">
+        <svg viewBox="0 0 700 300" aria-label="가짜 지도">
+          <rect width="700" height="300" fill="#e9efe8"/>
+          <path d="M-20 95 C150 115 195 35 350 70 S560 135 740 72" fill="none" stroke="#bcc8b8" stroke-width="32" opacity=".5"/>
+          <path d="M40 290 C170 205 220 250 350 160 S545 80 700 130" fill="none" stroke="#fff" stroke-width="23"/>
+          <path d="M40 290 C170 205 220 250 350 160 S545 80 700 130" fill="none" stroke="#d6d4d0" stroke-width="3"/>
+          <path d="M0 165 C120 140 220 175 335 125 S560 45 720 78" fill="none" stroke="#fff" stroke-width="16"/>
+          <path d="M0 165 C120 140 220 175 335 125 S560 45 720 78" fill="none" stroke="#ddd9d5" stroke-width="2"/>
+          <path d="M110 0 L135 310 M260 0 L300 310 M470 0 L430 310 M610 0 L555 310" stroke="#fafafa" stroke-width="10"/>
+          <path d="M110 0 L135 310 M260 0 L300 310 M470 0 L430 310 M610 0 L555 310" stroke="#dedbd7" stroke-width="1.5"/>
+          <rect x="530" y="18" width="180" height="95" rx="32" fill="#dce8d8"/>
+          <path d="M120 220 L360 75 L520 182" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="pin one"><span>1</span></div>
+        <div class="pin two"><span>2</span></div>
+        <div class="pin three"><span>3</span></div>
+        <div class="map-note">장소의 실제 위치와 하루 동선을 확인하는 용도 · 길찾기는 Google 지도에서 열기</div>
+      </div>
 
-    <!-- 여행 상세 -->
-    <section id="screen-planner" class="screen">
-      <header class="topbar">
-        <button id="planner-back-btn" class="back-btn" type="button" onclick="goBackToTrips()">← 여행 목록</button>
-        <div id="planner-owner-user" class="user-area">
-          <span id="planner-user-email" class="user-email"></span>
-          <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
-        </div>
-        <div id="planner-public-user" class="user-area hidden">
-          <span class="public-top-message">읽기 전용 공유 일정</span>
-          <button id="public-owner-btn" class="ghost-btn" type="button" onclick="openOwnerArea()">관리자 로그인</button>
-        </div>
-      </header>
-
-      <div class="planner-header card">
-        <div class="planner-header-row">
+      <div class="schedule">
+        <div class="item">
+          <div class="time">13:10</div>
           <div>
-            <div id="trip-destination" class="destination"></div>
-            <h2 id="trip-title">여행</h2>
-            <div id="trip-meta" class="planner-meta"></div>
-          </div>
-          <div id="planner-owner-actions" class="planner-owner-actions">
-            <button id="share-start-btn" class="secondary-btn" type="button" onclick="startSharing()">공유 시작</button>
-            <button id="share-copy-btn" class="secondary-btn hidden" type="button" onclick="copyShareLink()">공유 링크 복사</button>
-            <button id="share-stop-btn" class="ghost-btn hidden" type="button" onclick="stopSharing()">공유 중지</button>
-            <button class="danger-btn" type="button" onclick="deleteCurrentTrip()">여행 삭제</button>
-            <div id="share-state" class="share-state"></div>
-          </div>
-          <div id="planner-readonly-label" class="hidden">
-            <span class="readonly-chip">👀 보기만 가능</span>
+            <div class="place">간사이 국제공항</div>
+            <div class="memo">입국심사 후 난카이 라피트 탑승</div>
+            <div class="expense"><span>희정 · 라피트 3명</span><strong>¥3,880</strong></div>
+            <div class="item-actions"><button class="mini">결제 기록</button><button class="mini">수정</button></div>
           </div>
         </div>
-        <div class="tabs-wrap"><div id="day-tabs" class="tabs"></div></div>
+        <div class="item">
+          <div class="time">16:20</div>
+          <div>
+            <div class="place">오사카성</div>
+            <div class="memo">천수각 입장 · 사진 촬영</div>
+            <div class="expense"><span>민지 · 입장권 3명</span><strong>¥3,600</strong></div>
+            <div class="item-actions"><button class="mini">결제 기록</button><button class="mini">수정</button></div>
+          </div>
+        </div>
+        <div class="item">
+          <div class="time">19:00</div>
+          <div>
+            <div class="place">난바 저녁식사</div>
+            <div class="memo">도톤보리 주변에서 오코노미야키</div>
+            <div class="expense"><span>희정 · 저녁식사</span><strong>¥7,320</strong></div>
+            <div class="item-actions"><button class="mini">결제 기록</button><button class="mini">수정</button></div>
+          </div>
+        </div>
       </div>
-
-      <div class="day-panel card">
-        <div class="map-card">
-          <div id="map"></div>
-          <div id="route-summary">장소를 추가하면 일정 순서대로 마커와 직선을 표시해.</div>
-        </div>
-        <div class="day-toolbar">
-          <h3 id="day-title">일정</h3>
-          <button id="add-item-btn" class="primary-btn" type="button" onclick="openItemModal()">+ 일정 추가</button>
-        </div>
-        <div id="plan-list" class="plan-list"></div>
-      </div>
-
-      <section class="expense-panel card" aria-labelledby="expense-title">
-        <button id="expense-summary-toggle" class="expense-summary-toggle" type="button" onclick="toggleExpenseSummary()" aria-expanded="false">
-          <span id="expense-title">여행 전체 가계부</span>
-          <span id="expense-summary-brief" class="expense-summary-brief">아직 결제 기록 없음</span>
-          <span id="expense-summary-chevron" class="expense-summary-chevron">▾</span>
-        </button>
-        <div id="expense-summary-body" class="expense-summary-body">
-          <div class="expense-toolbar">
-            <div class="expense-total-line"><strong id="expense-grand-total">아직 지출 없음</strong> · <span id="expense-count">0건</span></div>
-            <button id="add-expense-btn" class="mini-btn" type="button" onclick="openExpenseModal(null)">+ 일정 외 지출</button>
-          </div>
-          <div id="payer-summary" class="payer-summary"></div>
-          <div id="expense-list-title" class="expense-list-title hidden">일정 외 지출</div>
-          <div id="expense-list" class="expense-list"></div>
-        </div>
-      </section>
-
     </section>
-  </main>
 
-  <!-- 새 여행 모달 -->
-  <div id="trip-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="trip-modal-title">
-    <div class="modal-box">
-      <h3 id="trip-modal-title">새 여행 만들기</h3>
-      <form id="trip-form">
-        <div class="field">
-          <label for="trip-input-title">여행 제목 *</label>
-          <input id="trip-input-title" type="text" maxlength="80" placeholder="예: 2026 나트랑 가족여행" required>
-        </div>
-        <div class="field">
-          <label for="trip-input-destination">여행지</label>
-          <input id="trip-input-destination" type="text" maxlength="80" placeholder="예: 나트랑, 베트남">
-        </div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="trip-input-start">시작일</label>
-            <input id="trip-input-start" type="date">
-          </div>
-          <div class="field">
-            <label for="trip-input-end">종료일</label>
-            <input id="trip-input-end" type="date">
-          </div>
-        </div>
-        <div class="field">
-          <label for="trip-input-currency">기본 통화</label>
-          <select id="trip-input-currency">
-            <option value="KRW">KRW · 원</option>
-            <option value="JPY">JPY · 엔</option>
-            <option value="VND">VND · 동</option>
-            <option value="USD">USD · 달러</option>
-            <option value="EUR">EUR · 유로</option>
-          </select>
-        </div>
-        <div class="modal-actions">
-          <button class="ghost-btn" type="button" onclick="closeModal('trip-modal')">취소</button>
-          <button class="primary-btn" type="submit">여행 만들기</button>
-        </div>
-      </form>
+    <section class="card expense-card full">
+      <button class="expense-toggle" id="expenseToggle">
+        <span>여행 전체 가계부</span>
+        <small>¥14,800 · 3건 ▾</small>
+      </button>
+      <div class="expense-body" id="expenseBody">
+        <div class="expense-row"><span>희정</span><strong>¥11,200</strong></div>
+        <div class="expense-row"><span>민지</span><strong>¥3,600</strong></div>
+        <div class="expense-row total"><span>합계</span><strong>¥14,800</strong></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modal" id="titleModal">
+  <div class="modal-box">
+    <h3>여행 정보 수정</h3>
+    <div class="field">
+      <label for="titleInput">여행 제목</label>
+      <input id="titleInput" value="오사카 먹고 사고 구경하는 여행" maxlength="80">
+    </div>
+    <div class="field">
+      <label for="destinationInput">여행지</label>
+      <input id="destinationInput" value="오사카, 일본" maxlength="80">
+    </div>
+    <div class="field">
+      <label>포인트 색</label>
+      <div class="swatches">
+        <button class="swatch selected" style="--swatch:#6f5aa8" data-color="#6f5aa8" data-rgb="111,90,168" aria-label="보라"></button>
+        <button class="swatch" style="--swatch:#567d67" data-color="#567d67" data-rgb="86,125,103" aria-label="세이지 그린"></button>
+        <button class="swatch" style="--swatch:#4c7396" data-color="#4c7396" data-rgb="76,115,150" aria-label="블루"></button>
+        <button class="swatch" style="--swatch:#a86b5e" data-color="#a86b5e" data-rgb="168,107,94" aria-label="테라코타"></button>
+        <button class="swatch" style="--swatch:#4f5258" data-color="#4f5258" data-rgb="79,82,88" aria-label="차콜"></button>
+      </div>
+      <div class="custom-row">
+        <input type="color" id="customColor" value="#6f5aa8" aria-label="직접 색상 선택">
+        <span>이 여행에만 저장되고, 평소 화면에는 표시되지 않아.</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn cancel" id="cancelModal">취소</button>
+      <button class="btn save" id="saveTitle">저장</button>
     </div>
   </div>
-
-  <!-- 일정 추가 모달 -->
-  <div id="item-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
-    <div class="modal-box">
-      <h3 id="item-modal-title">일정 추가</h3>
-      <form id="item-form">
-        <div class="form-grid">
-          <div class="field">
-            <label for="item-input-date">날짜</label>
-            <input id="item-input-date" type="date">
-          </div>
-          <div class="field">
-            <label>시간</label>
-            <div class="time-select-row">
-              <select id="item-input-hour" aria-label="시"></select>
-              <span class="time-colon" aria-hidden="true">:</span>
-              <select id="item-input-minute" aria-label="분"></select>
-            </div>
-          </div>
-        </div>
-        <div class="field">
-          <label>Google 장소 검색 *</label>
-          <div id="place-autocomplete-host"></div>
-          <input id="item-input-place" type="hidden">
-          <div id="selected-place" class="selected-place hidden"></div>
-          <div class="place-help">검색 결과에서 장소를 하나 선택해야 지도와 직선 동선에 표시돼.</div>
-        </div>
-        <input id="item-input-cost" type="hidden" value="">
-        <input id="item-input-currency" type="hidden" value="KRW">
-        <div class="field">
-          <label for="item-input-memo">메모</label>
-          <textarea id="item-input-memo" maxlength="1000" placeholder="예약 정보, 준비물, 참고사항 등을 적어줘."></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="ghost-btn" type="button" onclick="closeModal('item-modal')">취소</button>
-          <button id="item-submit-btn" class="primary-btn" type="submit">저장</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 지출 추가/수정 모달 -->
-  <div id="expense-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
-    <div class="modal-box">
-      <h3 id="expense-modal-title">지출 추가</h3>
-      <div id="expense-link-context" class="expense-link-context hidden"></div>
-      <form id="expense-form">
-        <div class="form-grid">
-          <div class="field">
-            <label for="expense-input-date">결제일</label>
-            <input id="expense-input-date" type="date" required>
-          </div>
-          <div class="field">
-            <label for="expense-input-payer">결제한 사람 *</label>
-            <input id="expense-input-payer" type="text" list="payer-suggestions" maxlength="40" placeholder="예: 희정, 민지" required>
-            <datalist id="payer-suggestions"></datalist>
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="expense-input-amount">금액 *</label>
-            <input id="expense-input-amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0" required>
-          </div>
-          <div class="field">
-            <label for="expense-input-currency">통화</label>
-            <select id="expense-input-currency">
-              <option value="KRW">KRW · 원</option>
-              <option value="JPY">JPY · 엔</option>
-              <option value="VND">VND · 동</option>
-              <option value="USD">USD · 달러</option>
-              <option value="EUR">EUR · 유로</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label for="expense-input-category">분류</label>
-          <select id="expense-input-category">
-            <option value="lodging">숙소</option>
-            <option value="transport">교통</option>
-            <option value="food">식비</option>
-            <option value="activity">관광·체험</option>
-            <option value="shopping">쇼핑</option>
-            <option value="other">기타</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="expense-input-description">내용</label>
-          <input id="expense-input-description" type="text" maxlength="120" placeholder="예: 공항철도, 저녁 식사, 숙소 결제">
-        </div>
-        <div class="field">
-          <label for="expense-input-memo">메모</label>
-          <textarea id="expense-input-memo" maxlength="500" placeholder="정산할 때 필요한 내용을 적어줘."></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="ghost-btn" type="button" onclick="closeModal('expense-modal')">취소</button>
-          <button id="expense-submit-btn" class="primary-btn" type="submit">저장</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="toast"></div>
-
-  <script>
-    // 공개되어도 되는 Supabase anon key입니다. 실제 보안은 Auth + RLS가 담당합니다.
-    const SUPABASE_URL = 'https://pbzwcsaveufsqbmhygon.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiendjc2F2ZXVmc3FibWh5Z29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTQ2MTgsImV4cCI6MjA5MDc3MDYxOH0.sq8gWEF7ntiA3pL9DeDQ59rVNuDzXBkJSDJmC2OHIOE';
-    const supabaseApp = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentUser = null;
-    let currentTrip = null;
-    let currentDayNumber = 1;
-    let tripsCache = [];
-    let itemsCache = [];
-    let expensesCache = [];
-    let editingExpenseId = null;
-    let expenseLinkedItemId = null;
-    let authReady = false;
-    let map = null;
-    let mapMarkers = [];
-    let mapPolylines = [];
-    let selectedGooglePlace = null;
-    let editingItemId = null;
-    let isReadOnlyMode = false;
-    let currentShareToken = null;
-    let forceOwnerAfterLogin = false;
-
-    const STATUS_LABELS = {
-      planning: '계획 중',
-      traveling: '여행 중',
-      completed: '다녀온 여행',
-      archived: '보관됨'
-    };
-
-    const EXPENSE_CATEGORIES = {
-      lodging: { label: '숙소', icon: '🏨' },
-      transport: { label: '교통', icon: '🚆' },
-      food: { label: '식비', icon: '🍜' },
-      activity: { label: '관광·체험', icon: '🎟️' },
-      shopping: { label: '쇼핑', icon: '🛍️' },
-      other: { label: '기타', icon: '🧾' }
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
-      document.getElementById('trip-form').addEventListener('submit', createTrip);
-      document.getElementById('item-form').addEventListener('submit', createItineraryItem);
-      document.getElementById('expense-form').addEventListener('submit', saveTripExpense);
-      initializeTimeSelects();
-      initGoogleFeatures();
-
-      document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', event => {
-          if (event.target === modal) closeModal(modal.id);
-        });
-      });
-
-      supabaseApp.auth.onAuthStateChange((event, session) => {
-        currentUser = session?.user ?? null;
-        if (!authReady || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-          authReady = true;
-          renderForSession();
-        }
-      });
-    });
-
-    async function renderForSession() {
-      document.getElementById('loading-screen').classList.add('hidden');
-      document.getElementById('app').classList.remove('hidden');
-
-      const params = new URLSearchParams(window.location.search);
-      const shareToken = params.get('share');
-      const tripId = params.get('trip');
-
-      if (currentUser) {
-        document.getElementById('user-email').textContent = currentUser.email || '';
-        document.getElementById('planner-user-email').textContent = currentUser.email || '';
-      }
-
-      if (forceOwnerAfterLogin && currentUser) {
-        forceOwnerAfterLogin = false;
-        history.replaceState({}, '', window.location.pathname);
-        showScreen('screen-trips');
-        await loadTrips();
-        return;
-      }
-
-      if (shareToken) {
-        await openSharedTrip(shareToken);
-        return;
-      }
-
-      if (!currentUser) {
-        currentTrip = null;
-        isReadOnlyMode = false;
-        currentShareToken = null;
-        showScreen('screen-public-home');
-        return;
-      }
-
-      if (tripId) {
-        await openTrip(tripId, false);
-      } else {
-        showScreen('screen-trips');
-        await loadTrips();
-      }
-    }
-
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
-
-    function showAdminLogin() {
-      clearAuthMessage();
-      showScreen('screen-auth');
-      setTimeout(() => document.getElementById('auth-email').focus(), 50);
-    }
-
-    function cancelAdminLogin() {
-      const shareToken = new URLSearchParams(window.location.search).get('share');
-      if (shareToken && currentTrip) {
-        showScreen('screen-planner');
-      } else {
-        showScreen('screen-public-home');
-      }
-    }
-
-    async function handleAuthSubmit(event) {
-      event.preventDefault();
-      clearAuthMessage();
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value;
-      const submitButton = document.getElementById('auth-submit');
-
-      if (!email || !password) return showAuthMessage('이메일과 비밀번호를 입력해.', 'error');
-      if (password.length < 6) return showAuthMessage('비밀번호는 6자 이상이어야 해.', 'error');
-
-      submitButton.disabled = true;
-      submitButton.textContent = '로그인 중...';
-      forceOwnerAfterLogin = true;
-
-      try {
-        const { error } = await supabaseApp.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      } catch (error) {
-        forceOwnerAfterLogin = false;
-        showAuthMessage(toKoreanAuthError(error), 'error');
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = '로그인';
-      }
-    }
-
-    async function sendPasswordReset() {
-      clearAuthMessage();
-      const email = document.getElementById('auth-email').value.trim();
-      if (!email) return showAuthMessage('먼저 이메일을 입력해.', 'error');
-
-      const { error } = await supabaseApp.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + window.location.pathname
-      });
-      if (error) return showAuthMessage(toKoreanAuthError(error), 'error');
-      showAuthMessage('비밀번호 재설정 메일을 보냈어.', 'success');
-    }
-
-    async function logout() {
-      const { error } = await supabaseApp.auth.signOut();
-      if (error) showToast('로그아웃하지 못했어: ' + error.message, true);
-      const shareToken = new URLSearchParams(window.location.search).get('share');
-      if (!shareToken) history.replaceState({}, '', window.location.pathname);
-    }
-
-    function showAuthMessage(message, type) {
-      const box = document.getElementById('auth-message');
-      box.textContent = message;
-      box.className = `inline-message show ${type}`;
-    }
-    function clearAuthMessage() {
-      const box = document.getElementById('auth-message');
-      box.textContent = '';
-      box.className = 'inline-message';
-    }
-    function toKoreanAuthError(error) {
-      const message = String(error?.message || error || '알 수 없는 오류');
-      const lower = message.toLowerCase();
-      if (lower.includes('invalid login credentials')) return '이메일 또는 비밀번호가 맞지 않아.';
-      if (lower.includes('email not confirmed')) return '이메일 인증이 아직 완료되지 않았어. 받은 메일을 확인해.';
-      if (lower.includes('user already registered')) return '이미 가입된 이메일이야. 로그인해 줘.';
-      if (lower.includes('password should be')) return '비밀번호가 너무 짧아. 6자 이상으로 입력해.';
-      if (lower.includes('rate limit')) return '요청이 너무 많아. 잠시 후 다시 시도해.';
-      return message;
-    }
-
-    async function openOwnerArea() {
-      if (currentUser) {
-        history.replaceState({}, '', window.location.pathname);
-        isReadOnlyMode = false;
-        currentShareToken = null;
-        showScreen('screen-trips');
-        await loadTrips();
-        return;
-      }
-      forceOwnerAfterLogin = true;
-      showAdminLogin();
-    }
-
-    function applyPlannerMode() {
-      document.getElementById('planner-back-btn').classList.toggle('hidden', isReadOnlyMode);
-      document.getElementById('planner-owner-user').classList.toggle('hidden', isReadOnlyMode);
-      document.getElementById('planner-public-user').classList.toggle('hidden', !isReadOnlyMode);
-      document.getElementById('planner-owner-actions').classList.toggle('hidden', isReadOnlyMode);
-      document.getElementById('planner-readonly-label').classList.toggle('hidden', !isReadOnlyMode);
-      document.getElementById('add-item-btn').classList.toggle('hidden', isReadOnlyMode);
-      document.getElementById('add-expense-btn').classList.toggle('hidden', isReadOnlyMode);
-      const ownerButton = document.getElementById('public-owner-btn');
-      ownerButton.textContent = currentUser ? '내 여행 관리' : '관리자 로그인';
-    }
-
-    function updateShareControls() {
-      if (!currentTrip || isReadOnlyMode) return;
-      const shared = Boolean(currentTrip.is_shared);
-      document.getElementById('share-start-btn').classList.toggle('hidden', shared);
-      document.getElementById('share-copy-btn').classList.toggle('hidden', !shared);
-      document.getElementById('share-stop-btn').classList.toggle('hidden', !shared);
-      document.getElementById('share-state').textContent = shared
-        ? '현재 링크를 받은 사람은 로그인 없이 볼 수 있어.'
-        : '현재 비공개 상태야.';
-    }
-
-    function getShareUrl() {
-      if (!currentTrip?.share_token) return '';
-      return `${window.location.origin}${window.location.pathname}?share=${encodeURIComponent(currentTrip.share_token)}`;
-    }
-
-    async function startSharing() {
-      if (!currentUser || !currentTrip || isReadOnlyMode) return;
-      const { data, error } = await supabaseApp
-        .from('trips')
-        .update({ is_shared: true })
-        .eq('id', currentTrip.id)
-        .select()
-        .single();
-      if (error) return showToast('공유 시작 실패: ' + error.message, true);
-      currentTrip = data;
-      updateShareControls();
-      await copyShareLink();
-      showToast('공유를 시작했고 링크를 복사했어.');
-    }
-
-    async function stopSharing() {
-      if (!currentUser || !currentTrip || isReadOnlyMode) return;
-      if (!confirm('공유를 중지할까? 기존 링크로는 더 이상 일정을 볼 수 없게 돼.')) return;
-      const { data, error } = await supabaseApp
-        .from('trips')
-        .update({ is_shared: false })
-        .eq('id', currentTrip.id)
-        .select()
-        .single();
-      if (error) return showToast('공유 중지 실패: ' + error.message, true);
-      currentTrip = data;
-      updateShareControls();
-      showToast('공유를 중지했어.');
-    }
-
-    async function copyShareLink() {
-      const url = getShareUrl();
-      if (!url) return showToast('공유 링크를 만들지 못했어.', true);
-      try {
-        await navigator.clipboard.writeText(url);
-      } catch {
-        window.prompt('아래 공유 링크를 복사해.', url);
-      }
-    }
-
-    async function loadTrips() {
-      const grid = document.getElementById('trip-grid');
-      grid.innerHTML = '<div class="empty"><div class="spinner" style="margin:0 auto 12px"></div>여행 목록 불러오는 중...</div>';
-
-      const { data, error } = await supabaseApp
-        .from('trips')
-        .select('*')
-        .order('start_date', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        grid.innerHTML = '<div class="empty">여행을 불러오지 못했어.</div>';
-        return showToast('여행 목록 오류: ' + error.message, true);
-      }
-
-      tripsCache = data || [];
-      renderTrips();
-    }
-
-    function renderTrips() {
-      const grid = document.getElementById('trip-grid');
-      grid.replaceChildren();
-
-      if (!tripsCache.length) {
-        const empty = document.createElement('div');
-        empty.className = 'empty card';
-        empty.innerHTML = '<div class="empty-icon">🧳</div><strong>아직 만든 여행이 없어.</strong><br><span>위의 “새 여행”을 눌러 첫 여행을 만들어 봐.</span>';
-        grid.appendChild(empty);
-        return;
-      }
-
-      tripsCache.forEach(trip => {
-        const card = document.createElement('article');
-        card.className = 'trip-card card';
-        card.tabIndex = 0;
-        card.setAttribute('role', 'button');
-        card.addEventListener('click', () => openTrip(trip.id));
-        card.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') openTrip(trip.id);
-        });
-
-        const destination = document.createElement('div');
-        destination.className = 'destination';
-        destination.textContent = trip.destination || '여행지 미정';
-
-        const title = document.createElement('h3');
-        title.textContent = trip.title;
-
-        const dates = document.createElement('div');
-        dates.className = 'dates';
-        dates.textContent = formatTripDates(trip.start_date, trip.end_date);
-
-        const bottom = document.createElement('div');
-        bottom.className = 'trip-card-bottom';
-        const status = document.createElement('span');
-        status.className = 'status-chip';
-        status.textContent = STATUS_LABELS[trip.status] || trip.status;
-        const open = document.createElement('span');
-        open.className = 'open-link';
-        open.textContent = '열기 →';
-        bottom.append(status, open);
-
-        card.append(destination, title, dates, bottom);
-        grid.appendChild(card);
-      });
-    }
-
-    function openTripModal() {
-      document.getElementById('trip-form').reset();
-      document.getElementById('trip-input-currency').value = 'KRW';
-      openModal('trip-modal');
-      setTimeout(() => document.getElementById('trip-input-title').focus(), 50);
-    }
-
-    async function createTrip(event) {
-      event.preventDefault();
-      if (!currentUser) return showAdminLogin();
-      const title = document.getElementById('trip-input-title').value.trim();
-      const destination = document.getElementById('trip-input-destination').value.trim();
-      const startDate = document.getElementById('trip-input-start').value || null;
-      const endDate = document.getElementById('trip-input-end').value || null;
-      const currency = document.getElementById('trip-input-currency').value;
-      const submit = event.submitter;
-
-      if (!title) return showToast('여행 제목을 입력해.', true);
-      if (startDate && endDate && startDate > endDate) return showToast('종료일은 시작일보다 빠를 수 없어.', true);
-
-      submit.disabled = true;
-      submit.textContent = '만드는 중...';
-
-      const { data, error } = await supabaseApp
-        .from('trips')
-        .insert({
-          owner_id: currentUser.id,
-          title,
-          destination: destination || null,
-          start_date: startDate,
-          end_date: endDate,
-          default_currency: currency
-        })
-        .select()
-        .single();
-
-      submit.disabled = false;
-      submit.textContent = '여행 만들기';
-
-      if (error) return showToast('여행 생성 실패: ' + error.message, true);
-      closeModal('trip-modal');
-      showToast('새 여행을 만들었어.');
-      await openTrip(data.id);
-    }
-
-    async function openTrip(tripId, updateUrl = true) {
-      if (!currentUser) return showAdminLogin();
-      isReadOnlyMode = false;
-      currentShareToken = null;
-      const { data, error } = await supabaseApp
-        .from('trips')
-        .select('*')
-        .eq('id', tripId)
-        .single();
-
-      if (error || !data) {
-        history.replaceState({}, '', window.location.pathname);
-        showScreen('screen-trips');
-        await loadTrips();
-        return showToast('이 여행을 찾을 수 없거나 접근 권한이 없어.', true);
-      }
-
-      currentTrip = data;
-      currentDayNumber = 1;
-      document.getElementById('trip-title').textContent = data.title;
-      document.getElementById('trip-destination').textContent = data.destination || '여행지 미정';
-      document.getElementById('trip-meta').textContent = `${formatTripDates(data.start_date, data.end_date)} · ${data.default_currency}`;
-      document.getElementById('item-input-currency').value = data.default_currency || 'KRW';
-
-      if (updateUrl) history.replaceState({}, '', `?trip=${encodeURIComponent(data.id)}`);
-      showScreen('screen-planner');
-      applyPlannerMode();
-      updateShareControls();
-      renderDayTabs();
-      await Promise.all([loadItineraryItems(), loadExpenses()]);
-    }
-
-    async function openSharedTrip(shareToken) {
-      isReadOnlyMode = true;
-      currentShareToken = shareToken;
-      const { data, error } = await supabaseApp
-        .rpc('get_shared_trip', { p_share_token: shareToken })
-        .maybeSingle();
-
-      if (error || !data) {
-        currentTrip = null;
-        showScreen('screen-public-home');
-        return showToast('공유가 끝났거나 유효하지 않은 링크야.', true);
-      }
-
-      currentTrip = data;
-      currentDayNumber = 1;
-      document.getElementById('trip-title').textContent = data.title;
-      document.getElementById('trip-destination').textContent = data.destination || '여행지 미정';
-      document.getElementById('trip-meta').textContent = `${formatTripDates(data.start_date, data.end_date)} · ${data.default_currency}`;
-      showScreen('screen-planner');
-      applyPlannerMode();
-      renderDayTabs();
-      await Promise.all([loadItineraryItems(), loadExpenses()]);
-    }
-
-    function goBackToTrips() {
-      if (isReadOnlyMode) return showScreen('screen-public-home');
-      currentTrip = null;
-      history.replaceState({}, '', window.location.pathname);
-      showScreen('screen-trips');
-      loadTrips();
-    }
-
-    function getTripDayCount() {
-      if (!currentTrip?.start_date || !currentTrip?.end_date) return 4;
-      const start = parseLocalDate(currentTrip.start_date);
-      const end = parseLocalDate(currentTrip.end_date);
-      return Math.max(1, Math.round((end - start) / 86400000) + 1);
-    }
-
-    function renderDayTabs() {
-      const tabs = document.getElementById('day-tabs');
-      tabs.replaceChildren();
-      const count = getTripDayCount();
-
-      for (let day = 1; day <= count; day++) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'tab-btn' + (day === currentDayNumber ? ' active' : '');
-        button.textContent = getDayTabLabel(day);
-        button.addEventListener('click', () => selectDay(day));
-        tabs.appendChild(button);
-      }
-      updateDayTitle();
-    }
-
-    function selectDay(day) {
-      currentDayNumber = day;
-      renderDayTabs();
-      renderCurrentDayItems();
-      renderCurrentDayMap();
-    }
-
-    function getDayTabLabel(day) {
-      if (!currentTrip?.start_date) return `${day}일차`;
-      const date = parseLocalDate(currentTrip.start_date);
-      date.setDate(date.getDate() + day - 1);
-      return `${day}일차 · ${date.getMonth() + 1}/${date.getDate()}`;
-    }
-
-    function updateDayTitle() {
-      document.getElementById('day-title').textContent = `${getDayTabLabel(currentDayNumber)} 일정`;
-    }
-
-    async function loadItineraryItems() {
-      document.getElementById('plan-list').innerHTML = '<div class="empty-day">일정을 불러오는 중...</div>';
-      let data;
-      let error;
-      if (isReadOnlyMode) {
-        const result = await supabaseApp.rpc('get_shared_itinerary', { p_share_token: currentShareToken });
-        data = result.data;
-        error = result.error;
-      } else {
-        const result = await supabaseApp
-          .from('itinerary_items')
-          .select('*')
-          .eq('trip_id', currentTrip.id)
-          .order('day_number', { ascending: true })
-          .order('start_time', { ascending: true, nullsFirst: false })
-          .order('sort_order', { ascending: true });
-        data = result.data;
-        error = result.error;
-      }
-
-      if (error) {
-        document.getElementById('plan-list').innerHTML = '<div class="empty-day">일정을 불러오지 못했어.</div>';
-        return showToast('일정 불러오기 오류: ' + error.message, true);
-      }
-      itemsCache = data || [];
-      renderCurrentDayItems();
-      await renderCurrentDayMap();
-    }
-
-    function renderCurrentDayItems() {
-      updateDayTitle();
-      const list = document.getElementById('plan-list');
-      list.replaceChildren();
-      const items = itemsCache.filter(item => item.day_number === currentDayNumber);
-
-      if (!items.length) {
-        const empty = document.createElement('div');
-        empty.className = 'empty-day';
-        empty.textContent = isReadOnlyMode ? '아직 등록된 일정이 없어.' : '아직 등록된 일정이 없어. “일정 추가”를 눌러 만들어 봐.';
-        list.appendChild(empty);
-        return;
-      }
-
-      items.forEach(item => {
-        const linkedExpenses = expensesCache.filter(expense => expense.itinerary_item_id === item.id);
-        const row = document.createElement('article');
-        row.className = 'plan-item';
-
-        const time = document.createElement('div');
-        time.className = 'time';
-        time.textContent = item.start_time ? item.start_time.slice(0, 5) : '시간 미정';
-
-        const details = document.createElement('div');
-        const place = document.createElement('div');
-        place.className = 'place';
-        place.textContent = item.place_name;
-
-        const sub = document.createElement('div');
-        sub.className = 'plan-sub';
-        const parts = [];
-        if (item.schedule_date) parts.push(formatKoreanDate(item.schedule_date));
-        sub.textContent = parts.join(' · ');
-
-        details.appendChild(place);
-        if (parts.length) details.appendChild(sub);
-        if (item.memo) {
-          const memo = document.createElement('div');
-          memo.className = 'memo plan-sub';
-          memo.textContent = item.memo;
-          details.appendChild(memo);
-        }
-
-        if (linkedExpenses.length) {
-          const expenseBlock = document.createElement('div');
-          expenseBlock.className = 'inline-expense-block';
-          const title = document.createElement('div');
-          title.className = 'inline-expense-title';
-          title.textContent = '결제 기록';
-          const inlineList = document.createElement('div');
-          inlineList.className = 'inline-expense-list';
-
-          linkedExpenses.forEach(expense => {
-            const expenseRow = document.createElement('div');
-            expenseRow.className = 'inline-expense-row';
-
-            const main = document.createElement('div');
-            main.className = 'inline-expense-main';
-            const noteParts = [expense.payer_name || '이름 없음'];
-            if (expense.description && expense.description !== item.place_name) noteParts.push(expense.description);
-            if (expense.memo) noteParts.push(expense.memo);
-            main.textContent = noteParts.join(' · ');
-
-            const right = document.createElement('div');
-            right.className = 'inline-expense-amount';
-            const amount = document.createElement('span');
-            amount.textContent = formatMoney(expense.amount, expense.currency);
-            right.appendChild(amount);
-
-            if (!isReadOnlyMode) {
-              const actions = document.createElement('span');
-              actions.className = 'inline-expense-actions';
-              const editExpenseBtn = document.createElement('button');
-              editExpenseBtn.type = 'button';
-              editExpenseBtn.className = 'mini-btn';
-              editExpenseBtn.textContent = '수정';
-              editExpenseBtn.addEventListener('click', () => openEditExpenseModal(expense.id));
-              const deleteExpenseBtn = document.createElement('button');
-              deleteExpenseBtn.type = 'button';
-              deleteExpenseBtn.className = 'mini-btn danger';
-              deleteExpenseBtn.textContent = '삭제';
-              deleteExpenseBtn.addEventListener('click', () => deleteTripExpense(expense.id));
-              actions.append(editExpenseBtn, deleteExpenseBtn);
-              right.appendChild(actions);
-            }
-
-            expenseRow.append(main, right);
-            inlineList.appendChild(expenseRow);
-          });
-
-          expenseBlock.append(title, inlineList);
-          details.appendChild(expenseBlock);
-        }
-
-        if (!isReadOnlyMode) {
-          const actions = document.createElement('div');
-          actions.className = 'plan-actions';
-          const expenseBtn = document.createElement('button');
-          expenseBtn.type = 'button';
-          expenseBtn.className = 'secondary-btn';
-          expenseBtn.textContent = '+ 결제 기록';
-          expenseBtn.addEventListener('click', () => openExpenseModal(item.id));
-          const editBtn = document.createElement('button');
-          editBtn.type = 'button';
-          editBtn.className = 'mini-btn';
-          editBtn.textContent = '일정 수정';
-          editBtn.addEventListener('click', () => openEditItemModal(item.id));
-          const deleteBtn = document.createElement('button');
-          deleteBtn.type = 'button';
-          deleteBtn.className = 'mini-btn danger';
-          deleteBtn.textContent = '일정 삭제';
-          deleteBtn.addEventListener('click', () => deleteItineraryItem(item.id));
-          actions.append(expenseBtn, editBtn, deleteBtn);
-          details.appendChild(actions);
-        }
-
-        row.append(time, details);
-        list.appendChild(row);
-      });
-    }
-
-    function openItemModal() {
-      if (!currentTrip || isReadOnlyMode || !currentUser) return;
-      editingItemId = null;
-      document.getElementById('item-modal-title').textContent = '일정 추가';
-      document.getElementById('item-submit-btn').textContent = '저장';
-      document.getElementById('item-form').reset();
-      setTimeSelects(null);
-      selectedGooglePlace = null;
-      document.getElementById('item-input-place').value = '';
-      document.getElementById('selected-place').classList.add('hidden');
-      document.getElementById('selected-place').textContent = '';
-      document.getElementById('item-input-currency').value = currentTrip.default_currency || 'KRW';
-      document.getElementById('item-input-date').value = getDateForDay(currentDayNumber) || '';
-      openModal('item-modal');
-    }
-
-    async function createItineraryItem(event) {
-      event.preventDefault();
-      if (!currentTrip || isReadOnlyMode || !currentUser) return;
-      const place = document.getElementById('item-input-place').value.trim();
-      const scheduleDate = document.getElementById('item-input-date').value || null;
-      const timeResult = getSelectedTime();
-      if (timeResult.error) return showToast(timeResult.error, true);
-      const startTime = timeResult.value;
-      const estimatedCost = Number(document.getElementById('item-input-cost').value || 0);
-      const currency = document.getElementById('item-input-currency').value;
-      const memo = document.getElementById('item-input-memo').value.trim();
-      const submit = event.submitter;
-
-      if (!place || !selectedGooglePlace) return showToast('Google 검색 결과에서 장소를 선택해.', true);
-      if (estimatedCost < 0) return showToast('비용은 0 이상이어야 해.', true);
-
-      submit.disabled = true;
-      submit.textContent = editingItemId ? '수정 중...' : '저장 중...';
-
-      const payload = {
-        trip_id: currentTrip.id,
-        day_number: currentDayNumber,
-        schedule_date: scheduleDate,
-        start_time: startTime,
-        place_name: place,
-        address: selectedGooglePlace.address || null,
-        google_place_id: selectedGooglePlace.id || null,
-        latitude: selectedGooglePlace.lat,
-        longitude: selectedGooglePlace.lng,
-        estimated_cost: estimatedCost,
-        currency,
-        memo: memo || null
-      };
-
-      let result;
-      if (editingItemId) {
-        result = await supabaseApp.from('itinerary_items').update(payload).eq('id', editingItemId);
-      } else {
-        result = await supabaseApp.from('itinerary_items').insert(payload);
-      }
-
-      submit.disabled = false;
-      submit.textContent = editingItemId ? '수정 저장' : '저장';
-
-      if (result.error) return showToast(`일정 ${editingItemId ? '수정' : '저장'} 실패: ` + result.error.message, true);
-      const wasEditing = Boolean(editingItemId);
-      editingItemId = null;
-      closeModal('item-modal');
-      showToast(wasEditing ? '일정을 수정했어.' : '일정을 저장했어.');
-      await loadItineraryItems();
-    }
-
-    function openEditItemModal(itemId) {
-      if (isReadOnlyMode || !currentUser) return;
-      const item = itemsCache.find(row => row.id === itemId);
-      if (!item) return showToast('수정할 일정을 찾지 못했어.', true);
-      editingItemId = item.id;
-      document.getElementById('item-modal-title').textContent = '일정 수정';
-      document.getElementById('item-submit-btn').textContent = '수정 저장';
-      document.getElementById('item-input-date').value = item.schedule_date || '';
-      setTimeSelects(item.start_time ? item.start_time.slice(0, 5) : null);
-      document.getElementById('item-input-cost').value = Number(item.estimated_cost || 0);
-      document.getElementById('item-input-currency').value = item.currency || currentTrip.default_currency || 'KRW';
-      document.getElementById('item-input-memo').value = item.memo || '';
-      document.getElementById('item-input-place').value = item.place_name || '';
-      selectedGooglePlace = {
-        id: item.google_place_id || null,
-        name: item.place_name || '',
-        address: item.address || '',
-        lat: Number(item.latitude),
-        lng: Number(item.longitude)
-      };
-      const box = document.getElementById('selected-place');
-      box.textContent = `현재 장소: ${selectedGooglePlace.name}`;
-      box.classList.remove('hidden');
-      openModal('item-modal');
-    }
-
-    async function deleteItineraryItem(itemId) {
-      if (isReadOnlyMode || !currentUser) return;
-      const item = itemsCache.find(row => row.id === itemId);
-      if (!item) return;
-      if (!confirm(`“${item.place_name}” 일정을 삭제할까?`)) return;
-      const { error } = await supabaseApp.from('itinerary_items').delete().eq('id', itemId);
-      if (error) return showToast('일정 삭제 실패: ' + error.message, true);
-      showToast('일정을 삭제했어. 연결된 결제 기록은 일정 외 지출로 남아.');
-      await Promise.all([loadItineraryItems(), loadExpenses()]);
-    }
-
-
-    function initializeTimeSelects() {
-      const hourSelect = document.getElementById('item-input-hour');
-      const minuteSelect = document.getElementById('item-input-minute');
-      hourSelect.replaceChildren(new Option('시', ''));
-      minuteSelect.replaceChildren(new Option('분', ''));
-      for (let hour = 0; hour < 24; hour++) {
-        const value = String(hour).padStart(2, '0');
-        hourSelect.appendChild(new Option(`${value}시`, value));
-      }
-      for (let minute = 0; minute < 60; minute++) {
-        const value = String(minute).padStart(2, '0');
-        minuteSelect.appendChild(new Option(`${value}분`, value));
-      }
-    }
-
-    function setTimeSelects(timeValue) {
-      const hourSelect = document.getElementById('item-input-hour');
-      const minuteSelect = document.getElementById('item-input-minute');
-      if (!timeValue) {
-        hourSelect.value = '';
-        minuteSelect.value = '';
-        return;
-      }
-      const [hour = '', minute = ''] = String(timeValue).slice(0, 5).split(':');
-      hourSelect.value = hour;
-      minuteSelect.value = minute;
-    }
-
-    function getSelectedTime() {
-      const hour = document.getElementById('item-input-hour').value;
-      const minute = document.getElementById('item-input-minute').value;
-      if (!hour && !minute) return { value: null, error: null };
-      if (!hour || !minute) return { value: null, error: '시간은 시와 분을 둘 다 선택해.' };
-      return { value: `${hour}:${minute}`, error: null };
-    }
-
-    async function loadExpenses() {
-      const list = document.getElementById('expense-list');
-      list.innerHTML = '<div class="empty-day">가계부를 불러오는 중...</div>';
-      let data;
-      let error;
-
-      if (isReadOnlyMode) {
-        const result = await supabaseApp.rpc('get_shared_expenses', { p_share_token: currentShareToken });
-        data = result.data;
-        error = result.error;
-      } else {
-        const result = await supabaseApp
-          .from('trip_expenses')
-          .select('*')
-          .eq('trip_id', currentTrip.id)
-          .order('expense_date', { ascending: false })
-          .order('created_at', { ascending: false });
-        data = result.data;
-        error = result.error;
-      }
-
-      if (error) {
-        expensesCache = [];
-        renderExpenseLedger();
-        renderCurrentDayItems();
-        return showToast('가계부 불러오기 오류: ' + error.message, true);
-      }
-
-      expensesCache = data || [];
-      renderExpenseLedger();
-      renderCurrentDayItems();
-    }
-
-    function renderExpenseLedger() {
-      const totalBox = document.getElementById('expense-grand-total');
-      const countBox = document.getElementById('expense-count');
-      const briefBox = document.getElementById('expense-summary-brief');
-      const payerSummary = document.getElementById('payer-summary');
-      const listTitle = document.getElementById('expense-list-title');
-      const list = document.getElementById('expense-list');
-      payerSummary.replaceChildren();
-      list.replaceChildren();
-
-      countBox.textContent = `${expensesCache.length.toLocaleString('ko-KR')}건`;
-      const grandTotals = sumByCurrency(expensesCache);
-      const totalText = expensesCache.length ? formatCurrencyTotals(grandTotals) : '아직 지출 없음';
-      totalBox.textContent = totalText;
-      briefBox.textContent = expensesCache.length ? totalText : '아직 결제 기록 없음';
-
-      if (!expensesCache.length) {
-        listTitle.classList.add('hidden');
-        const empty = document.createElement('div');
-        empty.className = 'plan-sub';
-        empty.textContent = isReadOnlyMode
-          ? '아직 등록된 결제 기록이 없어.'
-          : '각 일정의 “결제 기록” 버튼에서 바로 남길 수 있어.';
-        list.appendChild(empty);
-        updatePayerSuggestions();
-        return;
-      }
-
-      const byPayer = new Map();
-      expensesCache.forEach(expense => {
-        const payer = (expense.payer_name || '이름 없음').trim();
-        if (!byPayer.has(payer)) byPayer.set(payer, []);
-        byPayer.get(payer).push(expense);
-      });
-
-      [...byPayer.entries()]
-        .sort((a, b) => a[0].localeCompare(b[0], 'ko'))
-        .forEach(([payer, rows]) => {
-          const summaryRow = document.createElement('div');
-          summaryRow.className = 'payer-summary-row';
-          const name = document.createElement('span');
-          name.textContent = payer;
-          const total = document.createElement('strong');
-          total.textContent = formatCurrencyTotals(sumByCurrency(rows));
-          summaryRow.append(name, total);
-          payerSummary.appendChild(summaryRow);
-        });
-
-      const unlinkedExpenses = expensesCache.filter(expense => !expense.itinerary_item_id);
-      listTitle.classList.toggle('hidden', !unlinkedExpenses.length);
-
-      unlinkedExpenses.forEach(expense => {
-        const row = document.createElement('article');
-        row.className = 'expense-item';
-
-        const details = document.createElement('div');
-        const title = document.createElement('div');
-        title.className = 'expense-title';
-        const description = expense.description?.trim() || (EXPENSE_CATEGORIES[expense.category]?.label || '기타');
-        title.textContent = `${expense.payer_name} · ${description}`;
-        const meta = document.createElement('div');
-        meta.className = 'expense-meta';
-        const metaParts = [formatKoreanDate(expense.expense_date)];
-        if (expense.memo) metaParts.push(expense.memo);
-        meta.textContent = metaParts.filter(Boolean).join(' · ');
-        details.append(title, meta);
-
-        const right = document.createElement('div');
-        right.className = 'expense-right';
-        const amount = document.createElement('span');
-        amount.className = 'expense-amount';
-        amount.textContent = formatMoney(expense.amount, expense.currency);
-        right.appendChild(amount);
-
-        if (!isReadOnlyMode) {
-          const actions = document.createElement('span');
-          actions.className = 'expense-actions';
-          const editButton = document.createElement('button');
-          editButton.type = 'button';
-          editButton.className = 'mini-btn';
-          editButton.textContent = '수정';
-          editButton.addEventListener('click', () => openEditExpenseModal(expense.id));
-          const deleteButton = document.createElement('button');
-          deleteButton.type = 'button';
-          deleteButton.className = 'mini-btn danger';
-          deleteButton.textContent = '삭제';
-          deleteButton.addEventListener('click', () => deleteTripExpense(expense.id));
-          actions.append(editButton, deleteButton);
-          right.appendChild(actions);
-        }
-
-        row.append(details, right);
-        list.appendChild(row);
-      });
-
-      updatePayerSuggestions();
-    }
-
-    function toggleExpenseSummary() {
-      const body = document.getElementById('expense-summary-body');
-      const toggle = document.getElementById('expense-summary-toggle');
-      const chevron = document.getElementById('expense-summary-chevron');
-      const isOpen = body.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', String(isOpen));
-      chevron.textContent = isOpen ? '▴' : '▾';
-    }
-
-    function sumByCurrency(rows) {
-      const totals = new Map();
-      rows.forEach(row => {
-        const currency = row.currency || currentTrip?.default_currency || 'KRW';
-        totals.set(currency, (totals.get(currency) || 0) + Number(row.amount || 0));
-      });
-      return totals;
-    }
-
-    function formatCurrencyTotals(totals) {
-      return [...totals.entries()]
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([currency, amount]) => formatMoney(amount, currency))
-        .join(' + ');
-    }
-
-    function updatePayerSuggestions() {
-      const datalist = document.getElementById('payer-suggestions');
-      datalist.replaceChildren();
-      const names = [...new Set(expensesCache.map(row => String(row.payer_name || '').trim()).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, 'ko'));
-      names.forEach(name => datalist.appendChild(new Option(name, name)));
-    }
-
-    function openExpenseModal(linkedItemId = null) {
-      if (!currentTrip || isReadOnlyMode || !currentUser) return;
-      editingExpenseId = null;
-      expenseLinkedItemId = linkedItemId || null;
-      const linkedItem = expenseLinkedItemId ? itemsCache.find(item => item.id === expenseLinkedItemId) : null;
-      document.getElementById('expense-modal-title').textContent = linkedItem ? '일정 결제 기록' : '일정 외 지출 추가';
-      document.getElementById('expense-submit-btn').textContent = '저장';
-      document.getElementById('expense-form').reset();
-
-      const context = document.getElementById('expense-link-context');
-      if (linkedItem) {
-        const scheduleLabel = [
-          linkedItem.schedule_date ? formatKoreanDate(linkedItem.schedule_date) : null,
-          linkedItem.start_time ? linkedItem.start_time.slice(0, 5) : null,
-          linkedItem.place_name
-        ].filter(Boolean).join(' · ');
-        context.textContent = scheduleLabel;
-        context.classList.remove('hidden');
-        document.getElementById('expense-input-date').value = linkedItem.schedule_date || getDateForDay(currentDayNumber) || currentTrip.start_date || toDateInputValue(new Date());
-        document.getElementById('expense-input-currency').value = linkedItem.currency || currentTrip.default_currency || 'KRW';
-        document.getElementById('expense-input-description').value = linkedItem.place_name || '';
-      } else {
-        context.textContent = '';
-        context.classList.add('hidden');
-        document.getElementById('expense-input-date').value = getDateForDay(currentDayNumber) || currentTrip.start_date || toDateInputValue(new Date());
-        document.getElementById('expense-input-currency').value = currentTrip.default_currency || 'KRW';
-      }
-
-      document.getElementById('expense-input-category').value = 'food';
-      updatePayerSuggestions();
-      openModal('expense-modal');
-      setTimeout(() => document.getElementById('expense-input-payer').focus(), 50);
-    }
-
-    async function saveTripExpense(event) {
-      event.preventDefault();
-      if (!currentTrip || isReadOnlyMode || !currentUser) return;
-
-      const expenseDate = document.getElementById('expense-input-date').value;
-      const payerName = document.getElementById('expense-input-payer').value.trim();
-      const amount = Number(document.getElementById('expense-input-amount').value || 0);
-      const currency = document.getElementById('expense-input-currency').value;
-      const category = document.getElementById('expense-input-category').value;
-      const description = document.getElementById('expense-input-description').value.trim();
-      const memo = document.getElementById('expense-input-memo').value.trim();
-      const submit = event.submitter;
-
-      if (!expenseDate) return showToast('결제일을 선택해.', true);
-      if (!payerName) return showToast('결제한 사람 이름을 입력해.', true);
-      if (!(amount > 0)) return showToast('금액은 0보다 크게 입력해.', true);
-
-      submit.disabled = true;
-      submit.textContent = editingExpenseId ? '수정 중...' : '저장 중...';
-
-      const payload = {
-        trip_id: currentTrip.id,
-        itinerary_item_id: expenseLinkedItemId || null,
-        expense_date: expenseDate,
-        payer_name: payerName,
-        category,
-        description: description || null,
-        amount,
-        currency,
-        memo: memo || null
-      };
-
-      let result;
-      if (editingExpenseId) {
-        result = await supabaseApp.from('trip_expenses').update(payload).eq('id', editingExpenseId);
-      } else {
-        result = await supabaseApp.from('trip_expenses').insert(payload);
-      }
-
-      submit.disabled = false;
-      submit.textContent = editingExpenseId ? '수정 저장' : '저장';
-
-      if (result.error) return showToast(`지출 ${editingExpenseId ? '수정' : '저장'} 실패: ` + result.error.message, true);
-      const wasEditing = Boolean(editingExpenseId);
-      editingExpenseId = null;
-      expenseLinkedItemId = null;
-      closeModal('expense-modal');
-      showToast(wasEditing ? '지출 내역을 수정했어.' : '지출 내역을 저장했어.');
-      await loadExpenses();
-    }
-
-    function openEditExpenseModal(expenseId) {
-      if (isReadOnlyMode || !currentUser) return;
-      const expense = expensesCache.find(row => row.id === expenseId);
-      if (!expense) return showToast('수정할 지출을 찾지 못했어.', true);
-      editingExpenseId = expense.id;
-      expenseLinkedItemId = expense.itinerary_item_id || null;
-      const linkedItem = expenseLinkedItemId ? itemsCache.find(item => item.id === expenseLinkedItemId) : null;
-      document.getElementById('expense-modal-title').textContent = linkedItem ? '일정 결제 수정' : '일정 외 지출 수정';
-      document.getElementById('expense-submit-btn').textContent = '수정 저장';
-      document.getElementById('expense-input-date').value = expense.expense_date || '';
-      document.getElementById('expense-input-payer').value = expense.payer_name || '';
-      document.getElementById('expense-input-amount').value = Number(expense.amount || 0);
-      document.getElementById('expense-input-currency').value = expense.currency || currentTrip.default_currency || 'KRW';
-      document.getElementById('expense-input-category').value = expense.category || 'other';
-      document.getElementById('expense-input-description').value = expense.description || '';
-      document.getElementById('expense-input-memo').value = expense.memo || '';
-
-      const context = document.getElementById('expense-link-context');
-      if (linkedItem) {
-        context.textContent = `연결된 일정 · ${linkedItem.place_name}`;
-        context.classList.remove('hidden');
-      } else {
-        context.textContent = '';
-        context.classList.add('hidden');
-      }
-
-      updatePayerSuggestions();
-      openModal('expense-modal');
-    }
-
-    async function deleteTripExpense(expenseId) {
-      if (isReadOnlyMode || !currentUser) return;
-      const expense = expensesCache.find(row => row.id === expenseId);
-      if (!expense) return;
-      const label = expense.description?.trim() || EXPENSE_CATEGORIES[expense.category]?.label || '지출';
-      if (!confirm(`“${label}” 지출 내역을 삭제할까?`)) return;
-      const { error } = await supabaseApp.from('trip_expenses').delete().eq('id', expenseId);
-      if (error) return showToast('지출 삭제 실패: ' + error.message, true);
-      showToast('지출 내역을 삭제했어.');
-      await loadExpenses();
-    }
-
-    async function initGoogleFeatures() {
-      try {
-        const [{ Map }, placesLib] = await Promise.all([
-          google.maps.importLibrary('maps'),
-          google.maps.importLibrary('places')
-        ]);
-        map = new Map(document.getElementById('map'), {
-          center: { lat: 36.5, lng: 127.8 },
-          zoom: 6,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: true
-        });
-
-        const autocomplete = new placesLib.PlaceAutocompleteElement();
-        autocomplete.placeholder = '호텔, 식당, 관광지 등을 검색해';
-        document.getElementById('place-autocomplete-host').replaceChildren(autocomplete);
-        autocomplete.addEventListener('gmp-select', async event => {
-          try {
-            const place = event.placePrediction.toPlace();
-            await place.fetchFields({ fields: ['id', 'displayName', 'formattedAddress', 'location'] });
-            if (!place.location) throw new Error('장소 좌표를 찾지 못했어.');
-            selectedGooglePlace = {
-              id: place.id,
-              name: place.displayName || place.formattedAddress,
-              address: place.formattedAddress || '',
-              lat: place.location.lat(),
-              lng: place.location.lng()
-            };
-            document.getElementById('item-input-place').value = selectedGooglePlace.name;
-            const box = document.getElementById('selected-place');
-            box.textContent = `선택됨: ${selectedGooglePlace.name}`;
-            box.classList.remove('hidden');
-          } catch (error) {
-            showToast('장소 정보를 가져오지 못했어: ' + error.message, true);
-          }
-        });
-      } catch (error) {
-        document.getElementById('route-summary').textContent = 'Google 지도를 불러오지 못했어. API 설정과 도메인 제한을 확인해 줘.';
-        console.error(error);
-      }
-    }
-
-    function clearMapOverlays() {
-      mapMarkers.forEach(marker => marker.setMap(null));
-      mapMarkers = [];
-      mapPolylines.forEach(polyline => polyline.setMap(null));
-      mapPolylines = [];
-    }
-
-    async function renderCurrentDayMap() {
-      if (!map) return;
-      clearMapOverlays();
-      const summary = document.getElementById('route-summary');
-      const items = itemsCache
-        .filter(item => item.day_number === currentDayNumber && item.latitude != null && item.longitude != null)
-        .sort((a, b) => {
-          const timeCompare = String(a.start_time || '99:99').localeCompare(String(b.start_time || '99:99'));
-          if (timeCompare !== 0) return timeCompare;
-          return String(a.created_at || '').localeCompare(String(b.created_at || ''));
-        });
-
-      if (!items.length) {
-        summary.textContent = '이 날짜에는 지도에 표시할 장소가 아직 없어.';
-        return;
-      }
-
-      const bounds = new google.maps.LatLngBounds();
-      const positions = items.map((item, index) => {
-        const position = { lat: Number(item.latitude), lng: Number(item.longitude) };
-        bounds.extend(position);
-        const marker = new google.maps.Marker({
-          map,
-          position,
-          label: String(index + 1),
-          title: item.place_name
-        });
-        mapMarkers.push(marker);
-        return position;
-      });
-
-      if (positions.length >= 2) {
-        const straightLine = new google.maps.Polyline({
-          map,
-          path: positions,
-          geodesic: false,
-          strokeOpacity: 0.85,
-          strokeWeight: 4
-        });
-        mapPolylines.push(straightLine);
-      }
-
-      map.fitBounds(bounds);
-      if (items.length === 1) map.setZoom(15);
-
-      summary.textContent = items.length === 1
-        ? '장소 1개를 지도에 표시했어.'
-        : `마커 ${items.length}개를 일정 순서대로 직선으로 연결했어. 실제 도로 경로가 아니라 위치 흐름을 보는 선이야.`;
-    }
-
-    async function deleteCurrentTrip() {
-      if (!currentTrip || isReadOnlyMode || !currentUser) return;
-      const ok = confirm(`“${currentTrip.title}” 여행과 그 안의 모든 일정을 삭제할까?\n이 작업은 되돌릴 수 없어.`);
-      if (!ok) return;
-
-      const { error } = await supabaseApp.from('trips').delete().eq('id', currentTrip.id);
-      if (error) return showToast('여행 삭제 실패: ' + error.message, true);
-      showToast('여행을 삭제했어.');
-      goBackToTrips();
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('open'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-    function getDateForDay(day) {
-      if (!currentTrip?.start_date) return null;
-      const date = parseLocalDate(currentTrip.start_date);
-      date.setDate(date.getDate() + day - 1);
-      return toDateInputValue(date);
-    }
-
-    function parseLocalDate(value) {
-      const [year, month, day] = value.split('-').map(Number);
-      return new Date(year, month - 1, day);
-    }
-
-    function toDateInputValue(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    function formatTripDates(start, end) {
-      if (!start && !end) return '날짜 미정';
-      if (start && !end) return `${formatKoreanDate(start)}부터`;
-      if (!start && end) return `${formatKoreanDate(end)}까지`;
-      return `${formatKoreanDate(start)} ~ ${formatKoreanDate(end)}`;
-    }
-
-    function formatKoreanDate(value) {
-      if (!value) return '';
-      const date = parseLocalDate(value);
-      return new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric' }).format(date);
-    }
-
-    function formatMoney(value, currency) {
-      try {
-        return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: currency || 'KRW', maximumFractionDigits: 2 }).format(Number(value));
-      } catch {
-        return `${Number(value).toLocaleString()} ${currency || ''}`.trim();
-      }
-    }
-
-    let toastTimer;
-    function showToast(message, isError = false) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.className = isError ? 'show error' : 'show';
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { toast.className = ''; }, 3200);
-    }
-  </script>
+</div>
+
+<div class="toast" id="toast">공유 링크를 복사했어</div>
+
+<script>
+const root=document.documentElement;
+const menu=document.getElementById('menu');
+const toast=document.getElementById('toast');
+const titleModal=document.getElementById('titleModal');
+function showToast(text){toast.textContent=text;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1500)}
+document.getElementById('moreBtn').onclick=e=>{e.stopPropagation();menu.classList.toggle('hidden')};
+document.addEventListener('click',()=>menu.classList.add('hidden'));
+menu.onclick=e=>e.stopPropagation();
+document.getElementById('copyBtn').onclick=()=>showToast('공유 링크를 복사했어');
+document.getElementById('stopShareBtn').onclick=()=>showToast('미리보기에서는 공유 상태만 보여줘');
+document.getElementById('deleteBtn').onclick=()=>showToast('삭제는 더보기 메뉴 안에 숨기고, 실제 앱에서는 한 번 더 확인해');
+document.getElementById('editInfoBtn').onclick=()=>titleModal.classList.add('open');
+document.getElementById('editTitleBtn').onclick=()=>titleModal.classList.add('open');
+document.getElementById('cancelModal').onclick=()=>titleModal.classList.remove('open');
+titleModal.onclick=e=>{if(e.target===titleModal)titleModal.classList.remove('open')};
+document.getElementById('saveTitle').onclick=()=>{
+  const title=document.getElementById('titleInput').value.trim()||'제목 없는 여행';
+  const dest=document.getElementById('destinationInput').value.trim()||'여행지 미정';
+  document.getElementById('tripTitle').textContent=title;
+  document.getElementById('destinationText').textContent=dest.toUpperCase();
+  titleModal.classList.remove('open');showToast('여행 정보를 수정했어')
+};
+function applyColor(color,rgb){
+  root.style.setProperty('--accent',color);root.style.setProperty('--accent-rgb',rgb);
+  root.style.setProperty('--accent-soft',`rgba(${rgb},.12)`);root.style.setProperty('--accent-ink',color);
+  document.querySelector('meta[name="theme-color"]').setAttribute('content',color)
+}
+document.querySelectorAll('.swatch').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected'));
+    btn.classList.add('selected');document.getElementById('customColor').value=btn.dataset.color;
+    applyColor(btn.dataset.color,btn.dataset.rgb)
+  }
+});
+document.getElementById('customColor').oninput=e=>{
+  const hex=e.target.value;const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected'));applyColor(hex,`${r},${g},${b}`)
+};
+
+const dayMap=document.getElementById('dayMap');
+const mapToggle=document.getElementById('mapToggle');
+mapToggle.onclick=()=>{
+  dayMap.classList.toggle('collapsed');
+  mapToggle.textContent=dayMap.classList.contains('collapsed')?'지도 펼치기':'지도 접기';
+};
+document.getElementById('mapOpen').onclick=()=>showToast('실제 앱에서는 현재 일정 장소를 Google 지도에서 열어');
+document.getElementById('expenseToggle').onclick=()=>{
+  const body=document.getElementById('expenseBody');body.classList.toggle('open');
+  document.querySelector('#expenseToggle small').textContent=body.classList.contains('open')?'¥14,800 · 3건 ▴':'¥14,800 · 3건 ▾'
+};
+</script>
 </body>
 </html>
