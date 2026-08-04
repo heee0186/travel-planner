@@ -424,6 +424,7 @@
         <h1>나의 여행 ✈️</h1>
         <div class="user-area">
           <span id="user-email" class="user-email"></span>
+          <button class="ghost-btn" type="button" onclick="openPreparationBox()">여행 준비함</button>
           <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
         </div>
       </header>
@@ -445,6 +446,7 @@
         <button id="planner-back-btn" class="back-btn" type="button" onclick="goBackToTrips()">← 여행 목록</button>
         <div id="planner-owner-user" class="user-area">
           <span id="planner-user-email" class="user-email"></span>
+          <button class="ghost-btn" type="button" onclick="openPreparationBox()">여행 준비함</button>
           <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
         </div>
         <div id="planner-public-user" class="user-area hidden">
@@ -895,6 +897,13 @@
       });
       if (error) return showAuthMessage(toKoreanAuthError(error), 'error');
       showAuthMessage('비밀번호 재설정 메일을 보냈어.', 'success');
+    }
+
+    function openPreparationBox() {
+      if (currentTrip?.id) {
+        localStorage.setItem('travel_prep_current_trip', currentTrip.id);
+      }
+      window.location.href = './prep.html';
     }
 
     async function logout() {
