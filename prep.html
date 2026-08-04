@@ -1,0 +1,1550 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>여행 준비함</title>
+<style>
+:root{
+  --accent:#6b587f;
+  --accent-dark:#4e3e60;
+  --accent-soft:#eee9f3;
+  --bg:#f6f4f1;
+  --paper:#ffffff;
+  --paper-warm:#fbfaf8;
+  --text:#27232a;
+  --muted:#79737c;
+  --line:#e7e1dc;
+  --shadow:0 14px 38px rgba(48,41,55,.07);
+
+  --memo-bg:#f1ebfa;
+  --memo-text:#70568f;
+  --info-bg:#eaf2fb;
+  --info-text:#506f98;
+  --food-bg:#fff0e8;
+  --food-text:#a26049;
+  --place-bg:#eaf5ed;
+  --place-text:#4f7c5d;
+
+  --decision-bg:#fbf3e6;
+  --decision-text:#8d6835;
+  --done-bg:#edf5ef;
+  --done-text:#4f765e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(107,88,127,.08),transparent 28rem),
+    var(--bg);
+  font-family:Pretendard,"Malgun Gothic",system-ui,sans-serif;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{width:min(1160px,100%);margin:0 auto;padding:22px}
+.topbar{display:flex;align-items:center;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{
+  width:38px;height:38px;border-radius:13px;
+  display:grid;place-items:center;
+  background:var(--accent);color:#fff;font-weight:900;
+  box-shadow:0 8px 18px rgba(107,88,127,.22)
+}
+.brand h1{margin:0;font-size:20px}
+.brand span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
+
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px}
+.sidebar{
+  position:sticky;top:18px;align-self:start;
+  padding:14px;border:1px solid var(--line);border-radius:22px;
+  background:rgba(255,255,255,.84);box-shadow:var(--shadow)
+}
+.trip{
+  padding:12px 10px 14px;
+  margin-bottom:10px;
+  border-bottom:1px solid var(--line)
+}
+.trip b{font-size:15px}
+.trip span{display:block;margin-top:4px;font-size:11px;color:var(--muted)}
+.nav{display:grid;gap:6px}
+.nav-btn{
+  width:100%;padding:11px 12px;border:0;border-radius:12px;
+  background:transparent;color:#625c66;text-align:left;
+  font-size:13px;font-weight:800
+}
+.nav-btn.active{background:var(--accent-soft);color:var(--accent-dark)}
+.nav-btn small{float:right;color:#9a949c;font-weight:700}
+.sidebar-note{
+  margin-top:14px;padding:11px;border-radius:13px;
+  background:var(--paper-warm);
+  color:var(--muted);font-size:11px;line-height:1.55
+}
+
+.content{min-width:0}
+.screen{display:none}
+.screen.active{display:block}
+.hero{
+  padding:24px;border:1px solid var(--line);border-radius:24px;
+  background:var(--paper);box-shadow:var(--shadow)
+}
+.eyebrow{
+  color:var(--accent-dark);font-size:12px;font-weight:900;letter-spacing:.04em
+}
+.hero h2{margin:6px 0;font-size:28px;letter-spacing:-.04em}
+.hero p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+
+.capture{
+  margin-top:18px;padding:14px;border:1px solid var(--line);
+  border-radius:18px;background:var(--paper-warm)
+}
+.capture textarea{
+  width:100%;min-height:82px;border:0;outline:0;resize:vertical;
+  background:transparent;color:var(--text);line-height:1.6
+}
+.capture-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;margin-top:8px
+}
+.capture-hint{color:var(--muted);font-size:11px}
+.capture-actions{display:flex;align-items:center;gap:8px}
+.select{
+  padding:9px 10px;border:1px solid var(--line);border-radius:11px;
+  outline:0;background:#fff;color:#625c66;font-size:11px;font-weight:850
+}
+.primary,.secondary,.danger,.move-btn{
+  border-radius:11px;font-size:12px;font-weight:900
+}
+.primary{padding:10px 14px;border:0;background:var(--accent);color:#fff}
+.secondary{padding:9px 12px;border:1px solid var(--line);background:#fff;color:#625c66}
+.danger{padding:9px 11px;border:1px solid #ead5d5;background:#fff6f6;color:#a34747}
+
+.dashboard{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
+.panel{
+  padding:18px;border:1px solid var(--line);border-radius:20px;
+  background:var(--paper);box-shadow:0 10px 28px rgba(49,42,56,.045)
+}
+.library-panel{grid-column:1/-1}
+.panel-head{
+  display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:12px
+}
+.panel-head h3{margin:0;font-size:16px}
+.panel-head span{font-size:11px;color:var(--muted)}
+.stack{display:grid;gap:9px}
+.task{
+  padding:13px;border:1px solid var(--line);border-radius:15px;background:#fff
+}
+.task-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.task b{font-size:14px}
+.task p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.state{
+  flex:0 0 auto;padding:5px 8px;border-radius:999px;
+  font-size:10px;font-weight:900
+}
+.state.decision{background:var(--decision-bg);color:var(--decision-text)}
+.state.done{background:var(--done-bg);color:var(--done-text)}
+.task-action{display:flex;justify-content:flex-end;margin-top:8px}
+.link-btn{
+  padding:2px 0;border:0;background:transparent;
+  color:var(--muted);font-size:10px;font-weight:850
+}
+
+.library-tools{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;flex-wrap:wrap;margin-bottom:12px
+}
+.filters{display:flex;gap:6px;overflow:auto}
+.filter-btn{
+  padding:7px 10px;border:1px solid var(--line);border-radius:999px;
+  background:#fff;color:#6a646e;font-size:10px;font-weight:850;white-space:nowrap
+}
+.filter-btn.active{border-color:transparent}
+.filter-btn[data-type="전체"].active{background:var(--accent-soft);color:var(--accent-dark)}
+.filter-btn[data-type="메모"].active{background:var(--memo-bg);color:var(--memo-text)}
+.filter-btn[data-type="정보"].active{background:var(--info-bg);color:var(--info-text)}
+.filter-btn[data-type="맛집"].active{background:var(--food-bg);color:var(--food-text)}
+.filter-btn[data-type="장소"].active{background:var(--place-bg);color:var(--place-text)}
+.storage-note{
+  padding:7px 10px;border:1px solid var(--line);border-radius:999px;
+  background:var(--paper-warm);color:var(--muted);font-size:10px
+}
+.library-note{margin:0 0 12px;color:var(--muted);font-size:10px;line-height:1.5}
+.library-list{display:grid;gap:8px}
+.library-item{
+  width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) auto;
+  align-items:center;gap:11px;padding:12px;
+  border:1px solid var(--line);border-radius:14px;background:#fff;text-align:left
+}
+.library-item:hover{border-color:#d6cedc;background:#fefcfe}
+.category-badge{
+  width:40px;height:40px;display:grid;place-items:center;
+  border-radius:12px;font-size:11px;font-weight:900
+}
+.category-badge.memo{background:var(--memo-bg);color:var(--memo-text)}
+.category-badge.info{background:var(--info-bg);color:var(--info-text)}
+.category-badge.food{background:var(--food-bg);color:var(--food-text)}
+.category-badge.place{background:var(--place-bg);color:var(--place-text)}
+.library-main{min-width:0}
+.library-main b{
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px
+}
+.library-main p{
+  margin:4px 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--muted);font-size:11px
+}
+.library-time{color:var(--muted);font-size:10px;white-space:nowrap}
+.empty{
+  padding:28px 16px;border:1px dashed var(--line);border-radius:14px;
+  background:var(--paper-warm);color:var(--muted);font-size:12px;text-align:center
+}
+
+.compare-list{display:grid;gap:10px;margin-top:16px}
+.compare-topic{
+  padding:15px;border:1px solid var(--line);border-radius:16px;background:#fff
+}
+.compare-topic-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.compare-topic h3{margin:0;font-size:15px}
+.compare-topic p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.compare-example{
+  margin-top:16px;padding:18px;border:1px solid var(--line);
+  border-radius:20px;background:var(--paper)
+}
+.compare-example h3{margin:0 0 12px;font-size:16px}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.compare-card{
+  padding:17px;border:1px solid var(--line);border-radius:18px;background:#fff
+}
+.compare-card.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(107,88,127,.1)
+}
+.compare-card h4{margin:0 0 5px;font-size:17px}
+.price{color:var(--accent-dark);font-size:13px;font-weight:900}
+.compare-card ul{
+  margin:12px 0 0;padding-left:17px;color:var(--muted);font-size:12px;line-height:1.65
+}
+.select-btn{
+  width:100%;margin-top:14px;padding:9px;
+  border:1px solid var(--line);border-radius:11px;
+  background:#fff;color:#5f5963;font-size:12px;font-weight:900
+}
+.compare-card.selected .select-btn{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.days{display:flex;gap:8px;overflow:auto;margin:14px 0}
+.day-btn{
+  padding:9px 12px;border:1px solid var(--line);border-radius:999px;
+  background:#fff;color:#6a646e;font-size:12px;font-weight:850;white-space:nowrap
+}
+.day-btn.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.timeline{
+  padding:18px;border:1px solid var(--line);border-radius:20px;
+  background:#fff;box-shadow:0 10px 28px rgba(49,42,56,.045)
+}
+.slot{
+  display:grid;grid-template-columns:76px 1fr;gap:14px;
+  padding:14px 0;border-bottom:1px solid #f0ede8
+}
+.slot:last-child{border-bottom:0}
+.slot-time{color:var(--accent-dark);font-size:12px;font-weight:900}
+.slot-card{
+  padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--paper-warm)
+}
+.slot-card b{font-size:14px}
+.slot-card p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.slot-action{display:flex;justify-content:flex-end;margin-top:7px}
+.map-row{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  margin-top:14px;padding:14px 15px;border:1px solid var(--line);
+  border-radius:15px;background:#fff
+}
+.map-row p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
+
+.modal{
+  position:fixed;inset:0;z-index:40;display:none;
+  align-items:center;justify-content:center;padding:16px;
+  background:rgba(28,24,32,.48)
+}
+.modal.open{display:flex}
+.modal-box{
+  width:min(500px,100%);max-height:90vh;overflow:auto;
+  padding:20px;border-radius:22px;background:#fff;
+  box-shadow:0 26px 80px rgba(0,0,0,.25)
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}
+.modal-head h3{margin:0;font-size:18px}
+.close-btn{
+  width:34px;height:34px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:#655f69
+}
+.field{margin-bottom:12px}
+.field label{display:block;margin-bottom:6px;font-size:11px;font-weight:900}
+.field input,.field textarea,.field select{
+  width:100%;padding:11px;border:1px solid var(--line);border-radius:11px;
+  outline:0;background:var(--paper-warm)
+}
+.field textarea{min-height:130px;resize:vertical;line-height:1.55}
+.move-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.move-btn{padding:10px 8px;border:1px solid var(--line);background:#fff;color:#5f5963;font-size:11px}
+.move-btn.schedule{border-color:transparent;background:var(--accent-soft);color:var(--accent-dark)}
+.modal-footer{display:flex;justify-content:space-between;gap:8px;margin-top:15px}
+.modal-footer-right{display:flex;gap:8px}
+
+.toast{
+  position:fixed;left:50%;bottom:24px;z-index:50;
+  padding:10px 14px;border-radius:11px;background:#252229;color:#fff;
+  font-size:12px;opacity:0;pointer-events:none;
+  transform:translateX(-50%) translateY(20px);transition:.2s
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:850px){
+  .app{padding:13px}
+  .shell{grid-template-columns:1fr}
+  .sidebar{
+    position:static;display:flex;overflow:auto;
+    padding:8px;border-radius:16px
+  }
+  .trip,.sidebar-note{display:none}
+  .nav{display:flex;min-width:max-content}
+  .nav-btn{width:auto;white-space:nowrap}
+  .dashboard,.compare-grid{grid-template-columns:1fr}
+  .hero{padding:19px}
+  .hero h2{font-size:24px}
+  .move-actions{grid-template-columns:1fr}
+}
+
+.hero-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.compare-topic-card{
+  margin-top:14px;padding:18px;border:1px solid var(--line);border-radius:20px;
+  background:var(--paper);box-shadow:0 10px 28px rgba(49,42,56,.045)
+}
+.compare-topic-header{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px
+}
+.compare-topic-header h3{margin:0;font-size:18px}
+.compare-topic-header p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.topic-tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tiny-btn{
+  padding:7px 9px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:#635d67;font-size:10px;font-weight:900
+}
+.tiny-btn.danger-text{color:#a15a5a}
+.candidate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.candidate{
+  padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--paper-warm)
+}
+.candidate.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(107,88,127,.10);
+  background:#fff
+}
+.candidate-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.candidate h4{margin:0;font-size:15px}
+.candidate-price{margin-top:4px;color:var(--accent-dark);font-size:12px;font-weight:900}
+.candidate-link{
+  display:block;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#667a9d;font-size:10px
+}
+.candidate-columns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.candidate-section b{font-size:10px}
+.candidate-section ul{margin:6px 0 0;padding-left:16px;color:var(--muted);font-size:11px;line-height:1.55}
+.candidate-opinion{
+  margin-top:10px;padding:9px;border-radius:11px;background:#fff;
+  color:#69626d;font-size:10px;line-height:1.45
+}
+.candidate-actions{display:flex;gap:6px;margin-top:11px}
+.candidate-actions button{flex:1}
+.choose-btn{
+  padding:8px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:#5f5963;font-size:11px;font-weight:900
+}
+.candidate.selected .choose-btn{border-color:var(--accent);background:var(--accent);color:#fff}
+.decision-box{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line)
+}
+.decision-box input{
+  width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:11px;
+  background:var(--paper-warm);outline:0
+}
+.compare-empty{
+  margin-top:16px;padding:34px 18px;border:1px dashed var(--line);
+  border-radius:18px;background:var(--paper-warm);text-align:center
+}
+.compare-empty b{display:block;font-size:14px}
+.compare-empty p{margin:6px 0 12px;color:var(--muted);font-size:11px}
+.modal-help{margin:-4px 0 12px;color:var(--muted);font-size:10px;line-height:1.5}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:850px){
+  .hero-row{display:block}
+  .hero-row .primary{margin-top:14px}
+  .candidate-grid,.candidate-columns,.field-row{grid-template-columns:1fr}
+  .decision-box{grid-template-columns:1fr}
+}
+
+
+[hidden]{display:none!important}
+.topbar{justify-content:space-between}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.account-btn{
+  padding:8px 10px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--muted);font-size:10px;font-weight:850
+}
+.trip-select{
+  width:100%;padding:0;border:0;outline:0;background:transparent;
+  color:var(--text);font-size:15px;font-weight:900
+}
+.trip-meta{display:block;margin-top:5px;color:var(--muted);font-size:11px}
+.trip-actions{display:flex;justify-content:flex-end;margin-top:8px}
+.trip-add{
+  padding:2px 0;border:0;background:transparent;
+  color:var(--accent-dark);font-size:10px;font-weight:900
+}
+.auth-shell{
+  min-height:100vh;display:grid;place-items:center;padding:20px;
+  background:radial-gradient(circle at 20% 0%,rgba(107,88,127,.12),transparent 30rem),var(--bg)
+}
+.auth-card{
+  width:min(420px,100%);padding:26px;border:1px solid var(--line);border-radius:24px;
+  background:#fff;box-shadow:var(--shadow)
+}
+.auth-card .brand{margin-bottom:20px}
+.auth-card h2{margin:0 0 6px;font-size:24px}
+.auth-card>p{margin:0 0 18px;color:var(--muted);font-size:12px;line-height:1.55}
+.auth-card .field{margin-bottom:12px}
+.auth-card .primary{width:100%;margin-top:4px}
+.auth-message{min-height:18px;margin:10px 0 0;font-size:11px;color:#a34747}
+.auth-links{display:flex;justify-content:center;margin-top:12px}
+.auth-links button{border:0;background:transparent;color:var(--muted);font-size:10px;font-weight:850}
+.loading-layer{
+  position:fixed;inset:0;z-index:100;display:grid;place-items:center;
+  background:rgba(246,244,241,.94)
+}
+.loading-box{
+  padding:16px 20px;border:1px solid var(--line);border-radius:16px;
+  background:#fff;color:var(--muted);font-size:12px;box-shadow:var(--shadow)
+}
+.reservation-item{cursor:pointer}
+.schedule-tools{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.schedule-tools button{border:0;background:transparent;color:var(--muted);font-size:10px;font-weight:850}
+@media(max-width:850px){
+  .topbar-actions .account-btn:first-child{display:none}
+}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="loading-layer" id="loadingLayer"><div class="loading-box">여행 준비함을 불러오는 중...</div></div>
+
+<section class="auth-shell" id="authScreen" hidden>
+  <div class="auth-card">
+    <div class="brand">
+      <div class="logo">T</div>
+      <div><h1>여행 준비함</h1><span>기존 여행 플래너 계정으로 로그인</span></div>
+    </div>
+    <h2>로그인</h2>
+    <p>기존 앱에서 사용하던 이메일과 비밀번호를 그대로 입력해.</p>
+    <form id="authForm">
+      <div class="field"><label for="authEmail">이메일</label><input id="authEmail" type="email" autocomplete="email" required></div>
+      <div class="field"><label for="authPassword">비밀번호</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" required></div>
+      <button class="primary" id="authSubmit" type="submit">로그인</button>
+    </form>
+    <div class="auth-message" id="authMessage"></div>
+    <div class="auth-links"><button type="button" id="resetPassword">비밀번호를 잊었어</button></div>
+  </div>
+</section>
+
+<div class="app" id="appRoot" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">T</div>
+      <div>
+        <h1>여행 준비함</h1>
+        <span>정해지지 않은 것도 일단 저장하는 곳</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="account-btn" type="button" id="openOldApp">기존 일정 앱</button>
+      <button class="account-btn" type="button" id="logoutButton">로그아웃</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="trip">
+        <select class="trip-select" id="tripSelect" aria-label="여행 선택"></select>
+        <span class="trip-meta" id="tripDates">여행을 선택해</span>
+        <div class="trip-actions"><button class="trip-add" type="button" id="newTripButton">+ 새 여행</button></div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" type="button" data-screen="home">준비함 <small>0</small></button>
+        <button class="nav-btn" type="button" data-screen="compare">비교함 <small>0</small></button>
+        <button class="nav-btn" type="button" data-screen="schedule">일정 <small>0</small></button>
+      </nav>
+      <div class="sidebar-note">
+        링크와 메모를 먼저 모으고<br>
+        결정된 것만 일정으로 옮겨.
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="screen active" id="home">
+        <div class="hero">
+          <div class="eyebrow" id="tripEyebrow">TRAVEL · PREPARING</div>
+          <h2>지금 생각나는 걸 그냥 넣어둬</h2>
+          <p>링크든 메모든 친구 의견이든, 날짜와 세부 내용은 나중에 정해도 돼.</p>
+
+          <div class="capture">
+            <textarea id="captureInput" placeholder="예) 덴노지 근처 카페 후보&#10;https://example.com/cafe"></textarea>
+            <div class="capture-footer">
+              <div class="capture-hint">자동 분류되지만 직접 종류를 선택할 수도 있어</div>
+              <div class="capture-actions">
+                <select class="select" id="captureCategory" aria-label="자료 종류">
+                  <option value="자동">종류: 자동</option>
+                  <option value="메모">메모</option>
+                  <option value="정보">정보</option>
+                  <option value="맛집">맛집</option>
+                  <option value="장소">장소</option>
+                </select>
+                <button class="primary" type="button" id="saveCapture">준비함에 저장</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h3>결정해야 할 것</h3>
+                <span>비교하거나 친구와 상의 중인 항목</span>
+              </div>
+              <button class="secondary" type="button" data-go="compare">비교함 보기</button>
+            </div>
+            <div class="stack" id="decisionList"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h3>예약 완료</h3>
+                <span>다시 찾지 않아도 되는 예약 정보</span>
+              </div>
+            </div>
+            <div class="stack" id="reservationList"></div>
+          </section>
+
+          <section class="panel library-panel">
+            <div class="panel-head">
+              <div>
+                <h3>준비함 전체 목록</h3>
+                <span>항목을 누르면 수정하거나 다른 화면으로 옮길 수 있어</span>
+              </div>
+            </div>
+
+            <div class="library-tools">
+              <div class="filters">
+                <button class="filter-btn active" type="button" data-type="전체">전체</button>
+                <button class="filter-btn" type="button" data-type="메모">메모</button>
+                <button class="filter-btn" type="button" data-type="정보">정보</button>
+                <button class="filter-btn" type="button" data-type="맛집">맛집</button>
+                <button class="filter-btn" type="button" data-type="장소">장소</button>
+              </div>
+              <div class="storage-note" id="storageNote">Supabase에 저장됨</div>
+            </div>
+            <p class="library-note">준비함에서는 자료 종류만 관리해. 비교가 필요하면 비교함으로, 가기로 정했으면 일정으로, 예약을 마쳤으면 예약 완료로 옮겨.</p>
+            <div class="library-list" id="libraryList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen" id="compare">
+        <div class="hero">
+          <div class="hero-row">
+            <div>
+              <div class="eyebrow">COMPARE</div>
+              <h2>결정해야 할 것</h2>
+              <p>숙소나 식당처럼 후보를 나란히 볼 필요가 있을 때만 사용하는 화면이야.</p>
+            </div>
+            <button class="primary" type="button" id="createComparison">+ 새 비교 만들기</button>
+          </div>
+        </div>
+
+        <div id="compareTopics"></div>
+      </section>
+
+      <section class="screen" id="schedule">
+        <div class="hero">
+          <div class="eyebrow">SCHEDULE</div>
+          <h2>확정된 것만 일정에 배치</h2>
+          <p>정확한 시간이 없어도 먼저 넣고, 나중에 순서와 시간을 정하면 돼.</p>
+        </div>
+
+        <div class="days" id="scheduleDays"></div>
+
+        <div class="timeline" id="scheduleList"></div>
+
+        <div class="map-row">
+          <p><b style="color:var(--text)">지도는 필요할 때만</b><br>하루 동선을 확인하고 실제 길찾기는 Google 지도에서 열어.</p>
+          <button class="secondary" type="button" id="mapButton">오늘 동선 지도에서 보기</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal" id="detailModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="detailModalHeading">저장한 자료</h3>
+      <button class="close-btn" type="button" data-close="detailModal">×</button>
+    </div>
+
+    <div class="field">
+      <label for="detailTitle">제목</label>
+      <input id="detailTitle" maxlength="120">
+    </div>
+    <div class="field">
+      <label for="detailCategory">종류</label>
+      <select id="detailCategory">
+        <option>메모</option>
+        <option>정보</option>
+        <option>맛집</option>
+        <option>장소</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="detailContent">원문·메모·링크</label>
+      <textarea id="detailContent"></textarea>
+    </div>
+
+    <div class="move-actions">
+      <button class="move-btn" type="button" id="moveCompare">비교함에 넣기</button>
+      <button class="move-btn schedule" type="button" id="moveSchedule">일정에 넣기</button>
+      <button class="move-btn" type="button" id="moveReservation">예약 완료로 이동</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="danger" type="button" id="deleteItem">삭제</button>
+      <div class="modal-footer-right">
+        <button class="secondary" type="button" data-close="detailModal">취소</button>
+        <button class="primary" type="button" id="saveDetail">내용 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="comparisonModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="comparisonModalTitle">새 비교 만들기</h3>
+      <button class="close-btn" type="button" data-close="comparisonModal">×</button>
+    </div>
+    <div class="field">
+      <label for="comparisonTitle">무엇을 결정할까?</label>
+      <input id="comparisonTitle" placeholder="예) 9/18~20 숙소 고르기">
+    </div>
+    <div class="field">
+      <label for="comparisonMemo">비교할 때 확인할 내용</label>
+      <textarea id="comparisonMemo" placeholder="예) 난바 접근성, 방 크기, 체크아웃 후 짐 보관"></textarea>
+    </div>
+    <div class="modal-footer">
+      <span></span>
+      <div class="modal-footer-right">
+        <button class="secondary" type="button" data-close="comparisonModal">취소</button>
+        <button class="primary" type="button" id="saveComparison">비교 만들기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="candidateModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="candidateModalTitle">후보 추가</h3>
+      <button class="close-btn" type="button" data-close="candidateModal">×</button>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="candidateName">후보 이름</label>
+        <input id="candidateName" placeholder="예) 난바 숙소">
+      </div>
+      <div class="field">
+        <label for="candidatePrice">가격·비용</label>
+        <input id="candidatePrice" placeholder="예) 총 420,000원">
+      </div>
+    </div>
+    <div class="field">
+      <label for="candidateLink">관련 링크</label>
+      <input id="candidateLink" placeholder="https://...">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="candidatePros">좋은 점</label>
+        <textarea id="candidatePros" placeholder="한 줄에 하나씩 적어줘"></textarea>
+      </div>
+      <div class="field">
+        <label for="candidateCons">아쉬운 점</label>
+        <textarea id="candidateCons" placeholder="한 줄에 하나씩 적어줘"></textarea>
+      </div>
+    </div>
+    <div class="field">
+      <label for="candidateOpinion">친구 의견·기타 메모</label>
+      <textarea id="candidateOpinion" placeholder="예) 민지는 난바가 편할 것 같다고 함"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="danger" type="button" id="deleteCandidate" hidden>후보 삭제</button>
+      <div class="modal-footer-right">
+        <button class="secondary" type="button" data-close="candidateModal">취소</button>
+        <button class="primary" type="button" id="saveCandidate">후보 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="sendCompareModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>비교함에 넣기</h3>
+      <button class="close-btn" type="button" data-close="sendCompareModal">×</button>
+    </div>
+    <p class="modal-help">이 자료를 기존 비교의 후보로 넣거나, 새 비교를 만들면서 첫 후보로 넣을 수 있어.</p>
+    <div class="field">
+      <label for="sendCompareMode">어디에 넣을까?</label>
+      <select id="sendCompareMode"></select>
+    </div>
+    <div class="field" id="newComparisonField" hidden>
+      <label for="sendNewComparisonTitle">새 비교 제목</label>
+      <input id="sendNewComparisonTitle" placeholder="예) 금요일 저녁 식당 정하기">
+    </div>
+    <div class="field">
+      <label for="sendCandidateName">후보 이름</label>
+      <input id="sendCandidateName">
+    </div>
+    <div class="modal-footer">
+      <span></span>
+      <div class="modal-footer-right">
+        <button class="secondary" type="button" data-close="sendCompareModal">취소</button>
+        <button class="primary" type="button" id="confirmSendCompare">비교함에 넣기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="tripModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>새 여행 만들기</h3><button class="close-btn" type="button" data-close="tripModal">×</button></div>
+    <div class="field"><label for="tripTitleInput">여행 이름</label><input id="tripTitleInput" placeholder="예) 오사카 여행"></div>
+    <div class="field"><label for="tripDestinationInput">여행지</label><input id="tripDestinationInput" placeholder="예) 오사카·교토"></div>
+    <div class="field-row">
+      <div class="field"><label for="tripStartInput">출발일</label><input id="tripStartInput" type="date"></div>
+      <div class="field"><label for="tripEndInput">귀국일</label><input id="tripEndInput" type="date"></div>
+    </div>
+    <div class="modal-footer"><span></span><div class="modal-footer-right"><button class="secondary" type="button" data-close="tripModal">취소</button><button class="primary" type="button" id="saveTrip">여행 만들기</button></div></div>
+  </div>
+</div>
+
+<div class="modal" id="scheduleModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="scheduleModalTitle">일정에 넣기</h3><button class="close-btn" type="button" data-close="scheduleModal">×</button></div>
+    <div class="field"><label for="scheduleTitleInput">일정 이름</label><input id="scheduleTitleInput"></div>
+    <div class="field-row">
+      <div class="field"><label for="scheduleDateInput">날짜</label><input id="scheduleDateInput" type="date"></div>
+      <div class="field"><label for="scheduleTimeInput">시간</label><input id="scheduleTimeInput" type="time"></div>
+    </div>
+    <div class="field"><label for="scheduleMemoInput">메모</label><textarea id="scheduleMemoInput"></textarea></div>
+    <div class="modal-footer"><button class="danger" type="button" id="deleteSchedule" hidden>일정 삭제</button><div class="modal-footer-right"><button class="secondary" type="button" data-close="scheduleModal">취소</button><button class="primary" type="button" id="saveSchedule">일정 저장</button></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const SUPABASE_URL = 'https://pbzwcsaveufsqbmhygon.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBiendjc2F2ZXVmc3FibWh5Z29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTQ2MTgsImV4cCI6MjA5MDc3MDYxOH0.sq8gWEF7ntiA3pL9DeDQ59rVNuDzXBkJSDJmC2OHIOE';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const CATEGORY_TO_DB = {'메모':'memo','정보':'info','맛집':'food','장소':'place'};
+  const DB_TO_CATEGORY = {memo:'메모',info:'정보',food:'맛집',place:'장소'};
+
+  let currentUser = null;
+  let trips = [];
+  let currentTrip = null;
+  let prepItems = [];
+  let comparisons = [];
+  let itinerary = [];
+  let selectedType = '전체';
+  let selectedScheduleKey = null;
+  let editingItemId = null;
+  let editingComparisonId = null;
+  let candidateContext = {comparisonId:null,candidateId:null};
+  let sendCompareItemId = null;
+  let scheduleContext = {sourcePrepItemId:null,itineraryItemId:null};
+
+  const $ = selector => document.querySelector(selector);
+  const $$ = selector => [...document.querySelectorAll(selector)];
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[char]));
+  }
+
+  function lines(value) {
+    return String(value || '').split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+  }
+
+  function showToast(message, isError=false) {
+    const toast = $('#toast');
+    toast.textContent = message;
+    toast.style.background = isError ? '#8e4545' : '#252229';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function setLoading(show, message='여행 준비함을 불러오는 중...') {
+    $('#loadingLayer').hidden = !show;
+    $('#loadingLayer .loading-box').textContent = message;
+  }
+
+  function openModal(id) { $('#'+id).classList.add('open'); }
+  function closeModal(id) { $('#'+id).classList.remove('open'); }
+
+  $$('[data-close]').forEach(button => {
+    button.addEventListener('click', () => closeModal(button.dataset.close));
+  });
+  $$('.modal').forEach(modal => {
+    modal.addEventListener('click', event => {
+      if(event.target === modal) modal.classList.remove('open');
+    });
+  });
+
+  function formatDate(dateString) {
+    if(!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00');
+    return `${date.getMonth()+1}. ${date.getDate()}.`;
+  }
+
+  function formatTripDates(trip) {
+    if(!trip?.start_date && !trip?.end_date) return '날짜 미정';
+    if(trip.start_date && trip.end_date) return `${formatDate(trip.start_date)} — ${formatDate(trip.end_date)}`;
+    return formatDate(trip.start_date || trip.end_date);
+  }
+
+  function formatRelative(timestamp) {
+    const diff = Math.max(0, Date.now() - new Date(timestamp).getTime());
+    if(diff < 60000) return '방금';
+    if(diff < 3600000) return Math.floor(diff/60000)+'분 전';
+    if(diff < 86400000) return Math.floor(diff/3600000)+'시간 전';
+    return Math.floor(diff/86400000)+'일 전';
+  }
+
+  function categoryLabel(dbValue) { return DB_TO_CATEGORY[dbValue] || '메모'; }
+  function typeClass(dbValue) { return {memo:'memo',info:'info',food:'food',place:'place'}[dbValue] || 'memo'; }
+
+  function titleFrom(content) {
+    const all = lines(content);
+    const textLine = all.find(line => !/^https?:\/\//i.test(line));
+    const base = textLine || all[0] || '제목 없는 자료';
+    if(/^https?:\/\//i.test(base)) return '새 링크 자료';
+    return base.length > 42 ? base.slice(0,42)+'…' : base;
+  }
+
+  function detectCategory(content) {
+    const value = String(content);
+    if(/맛집|식당|카페|커피|라멘|우동|스시|초밥|타코야키|야키니쿠|디저트|베이커리|빵집|메뉴/i.test(value)) return 'food';
+    if(/관광|명소|공원|오사카성|가이유칸|수족관|박물관|미술관|전망대|시장|도톤보리|신세카이|덴노지|우메다|쇼핑몰|백화점|동물원/i.test(value)) return 'place';
+    if(/https?:\/\//i.test(value)) return 'info';
+    return 'memo';
+  }
+
+  function findFirstUrl(value) {
+    const match = String(value || '').match(/https?:\/\/[^\s]+/i);
+    return match ? match[0] : '';
+  }
+
+  function showScreen(screen) {
+    $$('.screen').forEach(section => section.classList.remove('active'));
+    $$('.nav-btn').forEach(button => button.classList.remove('active'));
+    $('#'+screen).classList.add('active');
+    document.querySelector(`[data-screen="${screen}"]`).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  $$('.nav-btn').forEach(button => button.addEventListener('click', () => showScreen(button.dataset.screen)));
+  $$('[data-go]').forEach(button => button.addEventListener('click', () => showScreen(button.dataset.go)));
+
+  async function init() {
+    setLoading(true);
+    const { data: { session } } = await db.auth.getSession();
+    await handleSession(session);
+    db.auth.onAuthStateChange(async (_event, nextSession) => {
+      await handleSession(nextSession);
+    });
+  }
+
+  async function handleSession(session) {
+    currentUser = session?.user || null;
+    if(!currentUser) {
+      $('#authScreen').hidden = false;
+      $('#appRoot').hidden = true;
+      setLoading(false);
+      return;
+    }
+    $('#authScreen').hidden = true;
+    $('#appRoot').hidden = false;
+    await loadTrips();
+    setLoading(false);
+  }
+
+  $('#authForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const email = $('#authEmail').value.trim();
+    const password = $('#authPassword').value;
+    $('#authMessage').textContent = '';
+    $('#authSubmit').disabled = true;
+    $('#authSubmit').textContent = '로그인 중...';
+    const { error } = await db.auth.signInWithPassword({email,password});
+    if(error) $('#authMessage').textContent = '로그인하지 못했어. 이메일과 비밀번호를 확인해.';
+    $('#authSubmit').disabled = false;
+    $('#authSubmit').textContent = '로그인';
+  });
+
+  $('#resetPassword').addEventListener('click', async () => {
+    const email = $('#authEmail').value.trim();
+    if(!email) { $('#authMessage').textContent = '먼저 이메일을 입력해.'; return; }
+    const { error } = await db.auth.resetPasswordForEmail(email, {redirectTo:window.location.href});
+    $('#authMessage').textContent = error ? '재설정 메일을 보내지 못했어.' : '비밀번호 재설정 메일을 보냈어.';
+  });
+
+  $('#logoutButton').addEventListener('click', () => db.auth.signOut());
+  $('#openOldApp').addEventListener('click', () => window.open('./index.html','_blank'));
+
+  async function loadTrips() {
+    setLoading(true,'여행 목록을 불러오는 중...');
+    const { data, error } = await db.from('trips').select('*').order('start_date',{ascending:true,nullsFirst:false});
+    if(error) { showToast('여행 목록을 불러오지 못했어: '+error.message,true); setLoading(false); return; }
+    trips = data || [];
+    renderTripSelect();
+    if(!trips.length) {
+      currentTrip = null;
+      prepItems=[]; comparisons=[]; itinerary=[];
+      renderAll();
+      openModal('tripModal');
+      setLoading(false);
+      return;
+    }
+    const saved = localStorage.getItem('travel_prep_current_trip');
+    const next = trips.find(t => t.id === saved) || trips[0];
+    await selectTrip(next.id);
+  }
+
+  function renderTripSelect() {
+    $('#tripSelect').innerHTML = trips.map(trip => `<option value="${escapeHtml(trip.id)}">${escapeHtml(trip.title)}</option>`).join('');
+  }
+
+  async function selectTrip(id) {
+    currentTrip = trips.find(trip => trip.id === id) || null;
+    if(!currentTrip) return;
+    localStorage.setItem('travel_prep_current_trip', currentTrip.id);
+    $('#tripSelect').value = currentTrip.id;
+    $('#tripDates').textContent = formatTripDates(currentTrip);
+    $('#tripEyebrow').textContent = `${(currentTrip.destination || 'TRAVEL').toUpperCase()} · PREPARING`;
+    selectedType = '전체';
+    $$('.filter-btn').forEach(button => button.classList.toggle('active',button.dataset.type === '전체'));
+    await loadTripData();
+  }
+
+  $('#tripSelect').addEventListener('change', event => selectTrip(event.target.value));
+  $('#newTripButton').addEventListener('click', () => {
+    $('#tripTitleInput').value='';
+    $('#tripDestinationInput').value='';
+    $('#tripStartInput').value='';
+    $('#tripEndInput').value='';
+    openModal('tripModal');
+  });
+
+  $('#saveTrip').addEventListener('click', async () => {
+    const title = $('#tripTitleInput').value.trim();
+    if(!title) { showToast('여행 이름을 적어줘'); return; }
+    const payload = {
+      owner_id:currentUser.id,
+      title,
+      destination:$('#tripDestinationInput').value.trim() || null,
+      start_date:$('#tripStartInput').value || null,
+      end_date:$('#tripEndInput').value || null,
+      status:'planning',
+      default_currency:'KRW'
+    };
+    const { data, error } = await db.from('trips').insert(payload).select().single();
+    if(error) { showToast('여행을 만들지 못했어: '+error.message,true); return; }
+    closeModal('tripModal');
+    localStorage.setItem('travel_prep_current_trip', data.id);
+    await loadTrips();
+    showToast('새 여행을 만들었어');
+  });
+
+  async function loadTripData() {
+    if(!currentTrip) return;
+    setLoading(true,'준비 자료를 불러오는 중...');
+    const [itemsRes, comparisonsRes, itineraryRes] = await Promise.all([
+      db.from('travel_prep_items').select('*').eq('trip_id',currentTrip.id).order('created_at',{ascending:false}),
+      db.from('travel_comparisons').select('*, travel_comparison_candidates(*)').eq('trip_id',currentTrip.id).order('created_at',{ascending:false}),
+      db.from('itinerary_items').select('*').eq('trip_id',currentTrip.id).order('schedule_date',{ascending:true,nullsFirst:false}).order('start_time',{ascending:true,nullsFirst:false}).order('sort_order',{ascending:true})
+    ]);
+    const firstError = itemsRes.error || comparisonsRes.error || itineraryRes.error;
+    if(firstError) {
+      showToast('데이터를 불러오지 못했어. 준비함 SQL을 먼저 실행했는지 확인해. '+firstError.message,true);
+      setLoading(false);
+      return;
+    }
+    prepItems = itemsRes.data || [];
+    comparisons = (comparisonsRes.data || []).map(topic => ({
+      ...topic,
+      candidates:(topic.travel_comparison_candidates || []).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))
+    }));
+    itinerary = itineraryRes.data || [];
+    renderAll();
+    setLoading(false);
+  }
+
+  function renderAll() {
+    renderCounts();
+    renderLibrary();
+    renderHomePanels();
+    renderComparisons();
+    renderScheduleTabs();
+    renderSchedule();
+  }
+
+  function renderCounts() {
+    const counts = {
+      home:prepItems.filter(item=>item.area==='inbox').length,
+      compare:comparisons.length,
+      schedule:itinerary.length
+    };
+    Object.entries(counts).forEach(([screen,count]) => {
+      const badge = document.querySelector(`[data-screen="${screen}"] small`);
+      if(badge) badge.textContent = count;
+    });
+  }
+
+  function renderLibrary() {
+    const all = prepItems.filter(item=>item.area==='inbox');
+    const visible = selectedType==='전체' ? all : all.filter(item=>categoryLabel(item.category)===selectedType);
+    const list = $('#libraryList');
+    if(!currentTrip) { list.innerHTML='<div class="empty">먼저 여행을 만들어줘.</div>'; return; }
+    if(!visible.length) { list.innerHTML='<div class="empty">이 종류의 자료가 아직 없어.</div>'; return; }
+    list.innerHTML = visible.map(item => `
+      <button class="library-item" type="button" data-item-id="${escapeHtml(item.id)}">
+        <span class="category-badge ${typeClass(item.category)}">${categoryLabel(item.category)}</span>
+        <span class="library-main"><b>${escapeHtml(item.title)}</b><p>${escapeHtml(String(item.content).replace(/\r?\n/g,' · '))}</p></span>
+        <span class="library-time">${formatRelative(item.created_at)}</span>
+      </button>`).join('');
+    $$('[data-item-id]').forEach(button => button.addEventListener('click', () => openItemDetail(button.dataset.itemId)));
+  }
+
+  $$('.filter-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      selectedType = button.dataset.type;
+      $$('.filter-btn').forEach(item=>item.classList.remove('active'));
+      button.classList.add('active');
+      renderLibrary();
+    });
+  });
+
+  function renderHomePanels() {
+    $('#decisionList').innerHTML = comparisons.length ? comparisons.slice(0,4).map(topic => `
+      <div class="task"><div class="task-top"><div><b>${escapeHtml(topic.title)}</b><p>후보 ${topic.candidates.length}개${topic.selected_candidate_id?' · 현재 선택 있음':''}</p></div><span class="state decision">결정 필요</span></div></div>`).join('') : '<div class="empty">결정해야 할 항목이 없어.</div>';
+
+    const reservations = prepItems.filter(item=>item.area==='reservation');
+    $('#reservationList').innerHTML = reservations.length ? reservations.map(item => `
+      <div class="task reservation-item" data-reservation-id="${escapeHtml(item.id)}">
+        <div class="task-top"><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.content)}</p></div><span class="state done">예약 완료</span></div>
+        <div class="task-action"><button class="link-btn" type="button" data-return-reservation="${escapeHtml(item.id)}">준비함으로 되돌리기</button></div>
+      </div>`).join('') : '<div class="empty">예약 완료 항목이 아직 없어.</div>';
+
+    $$('[data-reservation-id]').forEach(card => card.addEventListener('click', event => {
+      if(!event.target.closest('button')) openReservationDetail(card.dataset.reservationId);
+    }));
+    $$('[data-return-reservation]').forEach(button => button.addEventListener('click', event => {
+      event.stopPropagation();
+      updateItemArea(button.dataset.returnReservation,'inbox');
+    }));
+  }
+
+  function openItemDetail(id) {
+    const item = prepItems.find(entry=>entry.id===id);
+    if(!item) return;
+    editingItemId=id;
+    $('#detailModalHeading').textContent='저장한 자료';
+    $('#detailTitle').value=item.title;
+    $('#detailCategory').value=categoryLabel(item.category);
+    $('#detailContent').value=item.content;
+    $('.move-actions').hidden=false;
+    openModal('detailModal');
+  }
+
+  function openReservationDetail(id) {
+    const item = prepItems.find(entry=>entry.id===id);
+    if(!item) return;
+    editingItemId=id;
+    $('#detailModalHeading').textContent='예약 완료 정보';
+    $('#detailTitle').value=item.title;
+    $('#detailCategory').value=categoryLabel(item.category);
+    $('#detailContent').value=item.content;
+    $('.move-actions').hidden=true;
+    openModal('detailModal');
+  }
+
+  $('#saveCapture').addEventListener('click', async () => {
+    if(!currentTrip) { showToast('먼저 여행을 만들어줘'); return; }
+    const content=$('#captureInput').value.trim();
+    if(!content) { showToast('링크나 메모를 먼저 입력해줘'); return; }
+    const selected=$('#captureCategory').value;
+    const category=selected==='자동'?detectCategory(content):CATEGORY_TO_DB[selected];
+    const { error }=await db.from('travel_prep_items').insert({
+      trip_id:currentTrip.id,category,area:'inbox',title:titleFrom(content),content
+    });
+    if(error) { showToast('저장하지 못했어: '+error.message,true); return; }
+    $('#captureInput').value='';
+    $('#captureCategory').value='자동';
+    selectedType='전체';
+    $$('.filter-btn').forEach(button=>button.classList.toggle('active',button.dataset.type==='전체'));
+    await loadTripData();
+    showToast('준비함에 저장했어');
+  });
+
+  $('#saveDetail').addEventListener('click', async () => {
+    if(!editingItemId) return;
+    const title=$('#detailTitle').value.trim();
+    const content=$('#detailContent').value.trim();
+    if(!title||!content) { showToast('제목과 내용을 입력해줘'); return; }
+    const category=CATEGORY_TO_DB[$('#detailCategory').value] || 'memo';
+    const { error }=await db.from('travel_prep_items').update({title,content,category}).eq('id',editingItemId);
+    if(error) { showToast('수정하지 못했어: '+error.message,true); return; }
+    closeModal('detailModal');
+    editingItemId=null;
+    await loadTripData();
+    showToast('내용을 저장했어');
+  });
+
+  $('#deleteItem').addEventListener('click', async () => {
+    if(!editingItemId || !confirm('이 자료를 삭제할까?')) return;
+    const { error }=await db.from('travel_prep_items').delete().eq('id',editingItemId);
+    if(error) { showToast('삭제하지 못했어: '+error.message,true); return; }
+    closeModal('detailModal');
+    editingItemId=null;
+    await loadTripData();
+    showToast('자료를 삭제했어');
+  });
+
+  async function updateItemArea(id,area) {
+    const { error }=await db.from('travel_prep_items').update({area}).eq('id',id);
+    if(error) { showToast('옮기지 못했어: '+error.message,true); return; }
+    closeModal('detailModal');
+    editingItemId=null;
+    await loadTripData();
+    showToast(area==='inbox'?'준비함으로 되돌렸어':'예약 완료로 옮겼어');
+  }
+
+  $('#moveReservation').addEventListener('click',()=> {
+    if(editingItemId) updateItemArea(editingItemId,'reservation');
+  });
+
+  $('#moveSchedule').addEventListener('click', () => {
+    const item=prepItems.find(entry=>entry.id===editingItemId);
+    if(!item) return;
+    scheduleContext={sourcePrepItemId:item.id,itineraryItemId:null};
+    $('#scheduleModalTitle').textContent='일정에 넣기';
+    $('#scheduleTitleInput').value=item.title;
+    $('#scheduleMemoInput').value=item.content;
+    $('#scheduleDateInput').value=currentTrip.start_date || '';
+    $('#scheduleTimeInput').value='';
+    $('#deleteSchedule').hidden=true;
+    closeModal('detailModal');
+    openModal('scheduleModal');
+  });
+
+  function dayNumberForDate(dateString) {
+    if(!dateString || !currentTrip?.start_date) return 1;
+    const start=new Date(currentTrip.start_date+'T00:00:00');
+    const date=new Date(dateString+'T00:00:00');
+    return Math.max(1,Math.round((date-start)/86400000)+1);
+  }
+
+  $('#saveSchedule').addEventListener('click', async () => {
+    const title=$('#scheduleTitleInput').value.trim();
+    if(!title) { showToast('일정 이름을 적어줘'); return; }
+    const date=$('#scheduleDateInput').value || null;
+    const time=$('#scheduleTimeInput').value || null;
+    const memo=$('#scheduleMemoInput').value.trim();
+    const payload={
+      trip_id:currentTrip.id,
+      place_name:title,
+      memo,
+      schedule_date:date,
+      start_time:time,
+      day_number:dayNumberForDate(date),
+      sort_order:itinerary.length
+    };
+    let error;
+    if(scheduleContext.itineraryItemId) {
+      ({error}=await db.from('itinerary_items').update(payload).eq('id',scheduleContext.itineraryItemId));
+    } else {
+      ({error}=await db.from('itinerary_items').insert(payload));
+    }
+    if(error) { showToast('일정을 저장하지 못했어: '+error.message,true); return; }
+
+    if(scheduleContext.sourcePrepItemId) {
+      const del=await db.from('travel_prep_items').delete().eq('id',scheduleContext.sourcePrepItemId);
+      if(del.error) showToast('일정은 저장됐지만 준비함 원본은 남아 있어.',true);
+    }
+    closeModal('scheduleModal');
+    scheduleContext={sourcePrepItemId:null,itineraryItemId:null};
+    await loadTripData();
+    showToast('일정에 저장했어');
+  });
+
+  $('#deleteSchedule').addEventListener('click', async () => {
+    if(!scheduleContext.itineraryItemId || !confirm('이 일정을 삭제할까?')) return;
+    const {error}=await db.from('itinerary_items').delete().eq('id',scheduleContext.itineraryItemId);
+    if(error) { showToast('일정을 삭제하지 못했어: '+error.message,true); return; }
+    closeModal('scheduleModal');
+    await loadTripData();
+    showToast('일정을 삭제했어');
+  });
+
+  function scheduleDateKey(item) {
+    if(item.schedule_date) return item.schedule_date;
+    if(currentTrip?.start_date && item.day_number) {
+      const d=new Date(currentTrip.start_date+'T00:00:00');
+      d.setDate(d.getDate()+item.day_number-1);
+      return d.toISOString().slice(0,10);
+    }
+    return 'undated';
+  }
+
+  function tripDateKeys() {
+    if(!currentTrip?.start_date || !currentTrip?.end_date) return [];
+    const result=[];
+    let d=new Date(currentTrip.start_date+'T00:00:00');
+    const end=new Date(currentTrip.end_date+'T00:00:00');
+    while(d<=end && result.length<31) {
+      result.push(d.toISOString().slice(0,10));
+      d.setDate(d.getDate()+1);
+    }
+    return result;
+  }
+
+  function renderScheduleTabs() {
+    const keys=tripDateKeys();
+    const itemKeys=[...new Set(itinerary.map(scheduleDateKey))];
+    const all=[...keys];
+    if(itemKeys.includes('undated')) all.push('undated');
+    if(!all.length) all.push('undated');
+    if(!selectedScheduleKey || !all.includes(selectedScheduleKey)) {
+      selectedScheduleKey=all.find(key=>itinerary.some(item=>scheduleDateKey(item)===key)) || all[0];
+    }
+    $('#scheduleDays').innerHTML=all.map(key=>{
+      const label=key==='undated'
+        ? '날짜 미정'
+        : (()=>{const d=new Date(key+'T00:00:00');return `${d.getMonth()+1}/${d.getDate()} ${['일','월','화','수','목','금','토'][d.getDay()]}`;})();
+      return `<button class="day-btn ${key===selectedScheduleKey?'active':''}" type="button" data-day-key="${key}">${label}</button>`;
+    }).join('');
+    $$('[data-day-key]').forEach(button=>button.addEventListener('click',()=>{
+      selectedScheduleKey=button.dataset.dayKey;
+      renderScheduleTabs();
+      renderSchedule();
+    }));
+  }
+
+  function renderSchedule() {
+    const list=itinerary
+      .filter(item=>scheduleDateKey(item)===selectedScheduleKey)
+      .sort((a,b)=>(a.start_time||'99:99').localeCompare(b.start_time||'99:99') || (a.sort_order||0)-(b.sort_order||0));
+    $('#scheduleList').innerHTML=list.length?list.map(item=>`
+      <div class="slot">
+        <div class="slot-time">${item.start_time?String(item.start_time).slice(0,5):'시간 미정'}</div>
+        <div class="slot-card">
+          <b>${escapeHtml(item.place_name)}</b>
+          <p>${escapeHtml(item.memo||'')}</p>
+          <div class="schedule-tools">
+            <button type="button" data-edit-schedule="${escapeHtml(item.id)}">수정</button>
+            <button type="button" data-return-schedule="${escapeHtml(item.id)}">준비함으로</button>
+          </div>
+        </div>
+      </div>`).join(''):'<div class="empty">이 날짜의 일정이 아직 없어.</div>';
+    $$('[data-edit-schedule]').forEach(button=>button.addEventListener('click',()=>openScheduleEditor(button.dataset.editSchedule)));
+    $$('[data-return-schedule]').forEach(button=>button.addEventListener('click',()=>returnScheduleToInbox(button.dataset.returnSchedule)));
+  }
+
+  function openScheduleEditor(id) {
+    const item=itinerary.find(entry=>entry.id===id);
+    if(!item) return;
+    const key = scheduleDateKey(item);
+    scheduleContext={sourcePrepItemId:null,itineraryItemId:id};
+    $('#scheduleModalTitle').textContent='일정 수정';
+    $('#scheduleTitleInput').value=item.place_name;
+    $('#scheduleDateInput').value=item.schedule_date || (key==='undated' ? '' : key);
+    $('#scheduleTimeInput').value=item.start_time?String(item.start_time).slice(0,5):'';
+    $('#scheduleMemoInput').value=item.memo||'';
+    $('#deleteSchedule').hidden=false;
+    openModal('scheduleModal');
+  }
+
+  async function returnScheduleToInbox(id) {
+    const item=itinerary.find(entry=>entry.id===id);
+    if(!item || !confirm('이 일정을 준비함으로 되돌릴까?')) return;
+    const insert=await db.from('travel_prep_items').insert({
+      trip_id:currentTrip.id,category:'place',area:'inbox',title:item.place_name,content:item.memo||''
+    });
+    if(insert.error) { showToast('준비함으로 옮기지 못했어: '+insert.error.message,true); return; }
+    const del=await db.from('itinerary_items').delete().eq('id',id);
+    if(del.error) showToast('준비함에는 복사됐지만 기존 일정이 남아 있어.',true);
+    await loadTripData();
+    showToast('준비함으로 되돌렸어');
+  }
+
+  function candidateListHtml(values) {
+    return values?.length
+      ? '<ul>'+values.map(v=>`<li>${escapeHtml(v)}</li>`).join('')+'</ul>'
+      : '<ul><li>아직 입력된 내용이 없어</li></ul>';
+  }
+
+  function renderComparisons() {
+    const container=$('#compareTopics');
+    if(!comparisons.length) {
+      container.innerHTML='<div class="compare-empty"><b>아직 만든 비교가 없어.</b><p>숙소, 식당, 교통편처럼 후보를 나란히 볼 일이 생기면 만들면 돼.</p><button class="primary" id="emptyCreateComparison" type="button">+ 새 비교 만들기</button></div>';
+      $('#emptyCreateComparison').addEventListener('click',()=>openComparisonEditor());
+      return;
+    }
+    container.innerHTML=comparisons.map(topic=>`
+      <article class="compare-topic-card">
+        <div class="compare-topic-header">
+          <div><h3>${escapeHtml(topic.title)}</h3><p>${escapeHtml(topic.memo||'비교 메모가 아직 없어.')}</p></div>
+          <div class="topic-tools">
+            <button class="tiny-btn" data-add-candidate="${topic.id}" type="button">+ 후보 추가</button>
+            <button class="tiny-btn" data-edit-topic="${topic.id}" type="button">비교 수정</button>
+            <button class="tiny-btn danger-text" data-delete-topic="${topic.id}" type="button">삭제</button>
+          </div>
+        </div>
+        <div class="candidate-grid">
+          ${topic.candidates.length?topic.candidates.map(candidate=>`
+            <div class="candidate ${topic.selected_candidate_id===candidate.id?'selected':''}">
+              <div class="candidate-top">
+                <div><h4>${escapeHtml(candidate.name)}</h4>${candidate.price?`<div class="candidate-price">${escapeHtml(candidate.price)}</div>`:''}</div>
+                <button class="tiny-btn" data-edit-candidate="${topic.id}|${candidate.id}" type="button">수정</button>
+              </div>
+              ${candidate.link?`<a class="candidate-link" href="${escapeHtml(candidate.link)}" target="_blank" rel="noopener">${escapeHtml(candidate.link)}</a>`:''}
+              <div class="candidate-columns">
+                <div class="candidate-section"><b>좋은 점</b>${candidateListHtml(candidate.pros)}</div>
+                <div class="candidate-section"><b>아쉬운 점</b>${candidateListHtml(candidate.cons)}</div>
+              </div>
+              ${candidate.opinion?`<div class="candidate-opinion">${escapeHtml(candidate.opinion)}</div>`:''}
+              <div class="candidate-actions">
+                <button class="choose-btn" data-choose-candidate="${topic.id}|${candidate.id}" type="button">${topic.selected_candidate_id===candidate.id?'현재 선택':'이 후보 선택'}</button>
+              </div>
+            </div>`).join(''):'<div class="empty" style="grid-column:1/-1">후보가 아직 없어. 준비함 자료를 보내거나 후보 추가를 눌러.</div>'}
+        </div>
+        <div class="decision-box">
+          <input data-decision-input="${topic.id}" value="${escapeHtml(topic.decision_note||'')}" placeholder="최종 결정 이유">
+          <button class="secondary" data-save-decision="${topic.id}" type="button">결정 이유 저장</button>
+        </div>
+      </article>`).join('');
+
+    $$('[data-add-candidate]').forEach(button=>button.addEventListener('click',()=>openCandidateEditor(button.dataset.addCandidate)));
+    $$('[data-edit-topic]').forEach(button=>button.addEventListener('click',()=>openComparisonEditor(button.dataset.editTopic)));
+    $$('[data-delete-topic]').forEach(button=>button.addEventListener('click',()=>deleteComparison(button.dataset.deleteTopic)));
+    $$('[data-edit-candidate]').forEach(button=>button.addEventListener('click',()=>{
+      const [a,b]=button.dataset.editCandidate.split('|');
+      openCandidateEditor(a,b);
+    }));
+    $$('[data-choose-candidate]').forEach(button=>button.addEventListener('click',()=>{
+      const [a,b]=button.dataset.chooseCandidate.split('|');
+      chooseCandidate(a,b);
+    }));
+    $$('[data-save-decision]').forEach(button=>button.addEventListener('click',()=>saveDecision(button.dataset.saveDecision)));
+  }
+
+  function openComparisonEditor(id=null) {
+    editingComparisonId=id;
+    const topic=id?comparisons.find(entry=>entry.id===id):null;
+    $('#comparisonModalTitle').textContent=topic?'비교 수정':'새 비교 만들기';
+    $('#comparisonTitle').value=topic?.title||'';
+    $('#comparisonMemo').value=topic?.memo||'';
+    $('#saveComparison').textContent=topic?'수정 저장':'비교 만들기';
+    openModal('comparisonModal');
+  }
+
+  $('#createComparison').addEventListener('click',()=>openComparisonEditor());
+
+  $('#saveComparison').addEventListener('click', async () => {
+    const title=$('#comparisonTitle').value.trim();
+    const memo=$('#comparisonMemo').value.trim();
+    if(!title) {showToast('비교 제목을 적어줘');return;}
+    let error;
+    if(editingComparisonId) {
+      ({error}=await db.from('travel_comparisons').update({title,memo}).eq('id',editingComparisonId));
+    } else {
+      ({error}=await db.from('travel_comparisons').insert({trip_id:currentTrip.id,title,memo}));
+    }
+    if(error) {showToast('비교를 저장하지 못했어: '+error.message,true);return;}
+    closeModal('comparisonModal');
+    editingComparisonId=null;
+    await loadTripData();
+    showToast('비교를 저장했어');
+  });
+
+  async function deleteComparison(id) {
+    if(!confirm('이 비교와 후보를 모두 삭제할까?'))return;
+    const {error}=await db.from('travel_comparisons').delete().eq('id',id);
+    if(error){showToast('삭제하지 못했어: '+error.message,true);return;}
+    await loadTripData();
+    showToast('비교를 삭제했어');
+  }
+
+  function openCandidateEditor(comparisonId,candidateId=null) {
+    const topic=comparisons.find(entry=>entry.id===comparisonId);
+    if(!topic)return;
+    const candidate=candidateId?topic.candidates.find(entry=>entry.id===candidateId):null;
+    candidateContext={comparisonId,candidateId};
+    $('#candidateModalTitle').textContent=candidate?'후보 수정':'후보 추가';
+    $('#candidateName').value=candidate?.name||'';
+    $('#candidatePrice').value=candidate?.price||'';
+    $('#candidateLink').value=candidate?.link||'';
+    $('#candidatePros').value=(candidate?.pros||[]).join('\n');
+    $('#candidateCons').value=(candidate?.cons||[]).join('\n');
+    $('#candidateOpinion').value=candidate?.opinion||'';
+    $('#deleteCandidate').hidden=!candidate;
+    openModal('candidateModal');
+  }
+
+  $('#saveCandidate').addEventListener('click', async () => {
+    const name=$('#candidateName').value.trim();
+    if(!name){showToast('후보 이름을 적어줘');return;}
+    const payload={
+      comparison_id:candidateContext.comparisonId,
+      name,
+      price:$('#candidatePrice').value.trim(),
+      link:$('#candidateLink').value.trim(),
+      pros:lines($('#candidatePros').value),
+      cons:lines($('#candidateCons').value),
+      opinion:$('#candidateOpinion').value.trim()
+    };
+    let error;
+    if(candidateContext.candidateId) {
+      delete payload.comparison_id;
+      ({error}=await db.from('travel_comparison_candidates').update(payload).eq('id',candidateContext.candidateId));
+    } else {
+      ({error}=await db.from('travel_comparison_candidates').insert(payload));
+    }
+    if(error){showToast('후보를 저장하지 못했어: '+error.message,true);return;}
+    closeModal('candidateModal');
+    candidateContext={comparisonId:null,candidateId:null};
+    await loadTripData();
+    showToast('후보를 저장했어');
+  });
+
+  $('#deleteCandidate').addEventListener('click', async () => {
+    if(!candidateContext.candidateId||!confirm('이 후보를 삭제할까?'))return;
+    const {error}=await db.from('travel_comparison_candidates').delete().eq('id',candidateContext.candidateId);
+    if(error){showToast('후보를 삭제하지 못했어: '+error.message,true);return;}
+    closeModal('candidateModal');
+    await loadTripData();
+    showToast('후보를 삭제했어');
+  });
+
+  async function chooseCandidate(topicId,candidateId) {
+    const {error}=await db.from('travel_comparisons').update({selected_candidate_id:candidateId}).eq('id',topicId);
+    if(error){showToast('선택을 저장하지 못했어: '+error.message,true);return;}
+    await loadTripData();
+    showToast('후보를 선택했어');
+  }
+
+  async function saveDecision(topicId) {
+    const input=document.querySelector(`[data-decision-input="${topicId}"]`);
+    const {error}=await db.from('travel_comparisons').update({decision_note:input?.value.trim()||''}).eq('id',topicId);
+    if(error){showToast('결정 이유를 저장하지 못했어: '+error.message,true);return;}
+    await loadTripData();
+    showToast('결정 이유를 저장했어');
+  }
+
+  $('#moveCompare').addEventListener('click', () => {
+    if(editingItemId) openSendCompare(editingItemId);
+  });
+
+  function openSendCompare(itemId) {
+    const item=prepItems.find(entry=>entry.id===itemId);
+    if(!item)return;
+    sendCompareItemId=itemId;
+    $('#sendCompareMode').innerHTML='<option value="new">새 비교를 만들고 첫 후보로 넣기</option>'+
+      comparisons.map(topic=>`<option value="${topic.id}">${escapeHtml(topic.title)}에 후보로 추가</option>`).join('');
+    $('#newComparisonField').hidden=false;
+    $('#sendNewComparisonTitle').value='';
+    $('#sendCandidateName').value=item.title;
+    closeModal('detailModal');
+    openModal('sendCompareModal');
+  }
+
+  $('#sendCompareMode').addEventListener('change',()=>{
+    $('#newComparisonField').hidden=$('#sendCompareMode').value!=='new';
+  });
+
+  $('#confirmSendCompare').addEventListener('click', async () => {
+    const item=prepItems.find(entry=>entry.id===sendCompareItemId);
+    if(!item)return;
+    const candidateName=$('#sendCandidateName').value.trim();
+    if(!candidateName){showToast('후보 이름을 적어줘');return;}
+    let comparisonId=$('#sendCompareMode').value;
+    if(comparisonId==='new'){
+      const title=$('#sendNewComparisonTitle').value.trim();
+      if(!title){showToast('새 비교 제목을 적어줘');return;}
+      const created=await db.from('travel_comparisons').insert({trip_id:currentTrip.id,title}).select().single();
+      if(created.error){showToast('비교를 만들지 못했어: '+created.error.message,true);return;}
+      comparisonId=created.data.id;
+    }
+    const candidate=await db.from('travel_comparison_candidates').insert({
+      comparison_id:comparisonId,
+      name:candidateName,
+      link:findFirstUrl(item.content),
+      opinion:item.content,
+      pros:[],
+      cons:[]
+    });
+    if(candidate.error){showToast('후보를 넣지 못했어: '+candidate.error.message,true);return;}
+    const del=await db.from('travel_prep_items').delete().eq('id',item.id);
+    if(del.error)showToast('후보는 추가됐지만 준비함 원본이 남아 있어.',true);
+    closeModal('sendCompareModal');
+    sendCompareItemId=null;
+    editingItemId=null;
+    await loadTripData();
+    showScreen('compare');
+    showToast('비교함에 후보로 넣었어');
+  });
+
+  $('#mapButton').addEventListener('click', () => {
+    const list=itinerary.filter(item=>scheduleDateKey(item)===selectedScheduleKey);
+    if(!list.length){showToast('이 날짜에 지도에서 볼 일정이 없어');return;}
+    const names=list.map(item=>item.place_name).filter(Boolean);
+    let url;
+    if(names.length===1){
+      url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(names[0]);
+    } else {
+      const origin=names[0];
+      const destination=names[names.length-1];
+      const waypoints=names.slice(1,-1).join('|');
+      url='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(origin)+'&destination='+encodeURIComponent(destination)+(waypoints?'&waypoints='+encodeURIComponent(waypoints):'');
+    }
+    window.open(url,'_blank','noopener');
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
