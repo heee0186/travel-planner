@@ -441,6 +441,59 @@ button{cursor:pointer}
   .topbar-actions .account-btn:first-child{display:none}
 }
 
+
+/* 예약 완료: 제목만 보이는 compact 목록 */
+#reservationList{
+  max-height:260px;
+  overflow-y:auto;
+  padding-right:4px;
+  scrollbar-width:thin;
+  scrollbar-color:#d8d0dc transparent;
+}
+#reservationList::-webkit-scrollbar{width:6px}
+#reservationList::-webkit-scrollbar-track{background:transparent}
+#reservationList::-webkit-scrollbar-thumb{background:#d8d0dc;border-radius:999px}
+.reservation-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:46px;
+  padding:10px 11px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:#fff;
+}
+.reservation-title{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:13px;
+  font-weight:850;
+}
+.reservation-open{
+  flex:0 0 auto;
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--paper-warm);
+  color:var(--accent-dark);
+  font-size:17px;
+  line-height:1;
+}
+.reservation-open:hover{background:var(--accent-soft);border-color:transparent}
+.reservation-empty{grid-column:1/-1}
+.reservation-modal-actions{
+  display:flex;
+  justify-content:flex-start;
+  margin-top:12px;
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -633,6 +686,10 @@ button{cursor:pointer}
       <button class="move-btn" type="button" id="moveCompare">비교함에 넣기</button>
       <button class="move-btn schedule" type="button" id="moveSchedule">일정에 넣기</button>
       <button class="move-btn" type="button" id="moveReservation">예약 완료로 이동</button>
+    </div>
+
+    <div class="reservation-modal-actions" id="reservationModalActions" hidden>
+      <button class="secondary" type="button" id="returnReservationToInbox">준비함으로 되돌리기</button>
     </div>
 
     <div class="modal-footer">
@@ -1073,17 +1130,13 @@ button{cursor:pointer}
 
     const reservations = prepItems.filter(item=>item.area==='reservation');
     $('#reservationList').innerHTML = reservations.length ? reservations.map(item => `
-      <div class="task reservation-item" data-reservation-id="${escapeHtml(item.id)}">
-        <div class="task-top"><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.content)}</p></div><span class="state done">예약 완료</span></div>
-        <div class="task-action"><button class="link-btn" type="button" data-return-reservation="${escapeHtml(item.id)}">준비함으로 되돌리기</button></div>
-      </div>`).join('') : '<div class="empty">예약 완료 항목이 아직 없어.</div>';
+      <div class="reservation-row">
+        <span class="reservation-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</span>
+        <button class="reservation-open" type="button" data-open-reservation="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.title)} 내용 보기 및 수정">›</button>
+      </div>`).join('') : '<div class="empty reservation-empty">예약 완료 항목이 아직 없어.</div>';
 
-    $$('[data-reservation-id]').forEach(card => card.addEventListener('click', event => {
-      if(!event.target.closest('button')) openReservationDetail(card.dataset.reservationId);
-    }));
-    $$('[data-return-reservation]').forEach(button => button.addEventListener('click', event => {
-      event.stopPropagation();
-      updateItemArea(button.dataset.returnReservation,'inbox');
+    $$('[data-open-reservation]').forEach(button => button.addEventListener('click', () => {
+      openReservationDetail(button.dataset.openReservation);
     }));
   }
 
@@ -1096,6 +1149,7 @@ button{cursor:pointer}
     $('#detailCategory').value=categoryLabel(item.category);
     $('#detailContent').value=item.content;
     $('.move-actions').hidden=false;
+    $('#reservationModalActions').hidden=true;
     openModal('detailModal');
   }
 
@@ -1108,6 +1162,7 @@ button{cursor:pointer}
     $('#detailCategory').value=categoryLabel(item.category);
     $('#detailContent').value=item.content;
     $('.move-actions').hidden=true;
+    $('#reservationModalActions').hidden=false;
     openModal('detailModal');
   }
 
@@ -1161,6 +1216,10 @@ button{cursor:pointer}
     await loadTripData();
     showToast(area==='inbox'?'준비함으로 되돌렸어':'예약 완료로 옮겼어');
   }
+
+  $('#returnReservationToInbox').addEventListener('click',()=> {
+    if(editingItemId) updateItemArea(editingItemId,'inbox');
+  });
 
   $('#moveReservation').addEventListener('click',()=> {
     if(editingItemId) updateItemArea(editingItemId,'reservation');
