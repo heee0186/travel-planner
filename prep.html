@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>여행 준비함</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2788%27%3E%F0%9F%A7%B3%3C%2Ftext%3E%3C%2Fsvg%3E">
+<meta name="theme-color" content="#6b587f">
 <style>
 :root{
   --accent:#6b587f;
@@ -544,6 +546,94 @@ button{cursor:pointer}
 @media(max-width:600px){
   .image-attach-bar{align-items:flex-start;flex-direction:column}
   .image-preview-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+
+/* ===== 화면 크기 개선: 데스크톱에서 약 10% 더 크고 여유 있게 ===== */
+@media (min-width:851px){
+  .app{width:min(1280px,100%);padding:26px}
+  .topbar{margin-bottom:22px}
+  .logo{width:44px;height:44px;border-radius:15px;font-size:17px}
+  .brand{gap:12px}
+  .brand h1{font-size:23px}
+  .brand span{margin-top:3px;font-size:12px}
+
+  .shell{grid-template-columns:270px minmax(0,1fr);gap:22px}
+  .sidebar{padding:17px;border-radius:24px}
+  .trip{padding:14px 9px 17px;margin-bottom:12px}
+  .trip-select{font-size:16px}
+  .trip-meta{margin-top:6px;font-size:12px}
+  .trip-add{font-size:11px}
+  .nav{gap:7px}
+  .nav-btn{padding:13px 14px;border-radius:14px;font-size:14px}
+  .sidebar-note{margin-top:16px;padding:13px;border-radius:15px;font-size:12px;line-height:1.6}
+
+  .hero{padding:30px;border-radius:26px}
+  .eyebrow{font-size:13px}
+  .hero h2{margin:7px 0;font-size:32px}
+  .hero p{font-size:14px}
+  .capture{margin-top:21px;padding:17px;border-radius:20px}
+  .capture textarea{min-height:96px;font-size:15px}
+  .capture-footer{margin-top:10px}
+  .capture-hint{font-size:12px}
+  .select{padding:10px 12px;font-size:12px}
+  .primary{padding:11px 16px;font-size:13px}
+  .secondary{padding:10px 13px;font-size:13px}
+
+  .dashboard{gap:19px;margin-top:19px}
+  .panel{padding:22px;border-radius:22px}
+  .panel-head{margin-bottom:15px}
+  .panel-head h3{font-size:18px}
+  .panel-head span{font-size:12px}
+  .stack{gap:11px}
+  .task{padding:15px;border-radius:16px}
+  .task b{font-size:15px}
+  .task p{margin-top:6px;font-size:12px}
+  .state{padding:6px 9px;font-size:11px}
+
+  .library-tools{margin-bottom:14px}
+  .filter-btn{padding:8px 12px;font-size:11px}
+  .storage-note{padding:8px 11px;font-size:11px}
+  .library-note{margin-bottom:14px;font-size:11px}
+  .library-list{gap:10px}
+  .library-item{
+    grid-template-columns:50px minmax(0,1fr) auto;
+    gap:13px;padding:15px;border-radius:16px
+  }
+  .category-badge{width:46px;height:46px;border-radius:14px;font-size:12px}
+  .library-main b{font-size:15px}
+  .library-main p{margin-top:5px;font-size:12px}
+  .library-time{font-size:11px}
+
+  .reservation-list-scroll{max-height:300px}
+  .reservation-compact-row{min-height:48px;padding:11px 12px}
+  .reservation-compact-title{font-size:14px}
+  .reservation-open-button{width:34px;height:34px;font-size:20px}
+
+  .compare-topic-card{padding:21px;border-radius:22px}
+  .compare-topic-header h3{font-size:20px}
+  .compare-topic-header p{font-size:12px}
+  .candidate-grid{gap:14px;margin-top:16px}
+  .candidate{padding:17px;border-radius:18px}
+  .candidate h4{font-size:17px}
+  .candidate-price{font-size:13px}
+  .candidate-section b{font-size:11px}
+  .candidate-section ul{font-size:12px}
+
+  .days{gap:9px;margin:17px 0}
+  .day-btn{padding:10px 14px;font-size:13px}
+  .timeline{padding:21px;border-radius:22px}
+  .slot{grid-template-columns:86px 1fr;gap:16px;padding:16px 0}
+  .slot-time{font-size:13px}
+  .slot-card{padding:15px;border-radius:16px}
+  .slot-card b{font-size:15px}
+  .slot-card p{font-size:12px}
+
+  .modal-box{width:min(550px,100%);padding:23px}
+  .modal-head h3{font-size:20px}
+  .field label{font-size:12px}
+  .field input,.field textarea,.field select{padding:12px;font-size:14px}
+  .field textarea{min-height:145px}
 }
 
 </style>
