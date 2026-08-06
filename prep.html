@@ -819,6 +819,101 @@ button{cursor:pointer}
   .library-main p{font-size:13px}
 }
 
+
+/* ===== 예약 완료 → 일정 불러오기 ===== */
+.reservation-modal-actions{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:14px;
+}
+.reservation-modal-actions button{
+  flex:1;
+}
+.reservation-import-box{
+  width:min(590px,100%);
+}
+.reservation-import-list{
+  display:grid;
+  gap:8px;
+  max-height:430px;
+  overflow-y:auto;
+  padding-right:3px;
+}
+.reservation-import-list::-webkit-scrollbar{width:6px}
+.reservation-import-list::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  background:#d8d0dc;
+}
+.reservation-import-row{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  padding:13px 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  text-align:left;
+}
+.reservation-import-row:not(:disabled):hover{
+  border-color:#cfc4d8;
+  background:var(--paper-warm);
+}
+.reservation-import-main{
+  min-width:0;
+}
+.reservation-import-main b{
+  display:block;
+  overflow:hidden;
+  color:var(--text);
+  font-size:15px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.reservation-import-main p{
+  display:-webkit-box;
+  overflow:hidden;
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+.reservation-import-state{
+  padding:6px 9px;
+  border-radius:999px;
+  background:var(--accent-soft);
+  color:var(--accent-dark);
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.reservation-import-row.is-imported{
+  cursor:default;
+  opacity:.58;
+}
+.reservation-import-row.is-imported .reservation-import-state{
+  background:#eef2ef;
+  color:#5d7666;
+}
+@media(max-width:850px){
+  #schedule .hero-row .primary{
+    width:100%;
+  }
+  .reservation-modal-actions{
+    flex-direction:column;
+  }
+  .reservation-import-row{
+    grid-template-columns:minmax(0,1fr);
+  }
+  .reservation-import-state{
+    justify-self:start;
+  }
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -986,9 +1081,14 @@ button{cursor:pointer}
 
       <section class="screen" id="schedule">
         <div class="hero">
-          <div class="eyebrow">SCHEDULE</div>
-          <h2>확정된 것만 일정에 배치</h2>
-          <p>정확한 시간이 없어도 먼저 넣고, 나중에 순서와 시간을 정하면 돼.</p>
+          <div class="hero-row">
+            <div>
+              <div class="eyebrow">SCHEDULE</div>
+              <h2>확정된 것만 일정에 배치</h2>
+              <p>정확한 시간이 없어도 먼저 넣고, 나중에 순서와 시간을 정하면 돼.</p>
+            </div>
+            <button class="primary" type="button" id="importReservationButton">예약 완료 불러오기</button>
+          </div>
         </div>
 
         <div class="days" id="scheduleDays"></div>
@@ -1049,6 +1149,7 @@ button{cursor:pointer}
 
     <div class="reservation-modal-actions" id="reservationModalActions" hidden>
       <button class="secondary" type="button" id="returnReservationToInbox">준비함으로 되돌리기</button>
+      <button class="primary" type="button" id="reservationToSchedule">일정에 넣기</button>
     </div>
 
     <div class="modal-footer">
@@ -1170,6 +1271,24 @@ button{cursor:pointer}
       <div class="field"><label for="tripEndInput">귀국일</label><input id="tripEndInput" type="date"></div>
     </div>
     <div class="modal-footer"><span></span><div class="modal-footer-right"><button class="secondary" type="button" data-close="tripModal">취소</button><button class="primary" type="button" id="saveTrip">여행 만들기</button></div></div>
+  </div>
+</div>
+
+
+<div class="modal" id="reservationImportModal">
+  <div class="modal-box reservation-import-box">
+    <div class="modal-head">
+      <h3>예약 완료에서 일정 불러오기</h3>
+      <button class="close-btn" type="button" data-close="reservationImportModal">×</button>
+    </div>
+    <p class="modal-help">예약 완료 기록은 그대로 두고, 선택한 항목만 일정에 복사해.</p>
+    <div class="reservation-import-list" id="reservationImportList"></div>
+    <div class="modal-footer">
+      <span></span>
+      <div class="modal-footer-right">
+        <button class="secondary" type="button" data-close="reservationImportModal">닫기</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1906,6 +2025,84 @@ button{cursor:pointer}
     $('#deleteSchedule').hidden=true;
     closeModal('detailModal');
     openModal('scheduleModal');
+  });
+
+
+  function likelyReservationAlreadyInSchedule(item) {
+    const title = String(item.title || '').trim();
+    const content = String(item.content || '').trim();
+    return itinerary.some(schedule => {
+      const sameTitle = String(schedule.place_name || '').trim() === title;
+      const scheduleMemo = String(schedule.memo || '').trim();
+      return sameTitle && (!content || !scheduleMemo || scheduleMemo === content);
+    });
+  }
+
+  function preferredScheduleDate() {
+    if(selectedScheduleKey && selectedScheduleKey !== 'undated') return selectedScheduleKey;
+    return currentTrip?.start_date || '';
+  }
+
+  function openScheduleFromReservation(itemId) {
+    const item = prepItems.find(entry => entry.id === itemId && entry.area === 'reservation');
+    if(!item) {
+      showToast('예약 완료 항목을 찾지 못했어', true);
+      return;
+    }
+
+    scheduleContext = {sourcePrepItemId:null,itineraryItemId:null};
+    $('#scheduleModalTitle').textContent = '예약 완료에서 일정 추가';
+    $('#scheduleTitleInput').value = item.title || '';
+    $('#scheduleMemoInput').value = item.content || '';
+    $('#scheduleDateInput').value = preferredScheduleDate();
+    $('#scheduleTimeInput').value = '';
+    $('#deleteSchedule').hidden = true;
+
+    closeModal('detailModal');
+    closeModal('reservationImportModal');
+    editingItemId = null;
+    openModal('scheduleModal');
+  }
+
+  function renderReservationImportList() {
+    const reservations = prepItems.filter(item => item.area === 'reservation');
+    const list = $('#reservationImportList');
+
+    if(!reservations.length) {
+      list.innerHTML = '<div class="empty">불러올 예약 완료 항목이 아직 없어.</div>';
+      return;
+    }
+
+    list.innerHTML = reservations.map(item => {
+      const imported = likelyReservationAlreadyInSchedule(item);
+      return `
+        <button
+          class="reservation-import-row ${imported ? 'is-imported' : ''}"
+          type="button"
+          data-import-reservation="${escapeHtml(item.id)}"
+          ${imported ? 'disabled' : ''}
+        >
+          <span class="reservation-import-main">
+            <b>${escapeHtml(item.title)}</b>
+            <p>${escapeHtml(item.content || '저장된 설명이 없어.')}</p>
+          </span>
+          <span class="reservation-import-state">${imported ? '이미 일정에 있음' : '일정에 넣기'}</span>
+        </button>
+      `;
+    }).join('');
+
+    $$('[data-import-reservation]:not(:disabled)').forEach(button => {
+      button.addEventListener('click', () => openScheduleFromReservation(button.dataset.importReservation));
+    });
+  }
+
+  $('#importReservationButton').addEventListener('click', () => {
+    renderReservationImportList();
+    openModal('reservationImportModal');
+  });
+
+  $('#reservationToSchedule').addEventListener('click', () => {
+    if(editingItemId) openScheduleFromReservation(editingItemId);
   });
 
   function dayNumberForDate(dateString) {
