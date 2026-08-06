@@ -636,6 +636,105 @@ button{cursor:pointer}
   .field textarea{min-height:145px}
 }
 
+
+/* ===== 상단 엔화 환율 ===== */
+.yen-widget{
+  min-width:178px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 7px 6px 10px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 6px 18px rgba(49,42,56,.045);
+  color:var(--text);
+}
+.yen-symbol{
+  flex:0 0 auto;
+  font-size:18px;
+  line-height:1;
+}
+.yen-copy{
+  min-width:0;
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  justify-content:center;
+  gap:1px;
+  line-height:1.15;
+}
+.yen-copy strong{
+  overflow:hidden;
+  color:var(--text);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:-.02em;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.yen-copy small{
+  overflow:hidden;
+  color:var(--muted);
+  font-size:9px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.yen-refresh{
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:0;
+  border-radius:9px;
+  background:var(--paper-warm);
+  color:var(--accent-dark);
+  font-size:16px;
+  font-weight:900;
+}
+.yen-refresh:hover{background:var(--accent-soft)}
+.yen-refresh:disabled{cursor:wait;opacity:.55}
+.yen-widget.is-loading .yen-refresh{animation:yen-spin 1s linear infinite}
+.yen-widget.is-error{border-color:#e7caca;background:#fff9f9}
+.yen-widget.is-error .yen-copy small{color:#9b5b5b}
+.yen-change-up{color:#b05151!important}
+.yen-change-down{color:#4e739c!important}
+@keyframes yen-spin{to{transform:rotate(360deg)}}
+
+@media(min-width:851px){
+  .yen-widget{
+    min-width:194px;
+    height:46px;
+    padding:7px 8px 7px 11px;
+    border-radius:13px;
+  }
+  .yen-symbol{font-size:20px}
+  .yen-copy strong{font-size:13px}
+  .yen-copy small{font-size:10px}
+  .yen-refresh{width:30px;height:30px;flex-basis:30px}
+}
+
+@media(max-width:850px){
+  .topbar{align-items:flex-start}
+  .topbar-actions{gap:6px}
+  .topbar-actions #openOldApp{display:none}
+  .yen-widget{
+    min-width:132px;
+    max-width:150px;
+    height:38px;
+    gap:6px;
+    padding:5px 5px 5px 8px;
+  }
+  .yen-symbol{font-size:16px}
+  .yen-copy strong{font-size:11px}
+  .yen-copy small{display:none}
+  .yen-refresh{width:25px;height:25px;flex-basis:25px;font-size:14px}
+  #logoutButton{padding:8px 8px}
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -670,6 +769,14 @@ button{cursor:pointer}
       </div>
     </div>
     <div class="topbar-actions">
+      <div class="yen-widget is-loading" id="yenWidget" title="시장 참고환율입니다. 실제 환전·카드 적용 환율과 다를 수 있어요.">
+        <span class="yen-symbol" aria-hidden="true">💴</span>
+        <span class="yen-copy">
+          <strong id="yenRateText">100엔 불러오는 중</strong>
+          <small id="yenRateMeta">환율 확인 중</small>
+        </span>
+        <button class="yen-refresh" type="button" id="yenRefreshButton" aria-label="엔화 환율 새로고침" title="환율 새로고침">↻</button>
+      </div>
       <button class="account-btn" type="button" id="openOldApp">기존 일정 앱</button>
       <button class="account-btn" type="button" id="logoutButton">로그아웃</button>
     </div>
@@ -2054,6 +2161,179 @@ button{cursor:pointer}
     event.target.value='';
   });
   $('#detailContent').addEventListener('paste',event=>handleImagePaste(event,'detail'));
+
+
+  const YEN_RATE_CACHE_KEY = 'travel_prep_yen_rate_cache_v1';
+  const YEN_AUTO_REFRESH_MS = 10 * 60 * 1000;
+  let yenLastLoadedAt = 0;
+  let yenRefreshTimer = null;
+
+  function formatYenRate(value) {
+    return new Intl.NumberFormat('ko-KR', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    }).format(value);
+  }
+
+  function formatRateClock(value) {
+    const date = value ? new Date(value) : new Date();
+    if (Number.isNaN(date.getTime())) return '갱신됨';
+    return new Intl.DateTimeFormat('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(date) + ' 갱신';
+  }
+
+  function readCachedYenRate() {
+    try {
+      const cached = JSON.parse(localStorage.getItem(YEN_RATE_CACHE_KEY) || 'null');
+      if (!cached || !Number.isFinite(Number(cached.value))) return null;
+      return cached;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveCachedYenRate(data) {
+    try {
+      localStorage.setItem(YEN_RATE_CACHE_KEY, JSON.stringify(data));
+    } catch (error) {
+      // 브라우저 저장이 차단된 환경에서는 화면 표시만 유지합니다.
+    }
+  }
+
+  function renderYenRate({ value, updatedAt, changePct = null, source = 'live', stale = false }) {
+    const widget = $('#yenWidget');
+    const text = $('#yenRateText');
+    const meta = $('#yenRateMeta');
+
+    text.textContent = `100엔 ${formatYenRate(Number(value))}원`;
+    meta.classList.remove('yen-change-up', 'yen-change-down');
+
+    let detail = stale ? '최근 저장값' : formatRateClock(updatedAt);
+    if (Number.isFinite(Number(changePct))) {
+      const numericChange = Number(changePct);
+      const arrow = numericChange > 0 ? '▲' : numericChange < 0 ? '▼' : '－';
+      detail += ` · ${arrow}${Math.abs(numericChange).toFixed(2)}%`;
+      if (numericChange > 0) meta.classList.add('yen-change-up');
+      if (numericChange < 0) meta.classList.add('yen-change-down');
+    } else if (source === 'daily') {
+      detail += ' · 일일 기준';
+    }
+
+    meta.textContent = detail;
+    widget.classList.remove('is-loading', 'is-error');
+    yenLastLoadedAt = Date.now();
+  }
+
+  function setYenLoading(manual = false) {
+    const widget = $('#yenWidget');
+    widget.classList.add('is-loading');
+    widget.classList.remove('is-error');
+    $('#yenRefreshButton').disabled = true;
+    if (manual) $('#yenRateMeta').textContent = '새로 불러오는 중';
+  }
+
+  function setYenError() {
+    const widget = $('#yenWidget');
+    widget.classList.remove('is-loading');
+    widget.classList.add('is-error');
+    $('#yenRefreshButton').disabled = false;
+    $('#yenRateText').textContent = '100엔 환율 확인 실패';
+    $('#yenRateMeta').textContent = '↻ 버튼으로 다시 시도';
+  }
+
+  async function fetchJsonWithTimeout(url, timeoutMs = 8000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        cache: 'no-store',
+        signal: controller.signal,
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function fetchLiveYenRate() {
+    const data = await fetchJsonWithTimeout(
+      'https://www.currencyexchangetool.com/api/v1/convert?amount=100&from=JPY&to=KRW'
+    );
+    if (!data?.success || !Number.isFinite(Number(data.result))) {
+      throw new Error('잘못된 실시간 환율 응답');
+    }
+    return {
+      value: Number(data.result),
+      updatedAt: data.updatedAt || new Date().toISOString(),
+      changePct: Number.isFinite(Number(data.changePct24h)) ? Number(data.changePct24h) : null,
+      source: 'live',
+      cachedAt: Date.now()
+    };
+  }
+
+  async function fetchDailyYenFallback() {
+    const data = await fetchJsonWithTimeout('https://api.frankfurter.dev/v2/rate/JPY/KRW');
+    if (!Number.isFinite(Number(data?.rate))) {
+      throw new Error('잘못된 일일 환율 응답');
+    }
+    return {
+      value: Number(data.rate) * 100,
+      updatedAt: data.date ? `${data.date}T00:00:00` : new Date().toISOString(),
+      changePct: null,
+      source: 'daily',
+      cachedAt: Date.now()
+    };
+  }
+
+  async function loadYenRate({ manual = false } = {}) {
+    setYenLoading(manual);
+    try {
+      const live = await fetchLiveYenRate();
+      saveCachedYenRate(live);
+      renderYenRate(live);
+    } catch (liveError) {
+      try {
+        const daily = await fetchDailyYenFallback();
+        saveCachedYenRate(daily);
+        renderYenRate(daily);
+      } catch (fallbackError) {
+        const cached = readCachedYenRate();
+        if (cached) {
+          renderYenRate({ ...cached, stale: true });
+        } else {
+          setYenError();
+          return;
+        }
+      }
+    } finally {
+      $('#yenRefreshButton').disabled = false;
+      $('#yenWidget').classList.remove('is-loading');
+    }
+  }
+
+  function startYenRateUpdates() {
+    const cached = readCachedYenRate();
+    if (cached) renderYenRate({ ...cached, stale: true });
+
+    loadYenRate();
+    clearInterval(yenRefreshTimer);
+    yenRefreshTimer = setInterval(() => loadYenRate(), YEN_AUTO_REFRESH_MS);
+  }
+
+  $('#yenRefreshButton').addEventListener('click', () => loadYenRate({ manual: true }));
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && Date.now() - yenLastLoadedAt > 5 * 60 * 1000) {
+      loadYenRate();
+    }
+  });
+
+  startYenRateUpdates();
 
   init();
 })();
