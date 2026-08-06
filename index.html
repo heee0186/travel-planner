@@ -369,7 +369,364 @@
       .theme-swatches { grid-template-columns: repeat(5, 1fr); }
     }
 
-  </style>
+  
+/* ==========================================================
+   2026-08 최종 정리
+   - 일정 카드를 가로 공간 활용형으로 재배치
+   - 긴 메모 접기/펼치기
+   - 결제·관리 영역을 오른쪽으로 이동
+   - 전체 가계부를 작은 접이식 요약 카드로 정리
+   - 작은 글씨를 1~2px 확대
+   ========================================================== */
+.plan-item{
+  grid-template-columns:72px minmax(0,1fr) 238px;
+  gap:16px;
+  align-items:stretch;
+  padding:18px;
+}
+.plan-main{
+  min-width:0;
+  padding:1px 0;
+}
+.plan-item.no-side .plan-main{grid-column:2 / 4}
+.plan-side{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:12px;
+  padding:13px;
+  border-left:1px solid var(--line);
+  border-radius:0 12px 12px 0;
+  background:#faf9f7;
+}
+.plan-side-empty{
+  justify-content:flex-end;
+}
+.plan-side-summary{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.plan-side-label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:850;
+}
+.plan-side-total{
+  color:#332e38;
+  font-size:15px;
+  font-weight:950;
+  text-align:right;
+  white-space:nowrap;
+}
+.plan-expense-toggle{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:7px 0 0;
+  border:0;
+  border-top:1px dashed #e5e0e8;
+  background:transparent;
+  color:#655f69;
+  font-size:12px;
+  font-weight:850;
+  text-align:left;
+}
+.plan-expense-toggle span:last-child{
+  color:var(--muted);
+}
+.plan-expense-details{
+  display:none;
+  gap:7px;
+  padding-top:2px;
+}
+.plan-expense-details.open{
+  display:grid;
+}
+.plan-expense-entry{
+  padding:8px 0;
+  border-top:1px dashed #e8e3e9;
+}
+.plan-expense-entry:first-child{
+  border-top:0;
+}
+.plan-expense-entry-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
+}
+.plan-expense-entry-main{
+  min-width:0;
+  color:#5b5560;
+  font-size:12px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.plan-expense-entry-amount{
+  flex:0 0 auto;
+  color:#332e38;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.plan-expense-entry-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:7px;
+  margin-top:5px;
+}
+.plan-expense-entry-actions button{
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:850;
+}
+.plan-expense-entry-actions button.danger{
+  color:var(--danger);
+}
+.plan-side-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+.plan-side-actions .secondary-btn{
+  grid-column:1 / -1;
+  width:100%;
+  padding:9px 10px;
+  border-radius:10px;
+  font-size:12px;
+}
+.plan-side-actions .mini-btn{
+  width:100%;
+  padding:7px 8px;
+  font-size:11px;
+}
+.memo-wrap{
+  margin-top:8px;
+}
+.memo-preview{
+  display:-webkit-box;
+  overflow:hidden;
+  color:#504a58;
+  font-size:14px;
+  line-height:1.58;
+  white-space:pre-wrap;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+.memo-preview.expanded{
+  display:block;
+  overflow:visible;
+  -webkit-line-clamp:unset;
+}
+.memo-toggle{
+  display:none;
+  margin-top:4px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--primary-dark);
+  font-size:12px;
+  font-weight:850;
+}
+.memo-toggle.show{
+  display:inline-flex;
+}
+.memo-toggle::after{
+  content:"⌄";
+  margin-left:4px;
+}
+.memo-toggle.expanded::after{
+  content:"⌃";
+}
+
+/* 가계부: 기본은 작고 얇게, 필요할 때만 펼침 */
+.expense-panel{
+  margin:14px 0 18px;
+  padding:0;
+  overflow:hidden;
+  border-radius:16px;
+}
+.expense-summary-toggle{
+  min-height:68px;
+  grid-template-columns:42px minmax(0,1fr) auto auto;
+  gap:12px;
+  padding:11px 15px;
+}
+.expense-summary-icon{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:var(--primary-soft);
+  color:var(--primary-dark);
+  font-size:17px;
+  font-weight:950;
+}
+.expense-summary-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.expense-summary-copy strong{
+  color:#403a45;
+  font-size:15px;
+}
+.expense-summary-copy small{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+}
+.expense-summary-brief{
+  color:#403a45;
+  font-size:13px;
+  font-weight:900;
+}
+.expense-summary-chevron{
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:#f6f3f7;
+  font-size:13px;
+}
+.expense-summary-body{
+  padding:14px 16px 16px;
+  background:#fff;
+}
+.expense-metrics{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr;
+  gap:9px;
+  margin-bottom:12px;
+}
+.expense-metric{
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#faf9f7;
+}
+.expense-metric span{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+}
+.expense-metric strong{
+  display:block;
+  margin-top:4px;
+  color:#38323f;
+  font-size:14px;
+}
+.expense-body-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:4px 0 8px;
+}
+.expense-body-head strong{
+  color:#5a5360;
+  font-size:13px;
+}
+.payer-summary{
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:7px;
+  padding:0 0 10px;
+}
+.payer-summary-row{
+  padding:8px 10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  font-size:12px;
+}
+.expense-list-title{
+  margin-top:10px;
+  font-size:12px;
+}
+.expense-item{
+  padding:8px 0;
+  font-size:13px;
+}
+.expense-meta{
+  font-size:11px;
+}
+
+/* 전체적인 깨알 글씨 확대 */
+.destination{font-size:14px}
+.planner-meta{font-size:15px}
+.share-chip,.compact-btn,.share-state{font-size:12px}
+.tab-btn{font-size:14px}
+.map-toolbar h3{font-size:18px}
+#route-summary{font-size:13px}
+.day-toolbar h3{font-size:20px}
+#add-item-btn{font-size:13px}
+.time{font-size:14px}
+.place{font-size:18px}
+.plan-sub{font-size:14px}
+.mini-btn{font-size:12px}
+.inline-message{font-size:15px}
+.field label{font-size:14px}
+.field input,.field select,.field textarea{font-size:15px}
+.form-help,.place-help{font-size:13px}
+.modal-box h3{font-size:20px}
+
+@media(max-width:900px){
+  .plan-item{
+    grid-template-columns:62px minmax(0,1fr);
+  }
+  .plan-side{
+    grid-column:2;
+    border-left:0;
+    border-top:1px solid var(--line);
+    border-radius:0 0 12px 12px;
+  }
+}
+@media(max-width:640px){
+  .plan-item{
+    grid-template-columns:52px minmax(0,1fr);
+    gap:11px;
+    padding:14px;
+  }
+  .plan-side{
+    padding:11px 0 0;
+    background:transparent;
+  }
+  .plan-side-actions{
+    grid-template-columns:1fr 1fr;
+  }
+  .expense-summary-toggle{
+    grid-template-columns:38px minmax(0,1fr) auto;
+  }
+  .expense-summary-brief{
+    grid-column:2;
+    text-align:left;
+    font-size:12px;
+  }
+  .expense-summary-chevron{
+    grid-column:3;
+    grid-row:1 / span 2;
+  }
+  .expense-metrics{
+    grid-template-columns:1fr 1fr;
+  }
+  .expense-metric:first-child{
+    grid-column:1 / -1;
+  }
+}
+
+</style>
 </head>
 <body>
   <div id="loading-screen">
@@ -513,17 +870,26 @@
 
       <section class="expense-panel card" aria-labelledby="expense-title">
         <button id="expense-summary-toggle" class="expense-summary-toggle" type="button" onclick="toggleExpenseSummary()" aria-expanded="false">
-          <span id="expense-title">여행 전체 가계부</span>
+          <span class="expense-summary-icon">₩</span>
+          <span class="expense-summary-copy">
+            <strong id="expense-title">여행 가계부</strong>
+            <small>결제자별 합계와 일정 외 지출을 필요할 때만 확인해</small>
+          </span>
           <span id="expense-summary-brief" class="expense-summary-brief">아직 결제 기록 없음</span>
-          <span id="expense-summary-chevron" class="expense-summary-chevron">▾</span>
+          <span id="expense-summary-chevron" class="expense-summary-chevron">⌄</span>
         </button>
         <div id="expense-summary-body" class="expense-summary-body">
-          <div class="expense-toolbar">
-            <div class="expense-total-line"><strong id="expense-grand-total">아직 지출 없음</strong> · <span id="expense-count">0건</span></div>
+          <div class="expense-metrics">
+            <div class="expense-metric"><span>총 지출</span><strong id="expense-grand-total">아직 지출 없음</strong></div>
+            <div class="expense-metric"><span>결제 건수</span><strong id="expense-count">0건</strong></div>
+            <div class="expense-metric"><span>결제자</span><strong id="expense-payer-count">0명</strong></div>
+          </div>
+          <div class="expense-body-head">
+            <strong>결제자별 합계</strong>
             <button id="add-expense-btn" class="mini-btn" type="button" onclick="openExpenseModal(null)">+ 일정 외 지출</button>
           </div>
           <div id="payer-summary" class="payer-summary"></div>
-          <div id="expense-list-title" class="expense-list-title hidden">일정 외 지출</div>
+          <div id="expense-list-title" class="expense-list-title hidden">일정에 연결하지 않은 지출</div>
           <div id="expense-list" class="expense-list"></div>
         </div>
       </section>
@@ -1423,100 +1789,154 @@
         time.className = 'time';
         time.textContent = item.start_time ? item.start_time.slice(0, 5) : '시간 미정';
 
-        const details = document.createElement('div');
+        const main = document.createElement('div');
+        main.className = 'plan-main';
+
         const place = document.createElement('div');
         place.className = 'place';
         place.textContent = item.place_name;
+        main.appendChild(place);
 
-        const sub = document.createElement('div');
-        sub.className = 'plan-sub';
-        const parts = [];
-        if (item.schedule_date) parts.push(formatKoreanDate(item.schedule_date));
-        sub.textContent = parts.join(' · ');
-
-        details.appendChild(place);
-        if (parts.length) details.appendChild(sub);
-        if (item.memo) {
-          const memo = document.createElement('div');
-          memo.className = 'memo plan-sub';
-          memo.textContent = item.memo;
-          details.appendChild(memo);
+        if (item.schedule_date) {
+          const sub = document.createElement('div');
+          sub.className = 'plan-sub';
+          sub.textContent = formatKoreanDate(item.schedule_date);
+          main.appendChild(sub);
         }
 
+        if (item.memo) {
+          const memoWrap = document.createElement('div');
+          memoWrap.className = 'memo-wrap';
+
+          const memo = document.createElement('div');
+          memo.className = 'memo-preview';
+          memo.textContent = item.memo;
+
+          const memoToggle = document.createElement('button');
+          memoToggle.type = 'button';
+          memoToggle.className = 'memo-toggle';
+          memoToggle.textContent = '더보기';
+          memoToggle.addEventListener('click', () => {
+            const expanded = memo.classList.toggle('expanded');
+            memoToggle.classList.toggle('expanded', expanded);
+            memoToggle.textContent = expanded ? '접기' : '더보기';
+          });
+
+          memoWrap.append(memo, memoToggle);
+          main.appendChild(memoWrap);
+
+          requestAnimationFrame(() => {
+            if (memo.scrollHeight > memo.clientHeight + 2) memoToggle.classList.add('show');
+          });
+        }
+
+        const side = document.createElement('aside');
+        side.className = linkedExpenses.length ? 'plan-side' : 'plan-side plan-side-empty';
+
         if (linkedExpenses.length) {
-          const expenseBlock = document.createElement('div');
-          expenseBlock.className = 'inline-expense-block';
-          const title = document.createElement('div');
-          title.className = 'inline-expense-title';
-          title.textContent = '결제 기록';
-          const inlineList = document.createElement('div');
-          inlineList.className = 'inline-expense-list';
+          const summary = document.createElement('div');
+          summary.className = 'plan-side-summary';
+
+          const summaryLabel = document.createElement('div');
+          summaryLabel.className = 'plan-side-label';
+          summaryLabel.textContent = `결제 ${linkedExpenses.length}건`;
+
+          const summaryTotal = document.createElement('div');
+          summaryTotal.className = 'plan-side-total';
+          summaryTotal.textContent = formatCurrencyTotals(sumByCurrency(linkedExpenses));
+          summary.append(summaryLabel, summaryTotal);
+          side.appendChild(summary);
+
+          const expenseToggle = document.createElement('button');
+          expenseToggle.type = 'button';
+          expenseToggle.className = 'plan-expense-toggle';
+          expenseToggle.innerHTML = '<span>결제 내역 보기</span><span>⌄</span>';
+
+          const expenseDetails = document.createElement('div');
+          expenseDetails.className = 'plan-expense-details';
 
           linkedExpenses.forEach(expense => {
-            const expenseRow = document.createElement('div');
-            expenseRow.className = 'inline-expense-row';
+            const entry = document.createElement('div');
+            entry.className = 'plan-expense-entry';
 
-            const main = document.createElement('div');
-            main.className = 'inline-expense-main';
+            const entryTop = document.createElement('div');
+            entryTop.className = 'plan-expense-entry-top';
+
+            const entryMain = document.createElement('div');
+            entryMain.className = 'plan-expense-entry-main';
             const noteParts = [expense.payer_name || '이름 없음'];
             if (expense.description && expense.description !== item.place_name) noteParts.push(expense.description);
             if (expense.memo) noteParts.push(expense.memo);
-            main.textContent = noteParts.join(' · ');
+            entryMain.textContent = noteParts.join(' · ');
 
-            const right = document.createElement('div');
-            right.className = 'inline-expense-amount';
-            const amount = document.createElement('span');
-            amount.textContent = formatMoney(expense.amount, expense.currency);
-            right.appendChild(amount);
+            const entryAmount = document.createElement('div');
+            entryAmount.className = 'plan-expense-entry-amount';
+            entryAmount.textContent = formatMoney(expense.amount, expense.currency);
+            entryTop.append(entryMain, entryAmount);
+            entry.appendChild(entryTop);
 
             if (!isReadOnlyMode) {
-              const actions = document.createElement('span');
-              actions.className = 'inline-expense-actions';
+              const entryActions = document.createElement('div');
+              entryActions.className = 'plan-expense-entry-actions';
+
               const editExpenseBtn = document.createElement('button');
               editExpenseBtn.type = 'button';
-              editExpenseBtn.className = 'mini-btn';
               editExpenseBtn.textContent = '수정';
               editExpenseBtn.addEventListener('click', () => openEditExpenseModal(expense.id));
+
               const deleteExpenseBtn = document.createElement('button');
               deleteExpenseBtn.type = 'button';
-              deleteExpenseBtn.className = 'mini-btn danger';
+              deleteExpenseBtn.className = 'danger';
               deleteExpenseBtn.textContent = '삭제';
               deleteExpenseBtn.addEventListener('click', () => deleteTripExpense(expense.id));
-              actions.append(editExpenseBtn, deleteExpenseBtn);
-              right.appendChild(actions);
-            }
 
-            expenseRow.append(main, right);
-            inlineList.appendChild(expenseRow);
+              entryActions.append(editExpenseBtn, deleteExpenseBtn);
+              entry.appendChild(entryActions);
+            }
+            expenseDetails.appendChild(entry);
           });
 
-          expenseBlock.append(title, inlineList);
-          details.appendChild(expenseBlock);
+          expenseToggle.addEventListener('click', () => {
+            const open = expenseDetails.classList.toggle('open');
+            expenseToggle.firstElementChild.textContent = open ? '결제 내역 접기' : '결제 내역 보기';
+            expenseToggle.lastElementChild.textContent = open ? '⌃' : '⌄';
+          });
+
+          side.append(expenseToggle, expenseDetails);
         }
 
         if (!isReadOnlyMode) {
           const actions = document.createElement('div');
-          actions.className = 'plan-actions';
+          actions.className = 'plan-side-actions';
+
           const expenseBtn = document.createElement('button');
           expenseBtn.type = 'button';
           expenseBtn.className = 'secondary-btn';
           expenseBtn.textContent = '+ 결제 기록';
           expenseBtn.addEventListener('click', () => openExpenseModal(item.id));
+
           const editBtn = document.createElement('button');
           editBtn.type = 'button';
           editBtn.className = 'mini-btn';
           editBtn.textContent = '일정 수정';
           editBtn.addEventListener('click', () => openEditItemModal(item.id));
+
           const deleteBtn = document.createElement('button');
           deleteBtn.type = 'button';
           deleteBtn.className = 'mini-btn danger';
           deleteBtn.textContent = '일정 삭제';
           deleteBtn.addEventListener('click', () => deleteItineraryItem(item.id));
+
           actions.append(expenseBtn, editBtn, deleteBtn);
-          details.appendChild(actions);
+          side.appendChild(actions);
         }
 
-        row.append(time, details);
+        if (linkedExpenses.length || !isReadOnlyMode) {
+          row.append(time, main, side);
+        } else {
+          row.classList.add('no-side');
+          row.append(time, main);
+        }
         list.appendChild(row);
       });
     }
@@ -1699,6 +2119,7 @@
     function renderExpenseLedger() {
       const totalBox = document.getElementById('expense-grand-total');
       const countBox = document.getElementById('expense-count');
+      const payerCountBox = document.getElementById('expense-payer-count');
       const briefBox = document.getElementById('expense-summary-brief');
       const payerSummary = document.getElementById('payer-summary');
       const listTitle = document.getElementById('expense-list-title');
@@ -1706,23 +2127,10 @@
       payerSummary.replaceChildren();
       list.replaceChildren();
 
-      countBox.textContent = `${expensesCache.length.toLocaleString('ko-KR')}건`;
       const grandTotals = sumByCurrency(expensesCache);
       const totalText = expensesCache.length ? formatCurrencyTotals(grandTotals) : '아직 지출 없음';
       totalBox.textContent = totalText;
-      briefBox.textContent = expensesCache.length ? totalText : '아직 결제 기록 없음';
-
-      if (!expensesCache.length) {
-        listTitle.classList.add('hidden');
-        const empty = document.createElement('div');
-        empty.className = 'plan-sub';
-        empty.textContent = isReadOnlyMode
-          ? '아직 등록된 결제 기록이 없어.'
-          : '각 일정의 “결제 기록” 버튼에서 바로 남길 수 있어.';
-        list.appendChild(empty);
-        updatePayerSuggestions();
-        return;
-      }
+      countBox.textContent = `${expensesCache.length.toLocaleString('ko-KR')}건`;
 
       const byPayer = new Map();
       expensesCache.forEach(expense => {
@@ -1730,6 +2138,22 @@
         if (!byPayer.has(payer)) byPayer.set(payer, []);
         byPayer.get(payer).push(expense);
       });
+      payerCountBox.textContent = `${byPayer.size.toLocaleString('ko-KR')}명`;
+      briefBox.textContent = expensesCache.length
+        ? `${totalText} · ${expensesCache.length.toLocaleString('ko-KR')}건`
+        : '아직 결제 기록 없음';
+
+      if (!expensesCache.length) {
+        listTitle.classList.add('hidden');
+        const empty = document.createElement('div');
+        empty.className = 'plan-sub';
+        empty.textContent = isReadOnlyMode
+          ? '아직 등록된 결제 기록이 없어.'
+          : '일정 카드 오른쪽의 “결제 기록”에서 바로 남길 수 있어.';
+        list.appendChild(empty);
+        updatePayerSuggestions();
+        return;
+      }
 
       [...byPayer.entries()]
         .sort((a, b) => a[0].localeCompare(b[0], 'ko'))
@@ -1773,16 +2197,19 @@
         if (!isReadOnlyMode) {
           const actions = document.createElement('span');
           actions.className = 'expense-actions';
+
           const editButton = document.createElement('button');
           editButton.type = 'button';
           editButton.className = 'mini-btn';
           editButton.textContent = '수정';
           editButton.addEventListener('click', () => openEditExpenseModal(expense.id));
+
           const deleteButton = document.createElement('button');
           deleteButton.type = 'button';
           deleteButton.className = 'mini-btn danger';
           deleteButton.textContent = '삭제';
           deleteButton.addEventListener('click', () => deleteTripExpense(expense.id));
+
           actions.append(editButton, deleteButton);
           right.appendChild(actions);
         }
@@ -1800,7 +2227,7 @@
       const chevron = document.getElementById('expense-summary-chevron');
       const isOpen = body.classList.toggle('open');
       toggle.setAttribute('aria-expanded', String(isOpen));
-      chevron.textContent = isOpen ? '▴' : '▾';
+      chevron.textContent = isOpen ? '⌃' : '⌄';
     }
 
     function sumByCurrency(rows) {

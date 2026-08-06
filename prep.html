@@ -735,6 +735,90 @@ button{cursor:pointer}
   #logoutButton{padding:8px 8px}
 }
 
+
+/* ==========================================================
+   2026-08 최종 정리
+   - 날짜를 한국 로컬 기준으로 표시
+   - 여행 제목/여행지/기간을 준비함에서 직접 수정
+   - 깨알같은 글씨를 전체적으로 1~2px 확대
+   ========================================================== */
+.trip-actions{
+  justify-content:space-between;
+  align-items:center;
+  gap:9px;
+}
+.trip-action-group{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.trip-edit{
+  padding:2px 0;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+}
+.trip-edit:hover{color:var(--accent-dark)}
+
+/* 작은 글씨 전체 확대 */
+.brand span{font-size:13px}
+.trip-meta{font-size:13px}
+.trip-add{font-size:12px}
+.nav-btn{font-size:15px}
+.sidebar-note{font-size:13px}
+.eyebrow{font-size:14px}
+.hero p{font-size:15px}
+.capture-hint{font-size:13px}
+.select{font-size:13px}
+.primary,.secondary,.danger{font-size:14px}
+.panel-head h3{font-size:20px}
+.panel-head span{font-size:13px}
+.task b{font-size:17px}
+.task p{font-size:14px}
+.state{font-size:12px}
+.filter-btn{font-size:12px}
+.storage-note{font-size:12px}
+.library-note{font-size:12px}
+.category-badge{font-size:13px}
+.library-main b{font-size:16px}
+.library-main p{font-size:13px}
+.library-time{font-size:12px}
+.reservation-compact-title{font-size:15px}
+.compare-topic-header h3{font-size:21px}
+.compare-topic-header p{font-size:13px}
+.tiny-btn{font-size:12px}
+.candidate h4{font-size:18px}
+.candidate-price{font-size:14px}
+.candidate-link{font-size:12px}
+.candidate-section b{font-size:12px}
+.candidate-section ul{font-size:13px}
+.candidate-opinion{font-size:12px}
+.choose-btn{font-size:13px}
+.day-btn{font-size:14px}
+.slot-time{font-size:14px}
+.slot-card b{font-size:17px}
+.slot-card p{font-size:14px}
+.schedule-tools button{font-size:12px}
+.map-row p{font-size:13px}
+.modal-head h3{font-size:21px}
+.modal-help{font-size:12px}
+.field label{font-size:13px}
+.field input,.field textarea,.field select{font-size:15px}
+.move-btn{font-size:13px}
+.image-attach-hint,.uploading-note{font-size:12px}
+.image-count-badge{font-size:11px}
+
+@media(max-width:850px){
+  .brand span{font-size:12px}
+  .nav-btn{font-size:14px}
+  .hero p{font-size:14px}
+  .panel-head h3{font-size:18px}
+  .library-main b{font-size:15px}
+  .library-main p{font-size:13px}
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -787,7 +871,12 @@ button{cursor:pointer}
       <div class="trip">
         <select class="trip-select" id="tripSelect" aria-label="여행 선택"></select>
         <span class="trip-meta" id="tripDates">여행 선택</span>
-        <div class="trip-actions"><button class="trip-add" type="button" id="newTripButton">+ 새 여행</button></div>
+        <div class="trip-actions">
+          <div class="trip-action-group">
+            <button class="trip-edit" type="button" id="editTripButton">여행 수정</button>
+          </div>
+          <button class="trip-add" type="button" id="newTripButton">+ 새 여행</button>
+        </div>
       </div>
       <nav class="nav">
         <button class="nav-btn active" type="button" data-screen="home">준비함 <small>0</small></button>
@@ -1135,6 +1224,7 @@ button{cursor:pointer}
   let candidateContext = {comparisonId:null,candidateId:null};
   let sendCompareItemId = null;
   let scheduleContext = {sourcePrepItemId:null,itineraryItemId:null};
+  let editingTripId = null;
 
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
@@ -1387,6 +1477,7 @@ button{cursor:pointer}
       $('#detailImageStatus').textContent='';
     }
     if(id === 'imageLightbox') $('#lightboxImage').src='';
+    if(id === 'tripModal') editingTripId = null;
   }
 
   $$('[data-close]').forEach(button => {
@@ -1535,29 +1626,79 @@ button{cursor:pointer}
   }
 
   $('#tripSelect').addEventListener('change', event => selectTrip(event.target.value));
-  $('#newTripButton').addEventListener('click', () => {
-    $('#tripTitleInput').value='';
-    $('#tripDestinationInput').value='';
-    $('#tripStartInput').value='';
-    $('#tripEndInput').value='';
+
+  function openTripEditor(mode = 'create') {
+    const editing = mode === 'edit' && currentTrip;
+    editingTripId = editing ? currentTrip.id : null;
+    $('#tripModal .modal-head h3').textContent = editing ? '여행 정보 수정' : '새 여행 만들기';
+    $('#saveTrip').textContent = editing ? '수정 저장' : '여행 만들기';
+    $('#tripTitleInput').value = editing ? (currentTrip.title || '') : '';
+    $('#tripDestinationInput').value = editing ? (currentTrip.destination || '') : '';
+    $('#tripStartInput').value = editing ? (currentTrip.start_date || '') : '';
+    $('#tripEndInput').value = editing ? (currentTrip.end_date || '') : '';
     openModal('tripModal');
+  }
+
+  $('#newTripButton').addEventListener('click', () => openTripEditor('create'));
+  $('#editTripButton').addEventListener('click', () => {
+    if(!currentTrip) {
+      showToast('수정할 여행이 없어');
+      return;
+    }
+    openTripEditor('edit');
   });
 
   $('#saveTrip').addEventListener('click', async () => {
     const title = $('#tripTitleInput').value.trim();
+    const destination = $('#tripDestinationInput').value.trim() || null;
+    const startDate = $('#tripStartInput').value || null;
+    const endDate = $('#tripEndInput').value || null;
+
     if(!title) { showToast('여행 이름을 적어줘'); return; }
+    if(startDate && endDate && startDate > endDate) {
+      showToast('귀국일은 출발일보다 빠를 수 없어', true);
+      return;
+    }
+
+    if(editingTripId) {
+      const { error } = await db.from('trips')
+        .update({
+          title,
+          destination,
+          start_date:startDate,
+          end_date:endDate
+        })
+        .eq('id', editingTripId);
+
+      if(error) {
+        showToast('여행 정보를 수정하지 못했어: '+error.message, true);
+        return;
+      }
+
+      localStorage.setItem('travel_prep_current_trip', editingTripId);
+      closeModal('tripModal');
+      editingTripId = null;
+      await loadTrips();
+      showToast('여행 정보를 수정했어');
+      return;
+    }
+
     const payload = {
       owner_id:currentUser.id,
       title,
-      destination:$('#tripDestinationInput').value.trim() || null,
-      start_date:$('#tripStartInput').value || null,
-      end_date:$('#tripEndInput').value || null,
+      destination,
+      start_date:startDate,
+      end_date:endDate,
       status:'planning',
       default_currency:'KRW'
     };
     const { data, error } = await db.from('trips').insert(payload).select().single();
-    if(error) { showToast('여행을 만들지 못했어: '+error.message,true); return; }
+    if(error) {
+      showToast('여행을 만들지 못했어: '+error.message, true);
+      return;
+    }
     closeModal('tripModal');
+    editingTripId = null;
     localStorage.setItem('travel_prep_current_trip', data.id);
     await loadTrips();
     showToast('새 여행을 만들었어');
@@ -1820,24 +1961,32 @@ button{cursor:pointer}
     showToast('일정을 삭제했어');
   });
 
+  function localDateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   function scheduleDateKey(item) {
     if(item.schedule_date) return item.schedule_date;
     if(currentTrip?.start_date && item.day_number) {
-      const d=new Date(currentTrip.start_date+'T00:00:00');
-      d.setDate(d.getDate()+item.day_number-1);
-      return d.toISOString().slice(0,10);
+      const d = new Date(currentTrip.start_date + 'T00:00:00');
+      d.setDate(d.getDate() + item.day_number - 1);
+      return localDateKey(d);
     }
     return 'undated';
   }
 
   function tripDateKeys() {
     if(!currentTrip?.start_date || !currentTrip?.end_date) return [];
-    const result=[];
-    let d=new Date(currentTrip.start_date+'T00:00:00');
-    const end=new Date(currentTrip.end_date+'T00:00:00');
-    while(d<=end && result.length<31) {
-      result.push(d.toISOString().slice(0,10));
-      d.setDate(d.getDate()+1);
+    const result = [];
+    const d = new Date(currentTrip.start_date + 'T00:00:00');
+    const end = new Date(currentTrip.end_date + 'T00:00:00');
+
+    while(d <= end && result.length < 31) {
+      result.push(localDateKey(d));
+      d.setDate(d.getDate() + 1);
     }
     return result;
   }
