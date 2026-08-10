@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>여행 일정</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2788%27%3E%F0%9F%97%93%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E">
-<meta name="theme-color" content="#6750a4">
+<meta name="theme-color" content="#60786b">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await(a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({ key: "AIzaSyAw-sboIMyqehkNYYlB2URbuDpeIhZxwxA", v: "weekly", language: "ko" });
@@ -726,6 +726,575 @@
   }
 }
 
+
+/* ==========================================================
+   2026-08 FINAL TIMELINE
+   - 좁은 일정 영역
+   - 시간은 카드 밖
+   - 종류별 파스텔 타임라인
+   - 지도 기본 접힘
+   - 수정/삭제 노출
+   - 항공권 카드
+   - J-planner 스타일 입력
+   ========================================================== */
+:root{
+  --primary:#60786b;
+  --primary-dark:#42564b;
+  --primary-soft:rgba(96,120,107,.12);
+  --primary-rgb:96,120,107;
+  --flight-bg:#edf3f7;
+  --flight-text:#587086;
+  --hotel-bg:#f2eef5;
+  --hotel-text:#74627c;
+  --food-bg:#fff0e7;
+  --food-text:#9c664d;
+  --cafe-bg:#f7efe8;
+  --cafe-text:#896c5c;
+  --place-bg:#eaf4ec;
+  --place-text:#55775d;
+  --shopping-bg:#fff5df;
+  --shopping-text:#8b7138;
+  --transport-bg:#eef1ef;
+  --transport-text:#68736d;
+  --other-bg:#f1f1ef;
+  --other-text:#6e716e;
+}
+body{
+  background:
+    radial-gradient(circle at 10% 0%,rgba(96,120,107,.08),transparent 28rem),
+    var(--bg);
+}
+
+/* 날짜 탭: 1일차 / 날짜 두 줄 */
+.tab-btn{
+  min-width:76px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  padding:8px 10px;
+  border-radius:12px;
+  line-height:1.15;
+}
+.tab-btn strong{font-size:13px}
+.tab-btn span{font-size:11px;font-weight:750;opacity:.86}
+
+/* 본문을 더 좁게 */
+.day-panel,
+.expense-panel,
+.flight-section{
+  width:min(820px,100%);
+  margin-left:auto;
+  margin-right:auto;
+}
+.day-panel{padding:15px}
+.map-card{margin-bottom:12px}
+.map-toolbar h3{font-size:15px}
+#route-summary{font-size:11px}
+#map{height:280px}
+#map-wrap.collapsed{display:none}
+.day-toolbar{margin:15px 1px 9px}
+.day-toolbar h3{font-size:18px}
+
+/* 타임라인 */
+.plan-list{
+  display:grid;
+  gap:0;
+}
+.timeline-event,
+.timeline-transfer{
+  display:grid;
+  grid-template-columns:62px 22px minmax(0,1fr);
+  gap:8px;
+  align-items:start;
+}
+.timeline-time{
+  padding-top:13px;
+  color:var(--primary-dark);
+  font-size:13px;
+  font-weight:950;
+  text-align:right;
+}
+.timeline-rail{
+  position:relative;
+  min-height:100%;
+  height:100%;
+}
+.timeline-rail::before{
+  content:"";
+  position:absolute;
+  left:10px;
+  top:0;
+  bottom:0;
+  width:2px;
+  background:#dfe3df;
+}
+.timeline-dot{
+  position:relative;
+  z-index:2;
+  width:13px;
+  height:13px;
+  margin:17px auto 0;
+  border:3px solid #fff;
+  border-radius:50%;
+  background:var(--primary);
+  box-shadow:0 0 0 2px rgba(var(--primary-rgb),.18);
+}
+.timeline-card{
+  margin-bottom:3px;
+  padding:13px 14px 11px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 6px 18px rgba(40,45,42,.035);
+}
+.timeline-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+.timeline-card-main{min-width:0}
+.item-type-chip{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 7px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:950;
+}
+.item-type-flight{background:var(--flight-bg);color:var(--flight-text)}
+.item-type-hotel{background:var(--hotel-bg);color:var(--hotel-text)}
+.item-type-food{background:var(--food-bg);color:var(--food-text)}
+.item-type-cafe{background:var(--cafe-bg);color:var(--cafe-text)}
+.item-type-place{background:var(--place-bg);color:var(--place-text)}
+.item-type-shopping{background:var(--shopping-bg);color:var(--shopping-text)}
+.item-type-transport{background:var(--transport-bg);color:var(--transport-text)}
+.item-type-other{background:var(--other-bg);color:var(--other-text)}
+.timeline-title{
+  margin:6px 0 3px;
+  color:#2d302e;
+  font-size:16px;
+  font-weight:900;
+  letter-spacing:-.02em;
+}
+.timeline-sub{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+}
+.timeline-memo{
+  display:-webkit-box;
+  overflow:hidden;
+  margin-top:7px;
+  color:#515753;
+  font-size:12px;
+  line-height:1.52;
+  white-space:pre-wrap;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+.timeline-memo.expanded{
+  display:block;
+  overflow:visible;
+}
+.timeline-more{
+  display:none;
+  margin-top:3px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--primary-dark);
+  font-size:10px;
+  font-weight:850;
+}
+.timeline-more.show{display:inline-flex}
+.timeline-card-bottom{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:9px;
+  padding-top:8px;
+  border-top:1px dashed #ebe8e2;
+}
+.timeline-quick,
+.timeline-admin{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.timeline-quick button{
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#fbfaf7;
+  color:#6b706c;
+  padding:5px 7px;
+  font-size:10px;
+  font-weight:850;
+}
+.timeline-admin{
+  justify-content:flex-end;
+}
+.timeline-edit,
+.timeline-delete,
+.timeline-payment-button{
+  border:0;
+  background:transparent;
+  padding:2px 0;
+  font-size:10px;
+  font-weight:900;
+}
+.timeline-edit{color:#5e7567}
+.timeline-delete{color:#aa6660}
+.timeline-payment-button{
+  color:#484d49;
+  font-size:11px;
+  font-weight:950;
+}
+.timeline-expenses{
+  display:none;
+  gap:5px;
+  margin-top:8px;
+  padding:8px 0 0;
+  border-top:1px dashed #ebe8e2;
+}
+.timeline-expenses.open{display:grid}
+.timeline-expense-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:8px;
+  color:#626963;
+  font-size:10px;
+}
+.timeline-expense-row strong{
+  color:#454a46;
+  font-size:10px;
+}
+.timeline-expense-actions{
+  display:flex;
+  gap:5px;
+}
+.timeline-expense-actions button{
+  border:0;
+  background:transparent;
+  padding:0;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:850;
+}
+.timeline-expense-actions button.danger{color:var(--danger)}
+
+.timeline-transfer{
+  min-height:37px;
+}
+.timeline-transfer .timeline-rail::before{
+  top:-2px;
+  bottom:-2px;
+}
+.transfer-pill{
+  align-self:center;
+  justify-self:start;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin:5px 0 6px;
+  padding:6px 8px;
+  border-radius:999px;
+  background:var(--transport-bg);
+  color:var(--transport-text);
+  font-size:10px;
+  font-weight:850;
+}
+
+/* 지도 바는 기본 접힘 */
+.map-toolbar{
+  align-items:center;
+}
+.map-toolbar-actions .compact-btn{
+  font-size:11px;
+}
+
+/* 항공권 카드 */
+.flight-section{
+  margin-top:18px;
+  margin-bottom:15px;
+}
+.flight-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:0 1px 10px;
+}
+.flight-title-wrap{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.flight-title-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#df7549;
+}
+.flight-section-head h3{
+  margin:0;
+  font-size:17px;
+  letter-spacing:-.02em;
+}
+.flight-ticket-list{
+  display:grid;
+  gap:10px;
+}
+.flight-ticket{
+  overflow:hidden;
+  border:1px solid #e2e5e8;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 7px 18px rgba(42,48,55,.055);
+}
+.flight-ticket-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 14px 0;
+}
+.flight-code{
+  color:#587084;
+  font-size:11px;
+  font-weight:900;
+}
+.flight-badge{
+  padding:5px 10px;
+  border-radius:999px;
+  background:#edf4f8;
+  color:#46677e;
+  font-size:10px;
+  font-weight:950;
+}
+.flight-route{
+  display:grid;
+  grid-template-columns:1fr 82px 1fr;
+  align-items:center;
+  gap:12px;
+  padding:8px 18px 13px;
+}
+.flight-airport{text-align:center}
+.flight-airport-code{
+  color:#111820;
+  font-size:25px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-.02em;
+}
+.flight-terminal{
+  margin-top:5px;
+  color:#7b858d;
+  font-size:10px;
+}
+.flight-time{
+  margin-top:5px;
+  color:#174d82;
+  font-size:14px;
+  font-weight:950;
+}
+.flight-plane{
+  position:relative;
+  height:54px;
+  display:grid;
+  place-items:center;
+}
+.flight-plane-icon{
+  position:relative;
+  z-index:2;
+  color:#7494cf;
+  font-size:21px;
+  transform:rotate(4deg);
+}
+.flight-plane-line{
+  position:absolute;
+  left:7px;
+  right:7px;
+  top:31px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#8eb2de 20%,#8eb2de 80%,transparent);
+}
+.flight-ticket-foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 14px 11px;
+  border-top:1px dashed #e2e6e8;
+}
+.flight-meta{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  color:#68757e;
+  font-size:10px;
+}
+.flight-ticket-edit{
+  border:0;
+  background:transparent;
+  padding:2px 0;
+  color:#64727a;
+  font-size:10px;
+  font-weight:900;
+}
+.flight-add-btn{
+  width:100%;
+  margin-top:11px;
+  border:1px dashed #5083ad;
+  border-radius:12px;
+  background:#f8fbfd;
+  color:#245d88;
+  padding:11px 12px;
+  font-size:12px;
+  font-weight:950;
+}
+.flight-empty{
+  padding:22px;
+  border:1px dashed var(--line);
+  border-radius:14px;
+  color:var(--muted);
+  background:#fff;
+  text-align:center;
+  font-size:12px;
+}
+
+/* 가계부는 항공편 아래, 기본 접힘 */
+.expense-panel{
+  margin-top:14px;
+}
+
+/* 일정 입력창: J-planner처럼 세로형 + 글씨 크게 */
+#item-modal .modal-box{
+  width:min(590px,100%);
+  padding:22px;
+}
+#item-modal .modal-box h3{
+  font-size:22px;
+}
+#item-modal .field label{
+  margin-bottom:6px;
+  font-size:13px;
+}
+#item-modal .field input,
+#item-modal .field select,
+#item-modal .field textarea{
+  padding:11px 12px;
+  font-size:15px;
+}
+#item-modal .field textarea{
+  min-height:96px;
+}
+#item-modal .form-help,
+#item-modal .place-help,
+#item-modal .help{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+.item-type-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.flight-fields{
+  margin:4px 0 11px;
+  padding:13px;
+  border:1px solid #dfe5e7;
+  border-radius:13px;
+  background:#f9fbfc;
+}
+.flight-fields-title{
+  margin-bottom:10px;
+  color:#587084;
+  font-size:12px;
+  font-weight:950;
+}
+.flight-code-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.item-modal-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:9px;
+  margin-top:18px;
+}
+.item-modal-footer-right{
+  display:flex;
+  gap:9px;
+}
+.item-modal-footer button{
+  border:0;
+  border-radius:10px;
+  padding:10px 13px;
+  font-size:13px;
+  font-weight:900;
+}
+.item-delete-btn{
+  background:#fff1ef;
+  color:#a45e58;
+}
+.item-cancel-btn{
+  background:#f2f1ed;
+  color:#6d736e;
+}
+.item-save-btn{
+  background:var(--primary);
+  color:#fff;
+}
+
+@media(max-width:680px){
+  .day-panel,
+  .expense-panel,
+  .flight-section{
+    width:100%;
+  }
+  .timeline-event,
+  .timeline-transfer{
+    grid-template-columns:48px 20px minmax(0,1fr);
+    gap:6px;
+  }
+  .timeline-time{font-size:11px}
+  .timeline-rail::before{left:9px}
+  .timeline-dot{width:12px;height:12px}
+  .timeline-card{padding:12px}
+  .timeline-title{font-size:15px}
+  .timeline-card-bottom{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .timeline-admin{
+    width:100%;
+    justify-content:flex-end;
+  }
+  .flight-route{
+    grid-template-columns:1fr 64px 1fr;
+    gap:5px;
+    padding-left:10px;
+    padding-right:10px;
+  }
+  .flight-airport-code{font-size:22px}
+  .flight-time{font-size:13px}
+  .flight-ticket-foot{align-items:flex-start}
+  .flight-meta{gap:7px}
+  .item-type-grid,
+  .flight-code-grid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -855,11 +1424,11 @@
               <div id="route-summary">장소를 추가하면 일정 순서대로 마커와 직선을 표시해.</div>
             </div>
             <div class="map-toolbar-actions">
-              <button id="map-toggle-btn" class="compact-btn" type="button" onclick="toggleDayMap()">지도 접기</button>
+              <button id="map-toggle-btn" class="compact-btn" type="button" onclick="toggleDayMap()">지도 펼치기</button>
               <button class="compact-btn accent" type="button" onclick="openCurrentDayInGoogleMaps()">Google 지도에서 보기 ↗</button>
             </div>
           </div>
-          <div id="map-wrap"><div id="map"></div></div>
+          <div id="map-wrap" class="collapsed"><div id="map"></div></div>
         </div>
         <div class="day-toolbar">
           <h3 id="day-title">일정</h3>
@@ -868,7 +1437,19 @@
         <div id="plan-list" class="plan-list"></div>
       </div>
 
-      <section class="expense-panel card" aria-labelledby="expense-title">
+      
+      <section class="flight-section" aria-labelledby="flight-section-title">
+        <div class="flight-section-head">
+          <div class="flight-title-wrap">
+            <span class="flight-title-dot"></span>
+            <h3 id="flight-section-title">항공편</h3>
+          </div>
+        </div>
+        <div id="flight-ticket-list" class="flight-ticket-list"></div>
+        <button id="flight-add-btn" class="flight-add-btn" type="button" onclick="openNewFlight()">＋ 항공편 추가</button>
+      </section>
+
+<section class="expense-panel card" aria-labelledby="expense-title">
         <button id="expense-summary-toggle" class="expense-summary-toggle" type="button" onclick="toggleExpenseSummary()" aria-expanded="false">
           <span class="expense-summary-icon">₩</span>
           <span class="expense-summary-copy">
@@ -976,11 +1557,11 @@
         <div class="field">
           <label>포인트 색</label>
           <div class="theme-swatches" id="theme-swatches">
-            <button class="theme-swatch" style="--swatch:#6f5aa8" data-theme-color="#6f5aa8" type="button" aria-label="보라"></button>
-            <button class="theme-swatch" style="--swatch:#567d67" data-theme-color="#567d67" type="button" aria-label="세이지 그린"></button>
+            <button class="theme-swatch" style="--swatch:#60786b" data-theme-color="#60786b" type="button" aria-label="세이지 그린"></button>
             <button class="theme-swatch" style="--swatch:#4c7396" data-theme-color="#4c7396" type="button" aria-label="블루"></button>
             <button class="theme-swatch" style="--swatch:#a86b5e" data-theme-color="#a86b5e" type="button" aria-label="테라코타"></button>
             <button class="theme-swatch" style="--swatch:#4f5258" data-theme-color="#4f5258" type="button" aria-label="차콜"></button>
+            <button class="theme-swatch" style="--swatch:#6f5aa8" data-theme-color="#6f5aa8" type="button" aria-label="보라"></button>
           </div>
           <div class="theme-custom-row">
             <input id="settings-theme-color" type="color" value="#6f5aa8" aria-label="직접 색상 선택">
@@ -995,41 +1576,138 @@
     </div>
   </div>
 
-  <!-- 일정 추가 모달 -->
+  <!-- 일정 추가/수정 모달 -->
   <div id="item-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
     <div class="modal-box">
       <h3 id="item-modal-title">일정 추가</h3>
       <form id="item-form">
-        <div class="form-grid">
+        <div class="item-type-grid">
+          <div class="field">
+            <label for="item-input-type">종류</label>
+            <select id="item-input-type">
+              <option value="place">📍 관광·장소</option>
+              <option value="food">🍽️ 식사</option>
+              <option value="cafe">☕ 카페</option>
+              <option value="hotel">🏨 숙소</option>
+              <option value="flight">✈️ 항공</option>
+              <option value="transport">🚆 이동</option>
+              <option value="shopping">🛍️ 쇼핑</option>
+              <option value="other">📝 기타</option>
+            </select>
+          </div>
           <div class="field">
             <label for="item-input-date">날짜</label>
             <input id="item-input-date" type="date">
           </div>
+        </div>
+
+        <div class="field">
+          <label>시간</label>
+          <div class="time-select-row">
+            <select id="item-input-hour" aria-label="시"></select>
+            <span class="time-colon" aria-hidden="true">:</span>
+            <select id="item-input-minute" aria-label="분"></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="item-input-title">이름 *</label>
+          <input id="item-input-title" type="text" maxlength="140" placeholder="예: 기요미즈데라, 교토역 점심">
+        </div>
+
+        <div id="normal-location-fields">
           <div class="field">
-            <label>시간</label>
-            <div class="time-select-row">
-              <select id="item-input-hour" aria-label="시"></select>
-              <span class="time-colon" aria-hidden="true">:</span>
-              <select id="item-input-minute" aria-label="분"></select>
+            <label>Google 장소 검색 · 선택</label>
+            <div id="place-autocomplete-host"></div>
+            <input id="item-input-place" type="hidden">
+            <div id="selected-place" class="selected-place hidden"></div>
+            <div class="place-help">지도에 찍고 싶은 일정만 검색 결과에서 장소를 선택하면 돼. 그냥 메모성 일정이면 비워둬도 돼.</div>
+          </div>
+
+          <div class="field">
+            <label for="item-input-map-url">Google 지도 링크 직접 넣기 · 선택</label>
+            <input id="item-input-map-url" type="url" placeholder="https://maps.app.goo.gl/...">
+            <div class="help">공유 링크가 있으면 카드의 지도 버튼이 이 링크를 먼저 열어.</div>
+          </div>
+
+          <div class="field">
+            <label for="item-input-move-after">다음 일정까지 이동 · 선택</label>
+            <input id="item-input-move-after" type="text" maxlength="120" placeholder="예: 🚕 택시 약 15분 / 🚶 도보 5분">
+            <div class="help">입력하면 현재 일정과 다음 일정 사이 타임라인에 작게 표시돼.</div>
+          </div>
+        </div>
+
+        <div id="flight-fields" class="flight-fields hidden">
+          <div class="flight-fields-title">✈️ 항공편 정보</div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="flight-airline">항공사</label>
+              <input id="flight-airline" type="text" maxlength="80" placeholder="예: 제주항공">
+            </div>
+            <div class="field">
+              <label for="flight-number">편명</label>
+              <input id="flight-number" type="text" maxlength="30" placeholder="예: 7C1303">
+            </div>
+          </div>
+          <div class="flight-code-grid">
+            <div>
+              <div class="field">
+                <label for="flight-from-code">출발 공항코드 *</label>
+                <input id="flight-from-code" type="text" maxlength="3" placeholder="ICN">
+              </div>
+              <div class="field">
+                <label for="flight-from-terminal">출발 터미널</label>
+                <input id="flight-from-terminal" type="text" maxlength="40" placeholder="인천 T1">
+              </div>
+            </div>
+            <div>
+              <div class="field">
+                <label for="flight-to-code">도착 공항코드 *</label>
+                <input id="flight-to-code" type="text" maxlength="3" placeholder="KIX">
+              </div>
+              <div class="field">
+                <label for="flight-to-terminal">도착 터미널</label>
+                <input id="flight-to-terminal" type="text" maxlength="40" placeholder="간사이 T2">
+              </div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="flight-arrival-date">도착일</label>
+              <input id="flight-arrival-date" type="date">
+            </div>
+            <div class="field">
+              <label for="flight-arrival-time">도착 시간</label>
+              <input id="flight-arrival-time" type="time">
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="flight-duration">비행시간</label>
+              <input id="flight-duration" type="text" maxlength="40" placeholder="예: 1h55m">
+            </div>
+            <div class="field">
+              <label for="flight-baggage">수하물</label>
+              <input id="flight-baggage" type="text" maxlength="80" placeholder="예: 위탁수하물 15kg">
             </div>
           </div>
         </div>
-        <div class="field">
-          <label>Google 장소 검색 *</label>
-          <div id="place-autocomplete-host"></div>
-          <input id="item-input-place" type="hidden">
-          <div id="selected-place" class="selected-place hidden"></div>
-          <div class="place-help">검색 결과에서 장소를 하나 선택해야 지도와 직선 동선에 표시돼.</div>
-        </div>
+
         <input id="item-input-cost" type="hidden" value="">
         <input id="item-input-currency" type="hidden" value="KRW">
+
         <div class="field">
-          <label for="item-input-memo">메모</label>
-          <textarea id="item-input-memo" maxlength="1000" placeholder="예약 정보, 준비물, 참고사항 등을 적어줘."></textarea>
+          <label for="item-input-memo">메모 · 선택</label>
+          <textarea id="item-input-memo" maxlength="2000" placeholder="예약 정보, 준비물, 참고사항 등을 적어줘."></textarea>
         </div>
-        <div class="modal-actions">
-          <button class="ghost-btn" type="button" onclick="closeModal('item-modal')">취소</button>
-          <button id="item-submit-btn" class="primary-btn" type="submit">저장</button>
+
+        <div class="item-modal-footer">
+          <button id="item-delete-btn" class="item-delete-btn hidden" type="button">삭제</button>
+          <span id="item-delete-spacer"></span>
+          <div class="item-modal-footer-right">
+            <button class="item-cancel-btn" type="button" onclick="closeModal('item-modal')">취소</button>
+            <button id="item-submit-btn" class="item-save-btn" type="submit">저장</button>
+          </div>
         </div>
       </form>
     </div>
@@ -1120,7 +1798,7 @@
     let isReadOnlyMode = false;
     let currentShareToken = null;
     let forceOwnerAfterLogin = false;
-    const DEFAULT_THEME_COLOR = '#6f5aa8';
+    const DEFAULT_THEME_COLOR = '#60786b';
     let pendingThemeColor = DEFAULT_THEME_COLOR;
 
     const STATUS_LABELS = {
@@ -1139,6 +1817,360 @@
       other: { label: '기타', icon: '🧾' }
     };
 
+    const ITEM_TYPES = {
+      place: { label: '관광·장소', icon: '📍', className: 'place' },
+      food: { label: '식사', icon: '🍽️', className: 'food' },
+      cafe: { label: '카페', icon: '☕', className: 'cafe' },
+      hotel: { label: '숙소', icon: '🏨', className: 'hotel' },
+      flight: { label: '항공', icon: '✈️', className: 'flight' },
+      transport: { label: '이동', icon: '🚆', className: 'transport' },
+      shopping: { label: '쇼핑', icon: '🛍️', className: 'shopping' },
+      other: { label: '기타', icon: '📝', className: 'other' }
+    };
+
+    const AIRPORT_NAMES = {
+      ICN: '인천',
+      GMP: '김포',
+      KIX: '간사이',
+      NRT: '나리타',
+      HND: '하네다',
+      CXR: '깜라인',
+      PUS: '부산',
+      CJU: '제주',
+      FUK: '후쿠오카',
+      CTS: '삿포로',
+      OKA: '오키나와'
+    };
+
+    function normalizeItemType(value) {
+      return ITEM_TYPES[value] ? value : 'place';
+    }
+
+    function inferItemType(item) {
+      if (ITEM_TYPES[item?.item_type]) return item.item_type;
+      const text = `${item?.place_name || ''} ${item?.memo || ''} ${item?.address || ''}`.toLowerCase();
+      if (/(공항|airport|항공|flight|\b7c\d{3,4}\b|\bmm\d{3,4}\b|\bke\d{3,4}\b|\boz\d{3,4}\b)/i.test(text)) return 'flight';
+      if (/(호텔|hotel|숙소|체크인|check.?in)/i.test(text)) return 'hotel';
+      if (/(카페|cafe|coffee|커피)/i.test(text)) return 'cafe';
+      if (/(식당|restaurant|점심|저녁|아침|식사|라멘|스시|우동|야키니쿠)/i.test(text)) return 'food';
+      if (/(쇼핑|shopping|마트|백화점|store|shop)/i.test(text)) return 'shopping';
+      if (/(지하철|버스|택시|철도|열차|기차|리무진|transfer)/i.test(text)) return 'transport';
+      return 'place';
+    }
+
+    function safeFlightDetails(value) {
+      if (!value) return {};
+      if (typeof value === 'object') return value;
+      try { return JSON.parse(value); } catch { return {}; }
+    }
+
+    function isValidHttpUrl(value) {
+      try {
+        const url = new URL(String(value || '').trim());
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    }
+
+    function openItemMap(item) {
+      if (!item) return;
+      if (isValidHttpUrl(item.map_url)) {
+        window.open(item.map_url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      if (item.latitude != null && item.longitude != null) {
+        const params = new URLSearchParams({
+          api: '1',
+          query: `${item.latitude},${item.longitude}`
+        });
+        if (item.google_place_id) params.set('query_place_id', item.google_place_id);
+        window.open(`https://www.google.com/maps/search/?${params.toString()}`, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      const query = String(item.place_name || '').trim();
+      if (!query) return showToast('지도에서 찾을 이름이 없어.', true);
+      const params = new URLSearchParams({ api: '1', query });
+      window.open(`https://www.google.com/maps/search/?${params.toString()}`, '_blank', 'noopener,noreferrer');
+    }
+
+    function dayNumberForDate(dateString) {
+      if (!currentTrip?.start_date || !dateString) return currentDayNumber;
+      const start = parseLocalDate(currentTrip.start_date);
+      const target = parseLocalDate(dateString);
+      const day = Math.round((target - start) / 86400000) + 1;
+      return Math.max(1, Math.min(getTripDayCount(), day));
+    }
+
+    function airportCodeFromText(text) {
+      const upper = String(text || '').toUpperCase();
+      const known = [
+        ['ICN', /(인천|INCHEON|\bICN\b)/i],
+        ['KIX', /(간사이|KANSAI|\bKIX\b)/i],
+        ['GMP', /(김포|GIMPO|\bGMP\b)/i],
+        ['NRT', /(나리타|NARITA|\bNRT\b)/i],
+        ['HND', /(하네다|HANEDA|\bHND\b)/i],
+        ['CXR', /(깜라인|CAM RANH|\bCXR\b)/i],
+        ['PUS', /(부산|김해|GIMHAE|\bPUS\b)/i],
+        ['CJU', /(제주|JEJU|\bCJU\b)/i],
+        ['FUK', /(후쿠오카|FUKUOKA|\bFUK\b)/i],
+        ['CTS', /(삿포로|신치토세|SAPPORO|CHITOSE|\bCTS\b)/i],
+        ['OKA', /(오키나와|NAHA|\bOKA\b)/i]
+      ];
+      const hit = known.find(([, pattern]) => pattern.test(upper));
+      return hit ? hit[0] : '';
+    }
+
+    function terminalFromText(text) {
+      const value = String(text || '');
+      const tCode = value.match(/\bT\s?([1-9])\b/i);
+      if (tCode) return `T${tCode[1]}`;
+      const korean = value.match(/([1-9])\s*터미널/);
+      if (korean) return `T${korean[1]}`;
+      return '';
+    }
+
+    function flightNumberFromText(text) {
+      const match = String(text || '').toUpperCase().match(/\b([A-Z0-9]{2})\s?(\d{3,4})\b/);
+      return match ? `${match[1]}${match[2]}` : '';
+    }
+
+    function isLikelyAirportItem(item) {
+      const text = `${item?.place_name || ''} ${item?.address || ''}`;
+      return /(공항|airport|\bICN\b|\bKIX\b|\bGMP\b|\bNRT\b|\bHND\b|\bCXR\b|\bPUS\b|\bCJU\b|\bFUK\b|\bCTS\b|\bOKA\b)/i.test(text);
+    }
+
+    function itemTimestamp(item) {
+      const date = item.schedule_date || getDateForDay(item.day_number) || currentTrip?.start_date || '2099-12-31';
+      const time = item.start_time ? item.start_time.slice(0,5) : '23:59';
+      return `${date}T${time}`;
+    }
+
+    function formatShortDateTime(dateString, timeString) {
+      if (!dateString && !timeString) return '';
+      const datePart = dateString ? `${parseLocalDate(dateString).getMonth()+1}/${parseLocalDate(dateString).getDate()}` : '';
+      const timePart = timeString ? String(timeString).slice(0,5) : '';
+      return [datePart, timePart].filter(Boolean).join(' ');
+    }
+
+    function formatFlightDuration(departDate, departTime, arrivalDate, arrivalTime) {
+      if (!departDate || !departTime || !arrivalDate || !arrivalTime) return '';
+      const start = new Date(`${departDate}T${String(departTime).slice(0,5)}:00`);
+      const end = new Date(`${arrivalDate}T${String(arrivalTime).slice(0,5)}:00`);
+      const mins = Math.round((end - start) / 60000);
+      if (!(mins > 0) || mins > 48 * 60) return '';
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${h}h${String(m).padStart(2,'0')}m`;
+    }
+
+    function directionLabelForFlight(ticket) {
+      const firstDay = currentTrip?.start_date;
+      const lastDay = currentTrip?.end_date;
+      if (ticket.depart_date && firstDay && ticket.depart_date === firstDay) return '출발';
+      if (ticket.depart_date && lastDay && ticket.depart_date === lastDay) return '귀국';
+      return '항공';
+    }
+
+    function buildFlightTickets() {
+      const rows = [...itemsCache].sort((a,b) => itemTimestamp(a).localeCompare(itemTimestamp(b)));
+      const tickets = [];
+      const used = new Set();
+
+      rows.forEach(item => {
+        const details = safeFlightDetails(item.flight_details);
+        if (normalizeItemType(item.item_type || inferItemType(item)) !== 'flight') return;
+        if (!details.from_code || !details.to_code) return;
+        used.add(item.id);
+        const departDate = item.schedule_date || getDateForDay(item.day_number);
+        tickets.push({
+          sourceItemId: item.id,
+          explicit: true,
+          airline: details.airline || '',
+          number: details.number || '',
+          from_code: String(details.from_code || '').toUpperCase(),
+          from_terminal: details.from_terminal || '',
+          to_code: String(details.to_code || '').toUpperCase(),
+          to_terminal: details.to_terminal || '',
+          depart_date: departDate || '',
+          depart_time: item.start_time ? item.start_time.slice(0,5) : '',
+          arrival_date: details.arrival_date || departDate || '',
+          arrival_time: details.arrival_time || '',
+          duration: details.duration || formatFlightDuration(departDate, item.start_time, details.arrival_date || departDate, details.arrival_time),
+          baggage: details.baggage || ''
+        });
+      });
+
+      for (let i = 0; i < rows.length; i++) {
+        const from = rows[i];
+        if (used.has(from.id) || !isLikelyAirportItem(from)) continue;
+
+        let to = null;
+        for (let j = i + 1; j < rows.length; j++) {
+          const candidate = rows[j];
+          if (used.has(candidate.id) || !isLikelyAirportItem(candidate)) continue;
+          const fromDate = from.schedule_date || getDateForDay(from.day_number);
+          const toDate = candidate.schedule_date || getDateForDay(candidate.day_number);
+          if (fromDate && toDate) {
+            const diff = Math.abs((parseLocalDate(toDate) - parseLocalDate(fromDate)) / 86400000);
+            if (diff > 1) break;
+          }
+          to = candidate;
+          break;
+        }
+        if (!to) continue;
+
+        const fromCode = airportCodeFromText(`${from.place_name} ${from.address}`);
+        const toCode = airportCodeFromText(`${to.place_name} ${to.address}`);
+        if (!fromCode || !toCode || fromCode === toCode) continue;
+
+        used.add(from.id);
+        used.add(to.id);
+
+        const fromDate = from.schedule_date || getDateForDay(from.day_number);
+        const toDate = to.schedule_date || getDateForDay(to.day_number);
+        const combinedText = `${from.memo || ''} ${from.place_name || ''}`;
+        tickets.push({
+          sourceItemId: from.id,
+          explicit: false,
+          airline: '',
+          number: flightNumberFromText(combinedText),
+          from_code: fromCode,
+          from_terminal: terminalFromText(`${from.place_name} ${from.memo || ''} ${from.address || ''}`),
+          to_code: toCode,
+          to_terminal: terminalFromText(`${to.place_name} ${to.memo || ''} ${to.address || ''}`),
+          depart_date: fromDate || '',
+          depart_time: from.start_time ? from.start_time.slice(0,5) : '',
+          arrival_date: toDate || '',
+          arrival_time: to.start_time ? to.start_time.slice(0,5) : '',
+          duration: formatFlightDuration(fromDate, from.start_time, toDate, to.start_time),
+          baggage: /수하물/i.test(combinedText) ? '수하물 메모 있음' : ''
+        });
+      }
+
+      return tickets.sort((a,b) => `${a.depart_date}T${a.depart_time}`.localeCompare(`${b.depart_date}T${b.depart_time}`));
+    }
+
+    function renderFlightSummary() {
+      const list = document.getElementById('flight-ticket-list');
+      const addButton = document.getElementById('flight-add-btn');
+      if (!list || !addButton) return;
+      addButton.classList.toggle('hidden', isReadOnlyMode);
+      list.replaceChildren();
+
+      const tickets = buildFlightTickets();
+      if (!tickets.length) {
+        const empty = document.createElement('div');
+        empty.className = 'flight-empty';
+        empty.textContent = isReadOnlyMode ? '등록된 항공편이 없어.' : '항공편을 추가하면 여기서 출국·귀국편을 한눈에 볼 수 있어.';
+        list.appendChild(empty);
+        return;
+      }
+
+      tickets.forEach(ticket => {
+        const card = document.createElement('article');
+        card.className = 'flight-ticket';
+
+        const head = document.createElement('div');
+        head.className = 'flight-ticket-head';
+        const code = document.createElement('span');
+        code.className = 'flight-code';
+        const codeParts = [ticket.number, ticket.airline].filter(Boolean);
+        code.textContent = codeParts.length ? codeParts.join(' · ') : '항공편';
+        const badge = document.createElement('span');
+        badge.className = 'flight-badge';
+        badge.textContent = directionLabelForFlight(ticket);
+        head.append(code, badge);
+
+        const route = document.createElement('div');
+        route.className = 'flight-route';
+
+        const makeAirport = (codeValue, terminal, date, time) => {
+          const box = document.createElement('div');
+          box.className = 'flight-airport';
+          const codeEl = document.createElement('div');
+          codeEl.className = 'flight-airport-code';
+          codeEl.textContent = codeValue || '---';
+          const terminalEl = document.createElement('div');
+          terminalEl.className = 'flight-terminal';
+          const airportName = AIRPORT_NAMES[codeValue] || '';
+          terminalEl.textContent = [airportName, terminal].filter(Boolean).join(' ') || '터미널 미정';
+          const timeEl = document.createElement('div');
+          timeEl.className = 'flight-time';
+          timeEl.textContent = formatShortDateTime(date, time) || '시간 미정';
+          box.append(codeEl, terminalEl, timeEl);
+          return box;
+        };
+
+        const plane = document.createElement('div');
+        plane.className = 'flight-plane';
+        const planeIcon = document.createElement('span');
+        planeIcon.className = 'flight-plane-icon';
+        planeIcon.textContent = '✈';
+        const planeLine = document.createElement('span');
+        planeLine.className = 'flight-plane-line';
+        plane.append(planeIcon, planeLine);
+
+        route.append(
+          makeAirport(ticket.from_code, ticket.from_terminal, ticket.depart_date, ticket.depart_time),
+          plane,
+          makeAirport(ticket.to_code, ticket.to_terminal, ticket.arrival_date, ticket.arrival_time)
+        );
+
+        const foot = document.createElement('div');
+        foot.className = 'flight-ticket-foot';
+        const meta = document.createElement('div');
+        meta.className = 'flight-meta';
+        if (ticket.duration) {
+          const duration = document.createElement('span');
+          duration.textContent = `📌 비행 ${ticket.duration}`;
+          meta.appendChild(duration);
+        }
+        if (ticket.baggage) {
+          const baggage = document.createElement('span');
+          baggage.textContent = `🧳 ${ticket.baggage}`;
+          meta.appendChild(baggage);
+        }
+        if (!meta.children.length) {
+          const plain = document.createElement('span');
+          plain.textContent = '✈️ 항공편 정보';
+          meta.appendChild(plain);
+        }
+
+        foot.appendChild(meta);
+        if (!isReadOnlyMode && ticket.sourceItemId) {
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.className = 'flight-ticket-edit';
+          edit.textContent = '✏️ 편집';
+          edit.addEventListener('click', () => openEditFlightFromTicket(ticket));
+          foot.appendChild(edit);
+        }
+
+        card.append(head, route, foot);
+        list.appendChild(card);
+      });
+    }
+
+    function openEditFlightFromTicket(ticket) {
+      openEditItemModal(ticket.sourceItemId);
+      setTimeout(() => {
+        document.getElementById('item-input-type').value = 'flight';
+        syncItemTypeFields();
+        document.getElementById('flight-airline').value = ticket.airline || '';
+        document.getElementById('flight-number').value = ticket.number || '';
+        document.getElementById('flight-from-code').value = ticket.from_code || '';
+        document.getElementById('flight-from-terminal').value = ticket.from_terminal || '';
+        document.getElementById('flight-to-code').value = ticket.to_code || '';
+        document.getElementById('flight-to-terminal').value = ticket.to_terminal || '';
+        document.getElementById('flight-arrival-date').value = ticket.arrival_date || '';
+        document.getElementById('flight-arrival-time').value = ticket.arrival_time || '';
+        document.getElementById('flight-duration').value = ticket.duration || '';
+        document.getElementById('flight-baggage').value = ticket.baggage || '';
+      }, 0);
+    }
+
+
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
       document.getElementById('trip-form').addEventListener('submit', createTrip);
@@ -1147,6 +2179,10 @@
       document.getElementById('expense-form').addEventListener('submit', saveTripExpense);
       initializeTimeSelects();
       initializeThemePicker();
+      document.getElementById('item-input-type').addEventListener('change', syncItemTypeFields);
+      document.getElementById('item-delete-btn').addEventListener('click', () => {
+        if (editingItemId) deleteItineraryItem(editingItemId);
+      });
       initGoogleFeatures();
 
       document.addEventListener('click', () => closePlannerMenu());
@@ -1394,7 +2430,10 @@
       document.getElementById('trip-destination').textContent = trip.destination || '여행지 미정';
       document.getElementById('trip-meta').textContent = `${formatTripDates(trip.start_date, trip.end_date)} · ${trip.default_currency || 'KRW'}`;
       document.getElementById('item-input-currency').value = trip.default_currency || 'KRW';
-      applyThemeColor(trip.theme_color || DEFAULT_THEME_COLOR);
+      {
+        const savedTheme = normalizeThemeColor(trip.theme_color || DEFAULT_THEME_COLOR);
+        applyThemeColor(savedTheme === '#6f5aa8' ? DEFAULT_THEME_COLOR : savedTheme);
+      }
     }
 
     function initializeThemePicker() {
@@ -1423,7 +2462,8 @@
       document.getElementById('settings-trip-start').value = currentTrip.start_date || '';
       document.getElementById('settings-trip-end').value = currentTrip.end_date || '';
       document.getElementById('settings-trip-currency').value = currentTrip.default_currency || 'KRW';
-      const color = normalizeThemeColor(currentTrip.theme_color || DEFAULT_THEME_COLOR);
+      const storedColor = normalizeThemeColor(currentTrip.theme_color || DEFAULT_THEME_COLOR);
+      const color = storedColor === '#6f5aa8' ? DEFAULT_THEME_COLOR : storedColor;
       const hasPreset = [...document.querySelectorAll('[data-theme-color]')]
         .some(button => normalizeThemeColor(button.dataset.themeColor) === color);
       setThemePicker(color, hasPreset);
@@ -1712,7 +2752,21 @@
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'tab-btn' + (day === currentDayNumber ? ' active' : '');
-        button.textContent = getDayTabLabel(day);
+
+        const strong = document.createElement('strong');
+        strong.textContent = `${day}일차`;
+
+        const span = document.createElement('span');
+        if (currentTrip?.start_date) {
+          const date = parseLocalDate(currentTrip.start_date);
+          date.setDate(date.getDate() + day - 1);
+          const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
+          span.textContent = `${date.getMonth() + 1}/${date.getDate()} ${weekday}`;
+        } else {
+          span.textContent = '날짜 미정';
+        }
+
+        button.append(strong, span);
         button.addEventListener('click', () => selectDay(day));
         tabs.appendChild(button);
       }
@@ -1734,7 +2788,8 @@
     }
 
     function updateDayTitle() {
-      document.getElementById('day-title').textContent = `${getDayTabLabel(currentDayNumber)} 일정`;
+      const label = getDayTabLabel(currentDayNumber);
+      document.getElementById('day-title').textContent = `${label} 일정`;
     }
 
     async function loadItineraryItems() {
@@ -1770,238 +2825,365 @@
       updateDayTitle();
       const list = document.getElementById('plan-list');
       list.replaceChildren();
-      const items = itemsCache.filter(item => item.day_number === currentDayNumber);
+
+      const items = itemsCache
+        .filter(item => item.day_number === currentDayNumber)
+        .sort((a,b) => {
+          const ta = String(a.start_time || '99:99');
+          const tb = String(b.start_time || '99:99');
+          if (ta !== tb) return ta.localeCompare(tb);
+          return Number(a.sort_order || 0) - Number(b.sort_order || 0);
+        });
 
       if (!items.length) {
         const empty = document.createElement('div');
         empty.className = 'empty-day';
         empty.textContent = isReadOnlyMode ? '아직 등록된 일정이 없어.' : '아직 등록된 일정이 없어. “일정 추가”를 눌러 만들어 봐.';
         list.appendChild(empty);
+        renderFlightSummary();
         return;
       }
 
-      items.forEach(item => {
+      items.forEach((item, index) => {
         const linkedExpenses = expensesCache.filter(expense => expense.itinerary_item_id === item.id);
-        const row = document.createElement('article');
-        row.className = 'plan-item';
+        const typeKey = normalizeItemType(item.item_type || inferItemType(item));
+        const type = ITEM_TYPES[typeKey];
+
+        const event = document.createElement('article');
+        event.className = 'timeline-event';
 
         const time = document.createElement('div');
-        time.className = 'time';
-        time.textContent = item.start_time ? item.start_time.slice(0, 5) : '시간 미정';
+        time.className = 'timeline-time';
+        time.textContent = item.start_time ? item.start_time.slice(0,5) : '미정';
+
+        const rail = document.createElement('div');
+        rail.className = 'timeline-rail';
+        const dot = document.createElement('div');
+        dot.className = 'timeline-dot';
+        rail.appendChild(dot);
+
+        const card = document.createElement('div');
+        card.className = 'timeline-card';
+
+        const head = document.createElement('div');
+        head.className = 'timeline-card-head';
 
         const main = document.createElement('div');
-        main.className = 'plan-main';
+        main.className = 'timeline-card-main';
 
-        const place = document.createElement('div');
-        place.className = 'place';
-        place.textContent = item.place_name;
-        main.appendChild(place);
+        const chip = document.createElement('span');
+        chip.className = `item-type-chip item-type-${type.className}`;
+        chip.textContent = `${type.icon} ${type.label}`;
 
-        if (item.schedule_date) {
+        const title = document.createElement('div');
+        title.className = 'timeline-title';
+        title.textContent = item.place_name || '제목 없는 일정';
+
+        main.append(chip, title);
+
+        const subParts = [];
+        if (item.address) subParts.push(item.address);
+        if (typeKey === 'flight') {
+          const flight = safeFlightDetails(item.flight_details);
+          if (flight.number) subParts.unshift([flight.airline, flight.number].filter(Boolean).join(' '));
+        }
+        if (subParts.length) {
           const sub = document.createElement('div');
-          sub.className = 'plan-sub';
-          sub.textContent = formatKoreanDate(item.schedule_date);
+          sub.className = 'timeline-sub';
+          sub.textContent = subParts.join(' · ');
           main.appendChild(sub);
         }
 
         if (item.memo) {
-          const memoWrap = document.createElement('div');
-          memoWrap.className = 'memo-wrap';
-
           const memo = document.createElement('div');
-          memo.className = 'memo-preview';
+          memo.className = 'timeline-memo';
           memo.textContent = item.memo;
 
-          const memoToggle = document.createElement('button');
-          memoToggle.type = 'button';
-          memoToggle.className = 'memo-toggle';
-          memoToggle.textContent = '더보기';
-          memoToggle.addEventListener('click', () => {
-            const expanded = memo.classList.toggle('expanded');
-            memoToggle.classList.toggle('expanded', expanded);
-            memoToggle.textContent = expanded ? '접기' : '더보기';
+          const more = document.createElement('button');
+          more.type = 'button';
+          more.className = 'timeline-more';
+          more.textContent = '더보기 ⌄';
+          more.addEventListener('click', () => {
+            const open = memo.classList.toggle('expanded');
+            more.textContent = open ? '접기 ⌃' : '더보기 ⌄';
           });
 
-          memoWrap.append(memo, memoToggle);
-          main.appendChild(memoWrap);
-
+          main.append(memo, more);
           requestAnimationFrame(() => {
-            if (memo.scrollHeight > memo.clientHeight + 2) memoToggle.classList.add('show');
+            if (memo.scrollHeight > memo.clientHeight + 2) more.classList.add('show');
           });
         }
 
-        const side = document.createElement('aside');
-        side.className = linkedExpenses.length ? 'plan-side' : 'plan-side plan-side-empty';
+        head.appendChild(main);
+        card.appendChild(head);
 
-        if (linkedExpenses.length) {
-          const summary = document.createElement('div');
-          summary.className = 'plan-side-summary';
+        const bottom = document.createElement('div');
+        bottom.className = 'timeline-card-bottom';
 
-          const summaryLabel = document.createElement('div');
-          summaryLabel.className = 'plan-side-label';
-          summaryLabel.textContent = `결제 ${linkedExpenses.length}건`;
+        const quick = document.createElement('div');
+        quick.className = 'timeline-quick';
 
-          const summaryTotal = document.createElement('div');
-          summaryTotal.className = 'plan-side-total';
-          summaryTotal.textContent = formatCurrencyTotals(sumByCurrency(linkedExpenses));
-          summary.append(summaryLabel, summaryTotal);
-          side.appendChild(summary);
-
-          const expenseToggle = document.createElement('button');
-          expenseToggle.type = 'button';
-          expenseToggle.className = 'plan-expense-toggle';
-          expenseToggle.innerHTML = '<span>결제 내역 보기</span><span>⌄</span>';
-
-          const expenseDetails = document.createElement('div');
-          expenseDetails.className = 'plan-expense-details';
-
-          linkedExpenses.forEach(expense => {
-            const entry = document.createElement('div');
-            entry.className = 'plan-expense-entry';
-
-            const entryTop = document.createElement('div');
-            entryTop.className = 'plan-expense-entry-top';
-
-            const entryMain = document.createElement('div');
-            entryMain.className = 'plan-expense-entry-main';
-            const noteParts = [expense.payer_name || '이름 없음'];
-            if (expense.description && expense.description !== item.place_name) noteParts.push(expense.description);
-            if (expense.memo) noteParts.push(expense.memo);
-            entryMain.textContent = noteParts.join(' · ');
-
-            const entryAmount = document.createElement('div');
-            entryAmount.className = 'plan-expense-entry-amount';
-            entryAmount.textContent = formatMoney(expense.amount, expense.currency);
-            entryTop.append(entryMain, entryAmount);
-            entry.appendChild(entryTop);
-
-            if (!isReadOnlyMode) {
-              const entryActions = document.createElement('div');
-              entryActions.className = 'plan-expense-entry-actions';
-
-              const editExpenseBtn = document.createElement('button');
-              editExpenseBtn.type = 'button';
-              editExpenseBtn.textContent = '수정';
-              editExpenseBtn.addEventListener('click', () => openEditExpenseModal(expense.id));
-
-              const deleteExpenseBtn = document.createElement('button');
-              deleteExpenseBtn.type = 'button';
-              deleteExpenseBtn.className = 'danger';
-              deleteExpenseBtn.textContent = '삭제';
-              deleteExpenseBtn.addEventListener('click', () => deleteTripExpense(expense.id));
-
-              entryActions.append(editExpenseBtn, deleteExpenseBtn);
-              entry.appendChild(entryActions);
-            }
-            expenseDetails.appendChild(entry);
-          });
-
-          expenseToggle.addEventListener('click', () => {
-            const open = expenseDetails.classList.toggle('open');
-            expenseToggle.firstElementChild.textContent = open ? '결제 내역 접기' : '결제 내역 보기';
-            expenseToggle.lastElementChild.textContent = open ? '⌃' : '⌄';
-          });
-
-          side.append(expenseToggle, expenseDetails);
+        if (item.map_url || item.latitude != null || item.longitude != null || item.place_name) {
+          const mapBtn = document.createElement('button');
+          mapBtn.type = 'button';
+          mapBtn.textContent = '🧭 지도';
+          mapBtn.addEventListener('click', () => openItemMap(item));
+          quick.appendChild(mapBtn);
         }
 
         if (!isReadOnlyMode) {
-          const actions = document.createElement('div');
-          actions.className = 'plan-side-actions';
-
           const expenseBtn = document.createElement('button');
           expenseBtn.type = 'button';
-          expenseBtn.className = 'secondary-btn';
-          expenseBtn.textContent = '+ 결제 기록';
+          expenseBtn.textContent = '+ 결제';
           expenseBtn.addEventListener('click', () => openExpenseModal(item.id));
-
-          const editBtn = document.createElement('button');
-          editBtn.type = 'button';
-          editBtn.className = 'mini-btn';
-          editBtn.textContent = '일정 수정';
-          editBtn.addEventListener('click', () => openEditItemModal(item.id));
-
-          const deleteBtn = document.createElement('button');
-          deleteBtn.type = 'button';
-          deleteBtn.className = 'mini-btn danger';
-          deleteBtn.textContent = '일정 삭제';
-          deleteBtn.addEventListener('click', () => deleteItineraryItem(item.id));
-
-          actions.append(expenseBtn, editBtn, deleteBtn);
-          side.appendChild(actions);
+          quick.appendChild(expenseBtn);
         }
 
-        if (linkedExpenses.length || !isReadOnlyMode) {
-          row.append(time, main, side);
-        } else {
-          row.classList.add('no-side');
-          row.append(time, main);
+        const admin = document.createElement('div');
+        admin.className = 'timeline-admin';
+
+        if (linkedExpenses.length) {
+          const totalButton = document.createElement('button');
+          totalButton.type = 'button';
+          totalButton.className = 'timeline-payment-button';
+          totalButton.textContent = formatCurrencyTotals(sumByCurrency(linkedExpenses));
+
+          const expenseDetails = document.createElement('div');
+          expenseDetails.className = 'timeline-expenses';
+
+          linkedExpenses.forEach(expense => {
+            const row = document.createElement('div');
+            row.className = 'timeline-expense-row';
+
+            const label = document.createElement('span');
+            label.textContent = [expense.payer_name, expense.description].filter(Boolean).join(' · ') || '결제';
+
+            const amount = document.createElement('strong');
+            amount.textContent = formatMoney(expense.amount, expense.currency);
+
+            row.append(label, amount);
+
+            if (!isReadOnlyMode) {
+              const actions = document.createElement('span');
+              actions.className = 'timeline-expense-actions';
+
+              const edit = document.createElement('button');
+              edit.type = 'button';
+              edit.textContent = '수정';
+              edit.addEventListener('click', () => openEditExpenseModal(expense.id));
+
+              const del = document.createElement('button');
+              del.type = 'button';
+              del.className = 'danger';
+              del.textContent = '삭제';
+              del.addEventListener('click', () => deleteTripExpense(expense.id));
+
+              actions.append(edit, del);
+              row.appendChild(actions);
+            }
+
+            expenseDetails.appendChild(row);
+          });
+
+          totalButton.addEventListener('click', () => {
+            expenseDetails.classList.toggle('open');
+          });
+          admin.appendChild(totalButton);
+          card.appendChild(expenseDetails);
         }
-        list.appendChild(row);
+
+        if (!isReadOnlyMode) {
+          const edit = document.createElement('button');
+          edit.type = 'button';
+          edit.className = 'timeline-edit';
+          edit.textContent = '수정';
+          edit.addEventListener('click', () => openEditItemModal(item.id));
+
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'timeline-delete';
+          del.textContent = '삭제';
+          del.addEventListener('click', () => deleteItineraryItem(item.id));
+
+          admin.append(edit, del);
+        }
+
+        bottom.append(quick, admin);
+        card.appendChild(bottom);
+
+        event.append(time, rail, card);
+        list.appendChild(event);
+
+        if (index < items.length - 1 && item.move_after) {
+          const transfer = document.createElement('div');
+          transfer.className = 'timeline-transfer';
+
+          const blank = document.createElement('div');
+          const transferRail = document.createElement('div');
+          transferRail.className = 'timeline-rail';
+          const pill = document.createElement('div');
+          pill.className = 'transfer-pill';
+          pill.textContent = item.move_after;
+
+          transfer.append(blank, transferRail, pill);
+          list.appendChild(transfer);
+        }
       });
+
+      renderFlightSummary();
     }
 
-    function openItemModal() {
+    function syncItemTypeFields() {
+      const type = normalizeItemType(document.getElementById('item-input-type').value);
+      const isFlight = type === 'flight';
+      document.getElementById('flight-fields').classList.toggle('hidden', !isFlight);
+      document.getElementById('normal-location-fields').classList.toggle('hidden', isFlight);
+
+      if (isFlight && !document.getElementById('item-input-title').value.trim()) {
+        const airline = document.getElementById('flight-airline').value.trim();
+        const number = document.getElementById('flight-number').value.trim().toUpperCase();
+        if (airline || number) document.getElementById('item-input-title').value = [airline, number].filter(Boolean).join(' ');
+      }
+    }
+
+    function resetFlightFields() {
+      ['flight-airline','flight-number','flight-from-code','flight-from-terminal','flight-to-code','flight-to-terminal','flight-arrival-date','flight-arrival-time','flight-duration','flight-baggage']
+        .forEach(id => { document.getElementById(id).value = ''; });
+    }
+
+    function openItemModal(prefillType = 'place') {
       if (!currentTrip || isReadOnlyMode || !currentUser) return;
       editingItemId = null;
-      document.getElementById('item-modal-title').textContent = '일정 추가';
+      document.getElementById('item-modal-title').textContent = prefillType === 'flight' ? '항공편 추가' : '일정 추가';
       document.getElementById('item-submit-btn').textContent = '저장';
+      document.getElementById('item-delete-btn').classList.add('hidden');
       document.getElementById('item-form').reset();
+      document.getElementById('item-input-type').value = normalizeItemType(prefillType);
+      document.getElementById('item-input-title').value = '';
+      document.getElementById('item-input-map-url').value = '';
+      document.getElementById('item-input-move-after').value = '';
       setTimeSelects(null);
+      resetFlightFields();
       selectedGooglePlace = null;
       document.getElementById('item-input-place').value = '';
       document.getElementById('selected-place').classList.add('hidden');
       document.getElementById('selected-place').textContent = '';
       document.getElementById('item-input-currency').value = currentTrip.default_currency || 'KRW';
       document.getElementById('item-input-date').value = getDateForDay(currentDayNumber) || '';
+      syncItemTypeFields();
       openModal('item-modal');
+      setTimeout(() => document.getElementById('item-input-title').focus(), 60);
+    }
+
+    function openNewFlight() {
+      openItemModal('flight');
     }
 
     async function createItineraryItem(event) {
       event.preventDefault();
       if (!currentTrip || isReadOnlyMode || !currentUser) return;
-      const place = document.getElementById('item-input-place').value.trim();
+
+      const itemType = normalizeItemType(document.getElementById('item-input-type').value);
       const scheduleDate = document.getElementById('item-input-date').value || null;
       const timeResult = getSelectedTime();
       if (timeResult.error) return showToast(timeResult.error, true);
       const startTime = timeResult.value;
+      const titleInput = document.getElementById('item-input-title').value.trim();
+      const memo = document.getElementById('item-input-memo').value.trim();
       const estimatedCost = Number(document.getElementById('item-input-cost').value || 0);
       const currency = document.getElementById('item-input-currency').value;
-      const memo = document.getElementById('item-input-memo').value.trim();
       const submit = event.submitter;
 
-      if (!place || !selectedGooglePlace) return showToast('Google 검색 결과에서 장소를 선택해.', true);
+      let placeName = titleInput;
+      let flightDetails = null;
+
+      if (itemType === 'flight') {
+        const airline = document.getElementById('flight-airline').value.trim();
+        const number = document.getElementById('flight-number').value.trim().toUpperCase();
+        const fromCode = document.getElementById('flight-from-code').value.trim().toUpperCase();
+        const fromTerminal = document.getElementById('flight-from-terminal').value.trim();
+        const toCode = document.getElementById('flight-to-code').value.trim().toUpperCase();
+        const toTerminal = document.getElementById('flight-to-terminal').value.trim();
+        const arrivalDate = document.getElementById('flight-arrival-date').value || scheduleDate;
+        const arrivalTime = document.getElementById('flight-arrival-time').value || '';
+        const duration = document.getElementById('flight-duration').value.trim();
+        const baggage = document.getElementById('flight-baggage').value.trim();
+
+        if (!fromCode || fromCode.length !== 3) return showToast('출발 공항코드를 3글자로 입력해.', true);
+        if (!toCode || toCode.length !== 3) return showToast('도착 공항코드를 3글자로 입력해.', true);
+
+        flightDetails = {
+          airline: airline || null,
+          number: number || null,
+          from_code: fromCode,
+          from_terminal: fromTerminal || null,
+          to_code: toCode,
+          to_terminal: toTerminal || null,
+          arrival_date: arrivalDate || null,
+          arrival_time: arrivalTime || null,
+          duration: duration || formatFlightDuration(scheduleDate, startTime, arrivalDate, arrivalTime) || null,
+          baggage: baggage || null
+        };
+
+        if (!placeName) {
+          const flightName = [airline, number].filter(Boolean).join(' ');
+          placeName = flightName || `${fromCode} → ${toCode}`;
+        }
+      }
+
+      if (!placeName) return showToast('일정 이름을 입력해.', true);
       if (estimatedCost < 0) return showToast('비용은 0 이상이어야 해.', true);
+
+      const mapUrl = itemType === 'flight' ? null : (document.getElementById('item-input-map-url').value.trim() || null);
+      const moveAfter = itemType === 'flight' ? null : (document.getElementById('item-input-move-after').value.trim() || null);
+
+      if (mapUrl && !isValidHttpUrl(mapUrl)) return showToast('Google 지도 링크 형식을 확인해.', true);
 
       submit.disabled = true;
       submit.textContent = editingItemId ? '수정 중...' : '저장 중...';
 
-      const payload = {
+      const existingItem = editingItemId ? itemsCache.find(row => row.id === editingItemId) : null;
+      const basePayload = {
         trip_id: currentTrip.id,
-        day_number: currentDayNumber,
+        day_number: scheduleDate ? dayNumberForDate(scheduleDate) : currentDayNumber,
         schedule_date: scheduleDate,
         start_time: startTime,
-        place_name: place,
-        address: selectedGooglePlace.address || null,
-        google_place_id: selectedGooglePlace.id || null,
-        latitude: selectedGooglePlace.lat,
-        longitude: selectedGooglePlace.lng,
+        place_name: placeName,
+        address: selectedGooglePlace?.address ?? existingItem?.address ?? null,
+        google_place_id: selectedGooglePlace?.id ?? existingItem?.google_place_id ?? null,
+        latitude: selectedGooglePlace?.lat ?? existingItem?.latitude ?? null,
+        longitude: selectedGooglePlace?.lng ?? existingItem?.longitude ?? null,
         estimated_cost: estimatedCost,
         currency,
         memo: memo || null
       };
 
+      const fullPayload = {
+        ...basePayload,
+        item_type: itemType,
+        move_after: moveAfter,
+        map_url: mapUrl,
+        flight_details: flightDetails
+      };
+
       let result;
       if (editingItemId) {
-        result = await supabaseApp.from('itinerary_items').update(payload).eq('id', editingItemId);
+        result = await supabaseApp.from('itinerary_items').update(fullPayload).eq('id', editingItemId);
       } else {
-        result = await supabaseApp.from('itinerary_items').insert(payload);
+        result = await supabaseApp.from('itinerary_items').insert(fullPayload);
+      }
+
+      if (result.error && /(item_type|move_after|map_url|flight_details)/i.test(String(result.error.message || ''))) {
+        submit.disabled = false;
+        submit.textContent = editingItemId ? '수정 저장' : '저장';
+        return showToast('새 일정 기능용 DB 컬럼이 아직 없어. 같이 준 SQL을 먼저 한 번 실행해 줘.', true);
       }
 
       submit.disabled = false;
       submit.textContent = editingItemId ? '수정 저장' : '저장';
 
       if (result.error) return showToast(`일정 ${editingItemId ? '수정' : '저장'} 실패: ` + result.error.message, true);
+
       const wasEditing = Boolean(editingItemId);
       editingItemId = null;
       closeModal('item-modal');
@@ -2013,26 +3195,60 @@
       if (isReadOnlyMode || !currentUser) return;
       const item = itemsCache.find(row => row.id === itemId);
       if (!item) return showToast('수정할 일정을 찾지 못했어.', true);
+
       editingItemId = item.id;
-      document.getElementById('item-modal-title').textContent = '일정 수정';
+      const type = normalizeItemType(item.item_type || inferItemType(item));
+      document.getElementById('item-modal-title').textContent = type === 'flight' ? '항공편 편집' : '일정 편집';
       document.getElementById('item-submit-btn').textContent = '수정 저장';
-      document.getElementById('item-input-date').value = item.schedule_date || '';
-      setTimeSelects(item.start_time ? item.start_time.slice(0, 5) : null);
+      document.getElementById('item-delete-btn').classList.remove('hidden');
+
+      document.getElementById('item-input-type').value = type;
+      document.getElementById('item-input-date').value = item.schedule_date || getDateForDay(item.day_number) || '';
+      setTimeSelects(item.start_time ? item.start_time.slice(0,5) : null);
+      document.getElementById('item-input-title').value = item.place_name || '';
       document.getElementById('item-input-cost').value = Number(item.estimated_cost || 0);
       document.getElementById('item-input-currency').value = item.currency || currentTrip.default_currency || 'KRW';
       document.getElementById('item-input-memo').value = item.memo || '';
+      document.getElementById('item-input-map-url').value = item.map_url || '';
+      document.getElementById('item-input-move-after').value = item.move_after || '';
+
       document.getElementById('item-input-place').value = item.place_name || '';
-      selectedGooglePlace = {
-        id: item.google_place_id || null,
-        name: item.place_name || '',
-        address: item.address || '',
-        lat: Number(item.latitude),
-        lng: Number(item.longitude)
-      };
-      const box = document.getElementById('selected-place');
-      box.textContent = `현재 장소: ${selectedGooglePlace.name}`;
-      box.classList.remove('hidden');
+      if (item.latitude != null && item.longitude != null) {
+        selectedGooglePlace = {
+          id: item.google_place_id || null,
+          name: item.place_name || '',
+          address: item.address || '',
+          lat: Number(item.latitude),
+          lng: Number(item.longitude)
+        };
+        const box = document.getElementById('selected-place');
+        box.textContent = `현재 지도 장소: ${selectedGooglePlace.name}`;
+        box.classList.remove('hidden');
+      } else {
+        selectedGooglePlace = null;
+        const box = document.getElementById('selected-place');
+        box.textContent = '';
+        box.classList.add('hidden');
+      }
+
+      resetFlightFields();
+      if (type === 'flight') {
+        const flight = safeFlightDetails(item.flight_details);
+        document.getElementById('flight-airline').value = flight.airline || '';
+        document.getElementById('flight-number').value = flight.number || flightNumberFromText(`${item.place_name} ${item.memo || ''}`);
+        document.getElementById('flight-from-code').value = flight.from_code || airportCodeFromText(`${item.place_name} ${item.address || ''}`);
+        document.getElementById('flight-from-terminal').value = flight.from_terminal || terminalFromText(`${item.place_name} ${item.memo || ''}`);
+        document.getElementById('flight-to-code').value = flight.to_code || '';
+        document.getElementById('flight-to-terminal').value = flight.to_terminal || '';
+        document.getElementById('flight-arrival-date').value = flight.arrival_date || item.schedule_date || '';
+        document.getElementById('flight-arrival-time').value = flight.arrival_time || '';
+        document.getElementById('flight-duration').value = flight.duration || '';
+        document.getElementById('flight-baggage').value = flight.baggage || '';
+      }
+
+      syncItemTypeFields();
       openModal('item-modal');
+      setTimeout(() => document.getElementById('item-input-title').focus(), 60);
     }
 
     async function deleteItineraryItem(itemId) {
@@ -2042,6 +3258,10 @@
       if (!confirm(`“${item.place_name}” 일정을 삭제할까?`)) return;
       const { error } = await supabaseApp.from('itinerary_items').delete().eq('id', itemId);
       if (error) return showToast('일정 삭제 실패: ' + error.message, true);
+      if (editingItemId === itemId) {
+        editingItemId = null;
+        closeModal('item-modal');
+      }
       showToast('일정을 삭제했어. 연결된 결제 기록은 일정 외 지출로 남아.');
       await Promise.all([loadItineraryItems(), loadExpenses()]);
     }
@@ -2411,6 +3631,9 @@
               lng: place.location.lng()
             };
             document.getElementById('item-input-place').value = selectedGooglePlace.name;
+            if (!document.getElementById('item-input-title').value.trim()) {
+              document.getElementById('item-input-title').value = selectedGooglePlace.name;
+            }
             const box = document.getElementById('selected-place');
             box.textContent = `선택됨: ${selectedGooglePlace.name}`;
             box.classList.remove('hidden');
