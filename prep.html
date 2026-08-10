@@ -2050,7 +2050,7 @@ button{cursor:pointer}
       return;
     }
 
-    scheduleContext = {sourcePrepItemId:null,itineraryItemId:null};
+    scheduleContext = {sourcePrepItemId:item.id,itineraryItemId:null};
     $('#scheduleModalTitle').textContent = '예약 완료에서 일정 추가';
     $('#scheduleTitleInput').value = item.title || '';
     $('#scheduleMemoInput').value = item.content || '';
@@ -2125,7 +2125,8 @@ button{cursor:pointer}
       schedule_date:date,
       start_time:time,
       day_number:dayNumberForDate(date),
-      sort_order:itinerary.length
+      sort_order:itinerary.length,
+      source_prep_item_id:scheduleContext.sourcePrepItemId || null
     };
     let error;
     if(scheduleContext.itineraryItemId) {
@@ -2135,18 +2136,11 @@ button{cursor:pointer}
     }
     if(error) { showToast('일정을 저장하지 못했어: '+error.message,true); return; }
 
-    let keptImageOriginal=false;
-    if(scheduleContext.sourcePrepItemId) {
-      keptImageOriginal=imageCountForItem(scheduleContext.sourcePrepItemId)>0;
-      if(!keptImageOriginal) {
-        const del=await db.from('travel_prep_items').delete().eq('id',scheduleContext.sourcePrepItemId);
-        if(del.error) showToast('일정은 저장됐지만 준비함 원본은 남아 있어.',true);
-      }
-    }
+    const hadPrepSource=Boolean(scheduleContext.sourcePrepItemId);
     closeModal('scheduleModal');
     scheduleContext={sourcePrepItemId:null,itineraryItemId:null};
     await loadTripData();
-    showToast(keptImageOriginal?'일정에 저장했고, 사진이 있는 원본은 준비함에 남겨뒀어.':'일정에 저장했어');
+    showToast(hadPrepSource?'일정에 저장했어. 준비함 원본과 사진은 그대로 남겨뒀어.':'일정에 저장했어');
   });
 
   $('#deleteSchedule').addEventListener('click', async () => {
@@ -2222,7 +2216,7 @@ button{cursor:pointer}
           <p>${escapeHtml(item.memo||'')}</p>
           <div class="schedule-tools">
             <button type="button" data-edit-schedule="${escapeHtml(item.id)}">수정</button>
-            <button type="button" data-return-schedule="${escapeHtml(item.id)}">준비함으로</button>
+            <button type="button" data-return-schedule="${escapeHtml(item.id)}">${item.source_prep_item_id?'일정에서 빼기':'준비함으로'}</button>
           </div>
         </div>
       </div>`).join(''):'<div class="empty">이 날짜의 일정이 아직 없어.</div>';
@@ -2234,7 +2228,7 @@ button{cursor:pointer}
     const item=itinerary.find(entry=>entry.id===id);
     if(!item) return;
     const key = scheduleDateKey(item);
-    scheduleContext={sourcePrepItemId:null,itineraryItemId:id};
+    scheduleContext={sourcePrepItemId:item.source_prep_item_id || null,itineraryItemId:id};
     $('#scheduleModalTitle').textContent='일정 수정';
     $('#scheduleTitleInput').value=item.place_name;
     $('#scheduleDateInput').value=item.schedule_date || (key==='undated' ? '' : key);
@@ -2246,7 +2240,18 @@ button{cursor:pointer}
 
   async function returnScheduleToInbox(id) {
     const item=itinerary.find(entry=>entry.id===id);
-    if(!item || !confirm('이 일정을 준비함으로 되돌릴까?')) return;
+    if(!item) return;
+
+    if(item.source_prep_item_id) {
+      if(!confirm('이 일정만 일정에서 뺄까? 준비함 원본과 사진은 그대로 남아 있어.')) return;
+      const del=await db.from('itinerary_items').delete().eq('id',id);
+      if(del.error) { showToast('일정에서 빼지 못했어: '+del.error.message,true); return; }
+      await loadTripData();
+      showToast('일정에서 뺐어. 준비함 원본은 그대로야.');
+      return;
+    }
+
+    if(!confirm('이 일정을 준비함으로 되돌릴까?')) return;
     const insert=await db.from('travel_prep_items').insert({
       trip_id:currentTrip.id,category:'place',area:'inbox',title:item.place_name,content:item.memo||''
     });
