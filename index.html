@@ -2352,7 +2352,28 @@ body{
     let currentUser = null;
     let currentTrip = null;
     let currentDayNumber = 1;
-    let tripsCache = [];
+    
+    function selectedDayStorageKey(tripId = currentTrip?.id) {
+      if (!tripId) return null;
+      return `travel_planner_selected_day_${tripId}`;
+    }
+
+    function rememberSelectedDay(day = currentDayNumber, tripId = currentTrip?.id) {
+      const key = selectedDayStorageKey(tripId);
+      if (!key) return;
+      sessionStorage.setItem(key, String(day));
+    }
+
+    function restoreSelectedDay(tripId, fallback = 1) {
+      const key = selectedDayStorageKey(tripId);
+      if (!key) return fallback;
+      const saved = Number(sessionStorage.getItem(key));
+      const maxDay = getTripDayCount();
+      if (!Number.isInteger(saved) || saved < 1) return fallback;
+      return Math.min(saved, maxDay);
+    }
+
+let tripsCache = [];
     let itemsCache = [];
     let expensesCache = [];
     let prepSourceItemsCache = [];
@@ -3220,6 +3241,7 @@ body{
       if (error) return showToast('여행 정보 저장 실패: ' + error.message, true);
       currentTrip = data;
       currentDayNumber = Math.min(currentDayNumber, getTripDayCount());
+      rememberSelectedDay(currentDayNumber, currentTrip.id);
       applyTripPresentation(currentTrip);
       updateShareControls();
       renderDayTabs();
@@ -3409,7 +3431,7 @@ body{
       }
 
       currentTrip = data;
-      currentDayNumber = 1;
+      currentDayNumber = restoreSelectedDay(data.id, 1);
       applyTripPresentation(data);
 
       if (updateUrl) history.replaceState({}, '', `?trip=${encodeURIComponent(data.id)}`);
@@ -3434,7 +3456,7 @@ body{
       }
 
       currentTrip = data;
-      currentDayNumber = 1;
+      currentDayNumber = restoreSelectedDay(data.id, 1);
       applyTripPresentation(data);
       showScreen('screen-planner');
       applyPlannerMode();
@@ -3490,6 +3512,7 @@ body{
 
     function selectDay(day) {
       currentDayNumber = day;
+      rememberSelectedDay(day);
       renderDayTabs();
       renderCurrentDayItems();
       renderCurrentDayMap();
