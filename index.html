@@ -2590,6 +2590,23 @@ body{
   }
 }
 
+
+/* 병렬 카드도 큰 카드처럼 메모는 2줄까지만 */
+.parallel-event-card .timeline-memo{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+.parallel-event-card .timeline-memo.expanded{
+  display:block;
+  overflow:visible;
+}
+.parallel-event-card .timeline-more{
+  margin-top:4px;
+  font-size:11px;
+}
+
 </style>
 </head>
 <body>
@@ -3646,6 +3663,10 @@ let tripsCache = [];
       return GROUP_EVENT_KINDS[value] ? value : 'split';
     }
 
+    function normalizeTimelineLane(value) {
+      return String(value || '').trim().toLowerCase() === 'secondary' ? 'secondary' : 'main';
+    }
+
     function itemMinuteValue(item) {
       if (!item?.start_time) return 24 * 60 + 1;
       const [h, m] = String(item.start_time).slice(0,5).split(':').map(Number);
@@ -3779,9 +3800,22 @@ let tripsCache = [];
 
       if (item.memo) {
         const memo = document.createElement('div');
-        memo.className = 'timeline-memo expanded';
+        memo.className = 'timeline-memo';
         memo.textContent = item.memo;
-        main.appendChild(memo);
+
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'timeline-more';
+        more.textContent = '더보기 ⌄';
+        more.addEventListener('click', () => {
+          const open = memo.classList.toggle('expanded');
+          more.textContent = open ? '접기 ⌃' : '더보기 ⌄';
+        });
+
+        main.append(memo, more);
+        requestAnimationFrame(() => {
+          if (memo.scrollHeight > memo.clientHeight + 2) more.classList.add('show');
+        });
       }
 
       head.appendChild(main);
@@ -3925,7 +3959,7 @@ let tripsCache = [];
       rangeItems.forEach(item => {
         const minute = itemMinuteValue(item);
         if (!grouped.has(minute)) grouped.set(minute, { main:[], secondary:[] });
-        const lane = item.timeline_lane === 'secondary' ? 'secondary' : 'main';
+        const lane = normalizeTimelineLane(item.timeline_lane);
         grouped.get(minute)[lane].push(item);
       });
 
@@ -4371,6 +4405,9 @@ let tripsCache = [];
       document.getElementById('item-input-date').addEventListener('change', () => updateLaneFieldVisibility(editingItemId ? itemsCache.find(row => row.id === editingItemId) : null));
       document.getElementById('item-input-hour').addEventListener('change', () => updateLaneFieldVisibility(editingItemId ? itemsCache.find(row => row.id === editingItemId) : null));
       document.getElementById('item-input-minute').addEventListener('change', () => updateLaneFieldVisibility(editingItemId ? itemsCache.find(row => row.id === editingItemId) : null));
+      document.getElementById('item-timeline-lane').addEventListener('change', event => {
+        event.target.dataset.userLane = event.target.value;
+      });
       document.getElementById('item-delete-btn').addEventListener('click', () => {
         if (editingItemId) deleteItineraryItem(editingItemId);
       });
@@ -5370,6 +5407,7 @@ let tripsCache = [];
       document.getElementById('group-event-kind').value = 'split';
       document.getElementById('group-secondary-name').value = '';
       document.getElementById('item-timeline-lane').value = 'main';
+      delete document.getElementById('item-timeline-lane').dataset.userLane;
       document.getElementById('item-input-must').checked = false;
       selectedGooglePlace = null;
       document.getElementById('item-input-place').value = '';
@@ -5395,12 +5433,6 @@ let tripsCache = [];
       const isMustDo = document.getElementById('item-input-must').checked;
       const groupEventKind = itemType === 'group'
         ? normalizeGroupEventKind(document.getElementById('group-event-kind').value)
-        : null;
-      const timelineLane = itemType === 'group'
-        ? 'main'
-        : (document.getElementById('item-timeline-lane').value === 'secondary' ? 'secondary' : 'main');
-      const secondaryLaneName = (itemType === 'group' && groupEventKind === 'split')
-        ? (document.getElementById('group-secondary-name').value.trim() || '다른 일행')
         : null;
       const scheduleDate = document.getElementById('item-input-date').value || null;
       const timeResult = getSelectedTime();
@@ -5465,6 +5497,22 @@ let tripsCache = [];
       submit.textContent = editingItemId ? '수정 중...' : '저장 중...';
 
       const existingItem = editingItemId ? itemsCache.find(row => row.id === editingItemId) : null;
+
+      const laneSelect = document.getElementById('item-timeline-lane');
+      const explicitLane = laneSelect.dataset.userLane;
+      const fieldVisible = !document.getElementById('item-lane-field').classList.contains('hidden');
+      const timelineLane = itemType === 'group'
+        ? 'main'
+        : normalizeTimelineLane(
+            explicitLane ||
+            (fieldVisible ? laneSelect.value : existingItem?.timeline_lane) ||
+            'main'
+          );
+
+      const secondaryLaneName = (itemType === 'group' && groupEventKind === 'split')
+        ? (document.getElementById('group-secondary-name').value.trim() || '다른 일행')
+        : null;
+
       const basePayload = {
         trip_id: currentTrip.id,
         day_number: scheduleDate ? dayNumberForDate(scheduleDate) : currentDayNumber,
@@ -5494,9 +5542,18 @@ let tripsCache = [];
 
       let result;
       if (editingItemId) {
-        result = await supabaseApp.from('itinerary_items').update(fullPayload).eq('id', editingItemId);
+        result = await supabaseApp
+          .from('itinerary_items')
+          .update(fullPayload)
+          .eq('id', editingItemId)
+          .select('*')
+          .single();
       } else {
-        result = await supabaseApp.from('itinerary_items').insert(fullPayload);
+        result = await supabaseApp
+          .from('itinerary_items')
+          .insert(fullPayload)
+          .select('*')
+          .single();
       }
 
       if (result.error && /(item_type|move_after|map_url|flight_details|is_must_do|group_event_kind|timeline_lane|secondary_lane_name)/i.test(String(result.error.message || ''))) {
@@ -5509,6 +5566,18 @@ let tripsCache = [];
       submit.textContent = editingItemId ? '수정 저장' : '저장';
 
       if (result.error) return showToast(`일정 ${editingItemId ? '수정' : '저장'} 실패: ` + result.error.message, true);
+
+      if (itemType !== 'group' && normalizeTimelineLane(result.data?.timeline_lane) !== timelineLane) {
+        submit.disabled = false;
+        submit.textContent = editingItemId ? '수정 저장' : '저장';
+        return showToast('일행 위치 저장값이 맞지 않아 저장을 멈췄어. 다시 한 번 선택해 줘.', true);
+      }
+
+      // 서버에서 실제 저장된 행으로 현재 캐시도 즉시 맞춘다.
+      if (result.data) {
+        const savedIndex = itemsCache.findIndex(row => row.id === result.data.id);
+        if (savedIndex >= 0) itemsCache[savedIndex] = result.data;
+      }
 
       const wasEditing = Boolean(editingItemId);
       editingItemId = null;
@@ -5531,7 +5600,9 @@ let tripsCache = [];
       document.getElementById('item-input-type').value = type;
       document.getElementById('group-event-kind').value = normalizeGroupEventKind(item.group_event_kind);
       document.getElementById('group-secondary-name').value = item.secondary_lane_name || '';
-      document.getElementById('item-timeline-lane').value = item.timeline_lane === 'secondary' ? 'secondary' : 'main';
+      const laneSelect = document.getElementById('item-timeline-lane');
+      laneSelect.value = normalizeTimelineLane(item.timeline_lane);
+      delete laneSelect.dataset.userLane;
       document.getElementById('item-input-must').checked = Boolean(item.is_must_do);
       document.getElementById('item-input-date').value = item.schedule_date || getDateForDay(item.day_number) || '';
       setTimeSelects(item.start_time ? item.start_time.slice(0,5) : null);
