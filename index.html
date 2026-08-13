@@ -3073,6 +3073,116 @@ body.shared-view .timeline-photo-button{
   }
 }
 
+
+/* ==========================================================
+   공유 화면 상단/상태 배지 정리
+   ========================================================== */
+body.shared-view .public-topbar,
+body.shared-view .public-top{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  width:100%;
+  min-height:44px;
+  padding:8px 14px;
+}
+
+body.shared-view .public-top-message{
+  display:none !important;
+}
+
+body.shared-view .public-manage-btn,
+body.shared-view .public-manage-btn-right{
+  margin-left:auto !important;
+  flex:0 0 auto;
+  min-width:auto;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 12px;
+  border-radius:10px;
+  white-space:nowrap;
+  line-height:1;
+}
+
+/* 두 배지의 크기/위치 완전히 통일 */
+body.shared-view .readonly-label-group{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:7px !important;
+  flex-wrap:wrap;
+}
+
+body.shared-view .readonly-chip,
+body.shared-view .readonly-note-chip{
+  box-sizing:border-box;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 auto;
+  height:34px !important;
+  min-height:34px !important;
+  margin:0 !important;
+  padding:0 11px !important;
+  border:0 !important;
+  border-radius:999px !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  vertical-align:middle !important;
+}
+
+body.shared-view .readonly-chip{
+  background:#edf3f6 !important;
+  color:#496a81 !important;
+}
+body.shared-view .readonly-note-chip{
+  background:#edf6ef !important;
+  color:#52705b !important;
+}
+
+@media(max-width:680px){
+  body.shared-view .public-topbar,
+  body.shared-view .public-top{
+    min-height:42px;
+    padding:6px 10px 7px;
+  }
+
+  body.shared-view .public-manage-btn,
+  body.shared-view .public-manage-btn-right{
+    height:32px;
+    padding:0 11px;
+    font-size:11px;
+    border-radius:9px;
+  }
+
+  body.shared-view .readonly-label-group{
+    gap:6px !important;
+    margin-top:12px !important;
+  }
+
+  body.shared-view .readonly-chip,
+  body.shared-view .readonly-note-chip{
+    height:32px !important;
+    min-height:32px !important;
+    padding:0 10px !important;
+    font-size:11px !important;
+  }
+}
+
+@media(max-width:390px){
+  body.shared-view .readonly-chip,
+  body.shared-view .readonly-note-chip{
+    height:31px !important;
+    min-height:31px !important;
+    padding:0 9px !important;
+    font-size:10.5px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3155,7 +3265,6 @@ body.shared-view .timeline-photo-button{
           <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
         </div>
         <div id="planner-public-user" class="user-area hidden">
-          <span class="public-top-message">읽기 전용 · 여행 메모 가능</span>
           <button id="public-owner-btn" class="ghost-btn" type="button" onclick="openOwnerArea()">관리자 로그인</button>
         </div>
       </header>
