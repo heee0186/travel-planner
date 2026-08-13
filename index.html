@@ -1977,6 +1977,252 @@ body{
   }
 }
 
+
+/* ==========================================================
+   일행 분기·합류 + ⭐ 꼭!
+   ========================================================== */
+.group-fields{
+  margin:4px 0 11px;
+  padding:13px;
+  border:1px solid #dfe4e8;
+  border-radius:13px;
+  background:#f8fafb;
+}
+.group-fields-title{
+  margin-bottom:10px;
+  color:#5f7180;
+  font-size:13px;
+  font-weight:950;
+}
+.item-must-field{
+  margin-top:5px;
+}
+.must-check-label{
+  display:flex !important;
+  align-items:center;
+  gap:10px;
+  min-height:54px;
+  margin:0 !important;
+  padding:10px 12px;
+  border:1px solid #eadfc2;
+  border-radius:12px;
+  background:#fffaf0;
+  cursor:pointer;
+}
+.must-check-label input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+.must-check-box{
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  width:33px;
+  height:33px;
+  border:1px solid #e6d6aa;
+  border-radius:10px;
+  background:#fff;
+  font-size:17px;
+  filter:grayscale(.8);
+  opacity:.5;
+}
+.must-check-label input:checked + .must-check-box{
+  border-color:#e2bd62;
+  background:#fff3cb;
+  filter:none;
+  opacity:1;
+}
+.must-check-label strong{
+  display:block;
+  color:#5d5138;
+  font-size:14px;
+  line-height:1.35;
+}
+.must-check-label small{
+  display:block;
+  margin-top:3px;
+  color:#8b816d;
+  font-size:12px;
+  line-height:1.4;
+}
+
+/* 꼭 일정 카드 */
+.timeline-card.must-do{
+  border-color:#e5c56f;
+  box-shadow:
+    0 6px 18px rgba(40,45,42,.035),
+    0 0 0 2px rgba(229,197,111,.10);
+  background:
+    linear-gradient(180deg,rgba(255,249,229,.55),rgba(255,255,255,0) 64px),
+    #fff;
+}
+.timeline-card-head{
+  align-items:flex-start;
+}
+.timeline-must-badge{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  margin-top:1px;
+  padding:5px 8px;
+  border:1px solid #e4c36d;
+  border-radius:999px;
+  background:#fff4c9;
+  color:#725d24;
+  font-size:12px;
+  line-height:1;
+  font-weight:950;
+}
+
+/* 일행 흐름은 큰 카드 대신 타임라인 사이 얇은 띠 */
+.timeline-group-event{
+  display:grid;
+  grid-template-columns:62px 22px minmax(0,1fr);
+  gap:8px;
+  align-items:center;
+  min-height:50px;
+}
+.timeline-group-time{
+  color:#5f6c65;
+  font-size:14px;
+  font-weight:950;
+  text-align:right;
+}
+.timeline-group-rail{
+  position:relative;
+  align-self:stretch;
+}
+.timeline-group-rail::before{
+  content:"";
+  position:absolute;
+  left:10px;
+  top:0;
+  bottom:0;
+  width:2px;
+  background:#dfe3df;
+}
+.timeline-group-dot{
+  position:absolute;
+  left:4px;
+  top:50%;
+  width:13px;
+  height:13px;
+  transform:translateY(-50%);
+  border:3px solid #fff;
+  border-radius:50%;
+  background:#758b80;
+  box-shadow:0 0 0 2px rgba(96,120,107,.14);
+}
+.group-event-pill{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:6px 0;
+  padding:8px 11px;
+  border:1px solid #dfe5e1;
+  border-radius:12px;
+  background:#f2f5f3;
+  color:#526159;
+  font-size:13px;
+  line-height:1.45;
+}
+.group-event-pill.kind-split{
+  background:#fff6ee;
+  border-color:#f0dcc9;
+  color:#7b6048;
+}
+.group-event-pill.kind-join{
+  background:#eef7f1;
+  border-color:#d4e7da;
+  color:#4f7059;
+}
+.group-event-pill.kind-move{
+  background:#f0f5fa;
+  border-color:#d9e4ee;
+  color:#516b82;
+}
+.group-event-main{
+  min-width:0;
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+}
+.group-event-icon{
+  flex:0 0 auto;
+  font-size:16px;
+  line-height:1.35;
+}
+.group-event-copy{
+  min-width:0;
+}
+.group-event-copy strong{
+  display:block;
+  color:inherit;
+  font-size:13px;
+  line-height:1.4;
+}
+.group-event-copy small{
+  display:block;
+  margin-top:2px;
+  color:inherit;
+  opacity:.75;
+  font-size:11px;
+  line-height:1.4;
+  white-space:pre-line;
+}
+.group-event-actions{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.group-event-actions button{
+  border:0;
+  background:transparent;
+  padding:3px 0;
+  color:inherit;
+  font-size:11px;
+  font-weight:900;
+}
+.group-event-must{
+  display:inline-flex;
+  align-items:center;
+  flex:0 0 auto;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#fff0b8;
+  color:#715b20;
+  font-size:11px;
+  font-weight:950;
+}
+
+@media(max-width:680px){
+  .timeline-group-event{
+    grid-template-columns:48px 20px minmax(0,1fr);
+    gap:6px;
+  }
+  .timeline-group-time{
+    font-size:12px;
+  }
+  .timeline-group-rail::before{
+    left:9px;
+  }
+  .timeline-group-dot{
+    left:3px;
+  }
+  .group-event-pill{
+    align-items:flex-start;
+    padding:8px 9px;
+    font-size:12px;
+  }
+  .group-event-actions{
+    gap:6px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2274,6 +2520,7 @@ body{
               <option value="flight">✈️ 항공</option>
               <option value="transport">🚆 이동</option>
               <option value="shopping">🛍️ 쇼핑</option>
+              <option value="group">👥 일행 분기·합류</option>
               <option value="other">📝 기타</option>
             </select>
           </div>
@@ -2331,6 +2578,20 @@ body{
               </div>
             </div>
           </div>
+        </div>
+
+
+        <div id="group-fields" class="group-fields hidden">
+          <div class="group-fields-title">👥 일행 흐름 표시</div>
+          <div class="field">
+            <label for="group-event-kind">표시 종류</label>
+            <select id="group-event-kind">
+              <option value="split">👤 분기</option>
+              <option value="join">👥 합류</option>
+              <option value="move">✈️ 별도 이동</option>
+            </select>
+          </div>
+          <div class="help">일반 일정 카드가 아니라 타임라인 사이에 얇게 표시돼. 그날만 필요할 때 쓰면 돼.</div>
         </div>
 
         <div id="flight-fields" class="flight-fields hidden">
@@ -2391,6 +2652,18 @@ body{
 
         <input id="item-input-cost" type="hidden" value="">
         <input id="item-input-currency" type="hidden" value="KRW">
+
+
+        <div id="item-must-field" class="field item-must-field">
+          <label class="must-check-label" for="item-input-must">
+            <input id="item-input-must" type="checkbox">
+            <span class="must-check-box">⭐</span>
+            <span>
+              <strong>꼭 해야 하는 일정으로 표시</strong>
+              <small>일정 카드에 ‘⭐ 꼭!’ 스티커가 붙어.</small>
+            </span>
+          </label>
+        </div>
 
         <div class="field">
           <label for="item-input-memo">메모 · 선택</label>
@@ -2706,6 +2979,34 @@ let tripsCache = [];
       return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
     }
 
+    function formatMoveAfterDisplay(value) {
+      const emojiRules = [
+        { pattern: /^\s*버스\b/i, emoji: '🚌' },
+        { pattern: /^\s*지하철\b/i, emoji: '🚇' },
+        { pattern: /^\s*도보\b/i, emoji: '🚶' },
+        { pattern: /^\s*기차\b/i, emoji: '🚆' }
+      ];
+
+      return String(value || '')
+        .split('\n')
+        .map(line => {
+          const trimmed = line.trimStart();
+          if (!trimmed) return line;
+
+          // 사용자가 직접 이모지를 넣은 줄은 그대로 둔다.
+          if (/^[\p{Extended_Pictographic}\p{Emoji_Presentation}]/u.test(trimmed)) {
+            return line;
+          }
+
+          const rule = emojiRules.find(entry => entry.pattern.test(trimmed));
+          if (!rule) return line;
+
+          const leading = line.slice(0, line.length - trimmed.length);
+          return `${leading}${rule.emoji} ${trimmed}`;
+        })
+        .join('\n');
+    }
+
     function prepMatchScore(item, source) {
       const itemTitle = normalizedSearchText(item?.place_name);
       const itemMemo = normalizedSearchText(item?.memo);
@@ -2924,6 +3225,7 @@ let tripsCache = [];
       flight: { label: '항공', icon: '✈️', className: 'flight' },
       transport: { label: '이동', icon: '🚆', className: 'transport' },
       shopping: { label: '쇼핑', icon: '🛍️', className: 'shopping' },
+      group: { label: '일행', icon: '👥', className: 'other' },
       other: { label: '기타', icon: '📝', className: 'other' }
     };
 
@@ -2944,6 +3246,90 @@ let tripsCache = [];
     function normalizeItemType(value) {
       return ITEM_TYPES[value] ? value : 'place';
     }
+
+    const GROUP_EVENT_KINDS = {
+      split: { label:'분기', icon:'👤', className:'split' },
+      join: { label:'합류', icon:'👥', className:'join' },
+      move: { label:'별도 이동', icon:'✈️', className:'move' }
+    };
+
+    function normalizeGroupEventKind(value) {
+      return GROUP_EVENT_KINDS[value] ? value : 'split';
+    }
+
+    function renderGroupTimelineEvent(item) {
+      const wrapper = document.createElement('article');
+      wrapper.className = 'timeline-group-event';
+
+      const time = document.createElement('div');
+      time.className = 'timeline-group-time';
+      time.textContent = item.start_time ? item.start_time.slice(0,5) : '미정';
+
+      const rail = document.createElement('div');
+      rail.className = 'timeline-group-rail';
+      const dot = document.createElement('div');
+      dot.className = 'timeline-group-dot';
+      rail.appendChild(dot);
+
+      const kindKey = normalizeGroupEventKind(item.group_event_kind);
+      const kind = GROUP_EVENT_KINDS[kindKey];
+
+      const pill = document.createElement('div');
+      pill.className = `group-event-pill kind-${kind.className}`;
+
+      const main = document.createElement('div');
+      main.className = 'group-event-main';
+
+      const icon = document.createElement('span');
+      icon.className = 'group-event-icon';
+      icon.textContent = kind.icon;
+
+      const copy = document.createElement('div');
+      copy.className = 'group-event-copy';
+
+      const title = document.createElement('strong');
+      title.textContent = `${kind.label} · ${item.place_name || '일행 일정'}`;
+      copy.appendChild(title);
+
+      if (item.memo) {
+        const memo = document.createElement('small');
+        memo.textContent = item.memo;
+        copy.appendChild(memo);
+      }
+
+      main.append(icon, copy);
+      pill.appendChild(main);
+
+      const actions = document.createElement('div');
+      actions.className = 'group-event-actions';
+
+      if (item.is_must_do) {
+        const must = document.createElement('span');
+        must.className = 'group-event-must';
+        must.textContent = '⭐ 꼭!';
+        actions.appendChild(must);
+      }
+
+      if (!isReadOnlyMode) {
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.textContent = '수정';
+        edit.addEventListener('click', () => openEditItemModal(item.id));
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.textContent = '삭제';
+        del.addEventListener('click', () => deleteItineraryItem(item.id));
+
+        actions.append(edit, del);
+      }
+
+      if (actions.children.length) pill.appendChild(actions);
+
+      wrapper.append(time, rail, pill);
+      return wrapper;
+    }
+
 
     function inferItemType(item) {
       if (ITEM_TYPES[item?.item_type]) return item.item_type;
@@ -3969,6 +4355,11 @@ let tripsCache = [];
         const typeKey = normalizeItemType(item.item_type || inferItemType(item));
         const type = ITEM_TYPES[typeKey];
 
+        if (typeKey === 'group') {
+          list.appendChild(renderGroupTimelineEvent(item));
+          return;
+        }
+
         const event = document.createElement('article');
         event.className = 'timeline-event';
 
@@ -3983,7 +4374,7 @@ let tripsCache = [];
         rail.appendChild(dot);
 
         const card = document.createElement('div');
-        card.className = 'timeline-card';
+        card.className = 'timeline-card' + (item.is_must_do ? ' must-do' : '');
 
         const head = document.createElement('div');
         head.className = 'timeline-card-head';
@@ -4044,6 +4435,14 @@ let tripsCache = [];
         }
 
         head.appendChild(main);
+
+        if (item.is_must_do) {
+          const mustBadge = document.createElement('span');
+          mustBadge.className = 'timeline-must-badge';
+          mustBadge.textContent = '⭐ 꼭!';
+          head.appendChild(mustBadge);
+        }
+
         card.appendChild(head);
 
         const bottom = document.createElement('div');
@@ -4172,7 +4571,7 @@ let tripsCache = [];
           transferRail.className = 'timeline-rail';
           const pill = document.createElement('div');
           pill.className = 'transfer-pill';
-          pill.textContent = item.move_after;
+          pill.textContent = formatMoveAfterDisplay(item.move_after);
 
           transfer.append(blank, transferRail, pill);
           list.appendChild(transfer);
@@ -4185,8 +4584,18 @@ let tripsCache = [];
     function syncItemTypeFields() {
       const type = normalizeItemType(document.getElementById('item-input-type').value);
       const isFlight = type === 'flight';
+      const isGroup = type === 'group';
+
       document.getElementById('flight-fields').classList.toggle('hidden', !isFlight);
-      document.getElementById('normal-location-fields').classList.toggle('hidden', isFlight);
+      document.getElementById('group-fields').classList.toggle('hidden', !isGroup);
+      document.getElementById('normal-location-fields').classList.toggle('hidden', isFlight || isGroup);
+
+      const prepField = document.getElementById('item-prep-source-field');
+      if (prepField && isGroup) prepField.classList.add('hidden');
+      else if (prepField && editingItemId) {
+        const current = itemsCache.find(row => row.id === editingItemId);
+        updateItemPrepSourceField(current || null);
+      }
 
       if (isFlight && !document.getElementById('item-input-title').value.trim()) {
         const airline = document.getElementById('flight-airline').value.trim();
@@ -4213,6 +4622,8 @@ let tripsCache = [];
       document.getElementById('item-input-move-after').value = '';
       setTimeSelects(null);
       resetFlightFields();
+      document.getElementById('group-event-kind').value = 'split';
+      document.getElementById('item-input-must').checked = false;
       selectedGooglePlace = null;
       document.getElementById('item-input-place').value = '';
       document.getElementById('selected-place').classList.add('hidden');
@@ -4234,6 +4645,10 @@ let tripsCache = [];
       if (!currentTrip || isReadOnlyMode || !currentUser) return;
 
       const itemType = normalizeItemType(document.getElementById('item-input-type').value);
+      const isMustDo = document.getElementById('item-input-must').checked;
+      const groupEventKind = itemType === 'group'
+        ? normalizeGroupEventKind(document.getElementById('group-event-kind').value)
+        : null;
       const scheduleDate = document.getElementById('item-input-date').value || null;
       const timeResult = getSelectedTime();
       if (timeResult.error) return showToast(timeResult.error, true);
@@ -4284,8 +4699,12 @@ let tripsCache = [];
       if (!placeName) return showToast('일정 이름을 입력해.', true);
       if (estimatedCost < 0) return showToast('비용은 0 이상이어야 해.', true);
 
-      const mapUrl = itemType === 'flight' ? null : (document.getElementById('item-input-map-url').value.trim() || null);
-      const moveAfter = itemType === 'flight' ? null : (document.getElementById('item-input-move-after').value.trim() || null);
+      const mapUrl = (itemType === 'flight' || itemType === 'group')
+        ? null
+        : (document.getElementById('item-input-map-url').value.trim() || null);
+      const moveAfter = (itemType === 'flight' || itemType === 'group')
+        ? null
+        : (document.getElementById('item-input-move-after').value.trim() || null);
 
       if (mapUrl && !isValidHttpUrl(mapUrl)) return showToast('Google 지도 링크 형식을 확인해.', true);
 
@@ -4313,7 +4732,9 @@ let tripsCache = [];
         item_type: itemType,
         move_after: moveAfter,
         map_url: mapUrl,
-        flight_details: flightDetails
+        flight_details: flightDetails,
+        is_must_do: isMustDo,
+        group_event_kind: groupEventKind
       };
 
       let result;
@@ -4323,7 +4744,7 @@ let tripsCache = [];
         result = await supabaseApp.from('itinerary_items').insert(fullPayload);
       }
 
-      if (result.error && /(item_type|move_after|map_url|flight_details)/i.test(String(result.error.message || ''))) {
+      if (result.error && /(item_type|move_after|map_url|flight_details|is_must_do|group_event_kind)/i.test(String(result.error.message || ''))) {
         submit.disabled = false;
         submit.textContent = editingItemId ? '수정 저장' : '저장';
         return showToast('새 일정 기능용 DB 컬럼이 아직 없어. 같이 준 SQL을 먼저 한 번 실행해 줘.', true);
@@ -4353,6 +4774,8 @@ let tripsCache = [];
       document.getElementById('item-delete-btn').classList.remove('hidden');
 
       document.getElementById('item-input-type').value = type;
+      document.getElementById('group-event-kind').value = normalizeGroupEventKind(item.group_event_kind);
+      document.getElementById('item-input-must').checked = Boolean(item.is_must_do);
       document.getElementById('item-input-date').value = item.schedule_date || getDateForDay(item.day_number) || '';
       setTimeSelects(item.start_time ? item.start_time.slice(0,5) : null);
       document.getElementById('item-input-title').value = item.place_name || '';
