@@ -2607,6 +2607,20 @@ body{
   font-size:11px;
 }
 
+
+/* 병렬 카드 메모는 항상 기본 2줄, 더보기로 확장 */
+.parallel-event-card .timeline-memo{
+  display:-webkit-box !important;
+  overflow:hidden !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:2 !important;
+}
+.parallel-event-card .timeline-memo.expanded{
+  display:block !important;
+  overflow:visible !important;
+  -webkit-line-clamp:unset !important;
+}
+
 </style>
 </head>
 <body>
@@ -3667,6 +3681,23 @@ let tripsCache = [];
       return String(value || '').trim().toLowerCase() === 'secondary' ? 'secondary' : 'main';
     }
 
+    function resolveParallelLane(item, config) {
+      if (!item) return 'main';
+
+      if (normalizeTimelineLane(item.timeline_lane) === 'secondary') {
+        return 'secondary';
+      }
+
+      const itemLaneName = String(item.secondary_lane_name || '').trim();
+      const expectedName = String(config?.secondaryLabel || '').trim();
+
+      if (itemLaneName && expectedName && itemLaneName === expectedName) {
+        return 'secondary';
+      }
+
+      return 'main';
+    }
+
     function itemMinuteValue(item) {
       if (!item?.start_time) return 24 * 60 + 1;
       const [h, m] = String(item.start_time).slice(0,5).split(':').map(Number);
@@ -3959,7 +3990,7 @@ let tripsCache = [];
       rangeItems.forEach(item => {
         const minute = itemMinuteValue(item);
         if (!grouped.has(minute)) grouped.set(minute, { main:[], secondary:[] });
-        const lane = normalizeTimelineLane(item.timeline_lane);
+        const lane = resolveParallelLane(item, config);
         grouped.get(minute)[lane].push(item);
       });
 
@@ -4405,9 +4436,6 @@ let tripsCache = [];
       document.getElementById('item-input-date').addEventListener('change', () => updateLaneFieldVisibility(editingItemId ? itemsCache.find(row => row.id === editingItemId) : null));
       document.getElementById('item-input-hour').addEventListener('change', () => updateLaneFieldVisibility(editingItemId ? itemsCache.find(row => row.id === editingItemId) : null));
       document.getElementById('item-input-minute').addEventListener('change', () => updateLaneFieldVisibility(editingItemId ? itemsCache.find(row => row.id === editingItemId) : null));
-      document.getElementById('item-timeline-lane').addEventListener('change', event => {
-        event.target.dataset.userLane = event.target.value;
-      });
       document.getElementById('item-delete-btn').addEventListener('click', () => {
         if (editingItemId) deleteItineraryItem(editingItemId);
       });
@@ -5407,7 +5435,6 @@ let tripsCache = [];
       document.getElementById('group-event-kind').value = 'split';
       document.getElementById('group-secondary-name').value = '';
       document.getElementById('item-timeline-lane').value = 'main';
-      delete document.getElementById('item-timeline-lane').dataset.userLane;
       document.getElementById('item-input-must').checked = false;
       selectedGooglePlace = null;
       document.getElementById('item-input-place').value = '';
@@ -5499,19 +5526,23 @@ let tripsCache = [];
       const existingItem = editingItemId ? itemsCache.find(row => row.id === editingItemId) : null;
 
       const laneSelect = document.getElementById('item-timeline-lane');
-      const explicitLane = laneSelect.dataset.userLane;
       const fieldVisible = !document.getElementById('item-lane-field').classList.contains('hidden');
+
+      const targetDayNumber = scheduleDate ? dayNumberForDate(scheduleDate) : currentDayNumber;
+      const parallelConfigForSave = getDayParallelConfig(targetDayNumber);
+
       const timelineLane = itemType === 'group'
         ? 'main'
-        : normalizeTimelineLane(
-            explicitLane ||
-            (fieldVisible ? laneSelect.value : existingItem?.timeline_lane) ||
-            'main'
-          );
+        : fieldVisible
+          ? normalizeTimelineLane(laneSelect.value)
+          : resolveParallelLane(existingItem, parallelConfigForSave);
 
-      const secondaryLaneName = (itemType === 'group' && groupEventKind === 'split')
-        ? (document.getElementById('group-secondary-name').value.trim() || '다른 일행')
-        : null;
+      let secondaryLaneName = null;
+      if (itemType === 'group' && groupEventKind === 'split') {
+        secondaryLaneName = document.getElementById('group-secondary-name').value.trim() || '다른 일행';
+      } else if (itemType !== 'group' && timelineLane === 'secondary') {
+        secondaryLaneName = parallelConfigForSave?.secondaryLabel || existingItem?.secondary_lane_name || '다른 일행';
+      }
 
       const basePayload = {
         trip_id: currentTrip.id,
@@ -5567,10 +5598,13 @@ let tripsCache = [];
 
       if (result.error) return showToast(`일정 ${editingItemId ? '수정' : '저장'} 실패: ` + result.error.message, true);
 
-      if (itemType !== 'group' && normalizeTimelineLane(result.data?.timeline_lane) !== timelineLane) {
-        submit.disabled = false;
-        submit.textContent = editingItemId ? '수정 저장' : '저장';
-        return showToast('일행 위치 저장값이 맞지 않아 저장을 멈췄어. 다시 한 번 선택해 줘.', true);
+      if (itemType !== 'group') {
+        const savedLane = resolveParallelLane(result.data, parallelConfigForSave);
+        if (savedLane !== timelineLane) {
+          submit.disabled = false;
+          submit.textContent = editingItemId ? '수정 저장' : '저장';
+          return showToast('일행 위치가 서버에 제대로 저장되지 않았어. 이번 저장은 적용하지 않았어.', true);
+        }
       }
 
       // 서버에서 실제 저장된 행으로 현재 캐시도 즉시 맞춘다.
@@ -5599,13 +5633,17 @@ let tripsCache = [];
 
       document.getElementById('item-input-type').value = type;
       document.getElementById('group-event-kind').value = normalizeGroupEventKind(item.group_event_kind);
-      document.getElementById('group-secondary-name').value = item.secondary_lane_name || '';
-      const laneSelect = document.getElementById('item-timeline-lane');
-      laneSelect.value = normalizeTimelineLane(item.timeline_lane);
-      delete laneSelect.dataset.userLane;
+      document.getElementById('group-secondary-name').value =
+        type === 'group' ? (item.secondary_lane_name || '') : '';
+
       document.getElementById('item-input-must').checked = Boolean(item.is_must_do);
       document.getElementById('item-input-date').value = item.schedule_date || getDateForDay(item.day_number) || '';
       setTimeSelects(item.start_time ? item.start_time.slice(0,5) : null);
+
+      const editDayNumber = item.schedule_date ? dayNumberForDate(item.schedule_date) : item.day_number;
+      const editParallelConfig = getDayParallelConfig(editDayNumber);
+      const laneSelect = document.getElementById('item-timeline-lane');
+      laneSelect.value = resolveParallelLane(item, editParallelConfig);
       document.getElementById('item-input-title').value = item.place_name || '';
       document.getElementById('item-input-cost').value = Number(item.estimated_cost || 0);
       document.getElementById('item-input-currency').value = item.currency || currentTrip.default_currency || 'KRW';
