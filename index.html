@@ -2511,6 +2511,123 @@ body{
   z-index:2;
 }
 
+
+/* ==========================================================
+   컴팩트 상단 고정 일정 네비
+   ========================================================== */
+.schedule-sticky-nav{
+  position:fixed;
+  left:50%;
+  top:10px;
+  z-index:80;
+  width:min(820px,calc(100% - 24px));
+  transform:translate(-50%,-16px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .16s ease, transform .16s ease;
+}
+.schedule-sticky-nav.show{
+  transform:translate(-50%,0);
+  opacity:1;
+  pointer-events:auto;
+}
+.schedule-sticky-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:7px 8px;
+  border:1px solid rgba(218,216,210,.9);
+  border-radius:14px;
+  background:rgba(255,255,255,.93);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  box-shadow:0 8px 24px rgba(38,42,39,.09);
+}
+.schedule-sticky-days{
+  display:flex;
+  gap:5px;
+  min-width:0;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.schedule-sticky-days::-webkit-scrollbar{
+  display:none;
+}
+.schedule-sticky-day{
+  flex:0 0 auto;
+  padding:7px 10px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#756b66;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.schedule-sticky-day.active{
+  background:#eaf1f5;
+  color:#426a88;
+}
+.schedule-sticky-mobile{
+  display:none;
+  flex:1;
+  min-width:0;
+}
+.schedule-sticky-mobile select{
+  width:100%;
+  height:38px;
+  padding:0 10px;
+  border:0;
+  border-radius:9px;
+  background:#f3f6f7;
+  color:#3f6178;
+  font-size:13px;
+  font-weight:900;
+}
+.schedule-sticky-add{
+  flex:0 0 auto;
+  height:36px;
+  border:0;
+  border-radius:9px;
+  background:var(--primary);
+  color:#fff;
+  padding:0 12px;
+  font-size:12px;
+  font-weight:900;
+}
+.schedule-sticky-add.hidden{
+  display:none;
+}
+
+@media(max-width:680px){
+  .schedule-sticky-nav{
+    top:7px;
+    width:calc(100% - 14px);
+  }
+  .schedule-sticky-inner{
+    padding:6px;
+  }
+  .schedule-sticky-days{
+    display:none;
+  }
+  .schedule-sticky-mobile{
+    display:block;
+  }
+  .schedule-sticky-add{
+    height:38px;
+    padding:0 12px;
+    font-size:13px;
+  }
+}
+
+/* 준비함 연결 해제 */
+.item-prep-source-actions .prep-unlink-btn{
+  border-color:#e5d8d4;
+  background:#fff8f6;
+  color:#9a5d50;
+}
+
 </style>
 </head>
 <body>
@@ -2632,16 +2749,24 @@ body{
         <div class="tabs-wrap"><div id="day-tabs" class="tabs"></div></div>
       </div>
 
+      <div id="schedule-sticky-nav" class="schedule-sticky-nav" aria-hidden="true">
+        <div class="schedule-sticky-inner">
+          <div id="schedule-sticky-days" class="schedule-sticky-days"></div>
+          <div class="schedule-sticky-mobile">
+            <select id="schedule-sticky-select" aria-label="일차 선택"></select>
+          </div>
+          <button id="schedule-sticky-add" class="schedule-sticky-add" type="button" onclick="openItemModal()">＋ 일정</button>
+        </div>
+      </div>
+
       <div class="day-panel card">
         <div class="map-card">
           <div class="map-toolbar">
             <div>
               <h3>오늘 동선</h3>
-              <div id="route-summary">장소를 추가하면 일정 순서대로 마커와 직선을 표시해.</div>
             </div>
             <div class="map-toolbar-actions">
               <button id="map-toggle-btn" class="compact-btn" type="button" onclick="toggleDayMap()">지도 펼치기</button>
-              <button class="compact-btn accent" type="button" onclick="openCurrentDayInGoogleMaps()">Google 지도에서 보기 ↗</button>
             </div>
           </div>
           <div id="map-wrap" class="collapsed"><div id="map"></div></div>
@@ -2866,6 +2991,7 @@ body{
               <div class="item-prep-source-actions">
                 <button id="item-prep-source-view" class="hidden" type="button">원문 보기</button>
                 <button id="item-prep-source-find" type="button">준비함에서 찾기</button>
+                <button id="item-prep-source-unlink" class="prep-unlink-btn hidden" type="button">연결 해제</button>
               </div>
             </div>
           </div>
@@ -3226,6 +3352,9 @@ let tripsCache = [];
         if (exact) return exact;
       }
 
+      /* 사용자가 직접 연결 해제한 일정은 제목/내용 자동 매칭도 다시 적용하지 않는다. */
+      if (item.prep_source_detached) return null;
+
       // 이전 버전에서 일정으로 옮긴 자료는 연결 ID가 없을 수 있어서
       // 원본이 아직 남아 있는 경우 제목+내용으로만 읽기 전용 매칭.
       const title = String(item.place_name || '').trim();
@@ -3260,6 +3389,7 @@ let tripsCache = [];
       const detail = document.getElementById('item-prep-source-detail');
       const viewBtn = document.getElementById('item-prep-source-view');
       const findBtn = document.getElementById('item-prep-source-find');
+      const unlinkBtn = document.getElementById('item-prep-source-unlink');
 
       if (source) {
         const imageCount = prepImagesForSource(source.id).length;
@@ -3268,6 +3398,7 @@ let tripsCache = [];
           ? `연결됨 · 사진 ${imageCount}장`
           : '연결됨 · 첨부 사진 없음';
         viewBtn.classList.remove('hidden');
+        unlinkBtn.classList.remove('hidden');
         findBtn.textContent = '다른 원문 찾기';
       } else {
         status.textContent = '연결된 준비함 원문이 없어.';
@@ -3275,6 +3406,7 @@ let tripsCache = [];
           ? '준비함에 있는 메모나 사진을 이 일정과 연결할 수 있어.'
           : '이 여행 준비함에 아직 저장된 항목이 없어.';
         viewBtn.classList.add('hidden');
+        unlinkBtn.classList.add('hidden');
         findBtn.textContent = '준비함에서 찾기';
       }
     }
@@ -3438,10 +3570,22 @@ let tripsCache = [];
       const item = itemsCache.find(row => row.id === prepLinkTargetItemId);
       const source = prepSourceItemsCache.find(row => row.id === sourceId);
       if (!item || !source) return showToast('연결할 자료를 찾지 못했어.', true);
-      const { error } = await supabaseApp.from('itinerary_items').update({ source_prep_item_id: sourceId }).eq('id', prepLinkTargetItemId);
-      if (error) return showToast('준비함 원문을 연결하지 못했어: ' + error.message, true);
-      const cached = itemsCache.find(row => row.id === prepLinkTargetItemId);
-      if (cached) cached.source_prep_item_id = sourceId;
+      const { data: linkedRow, error } = await supabaseApp
+        .from('itinerary_items')
+        .update({ source_prep_item_id: sourceId, prep_source_detached:false })
+        .eq('id', prepLinkTargetItemId)
+        .select('*')
+        .single();
+
+      if (error) {
+        if (/prep_source_detached/i.test(String(error.message || ''))) {
+          return showToast('준비함 연결 해제 기능용 DB 컬럼이 아직 없어. 같이 준 SQL을 먼저 한 번 실행해 줘.', true);
+        }
+        return showToast('준비함 원문을 연결하지 못했어: ' + error.message, true);
+      }
+
+      const cachedIndex = itemsCache.findIndex(row => row.id === prepLinkTargetItemId);
+      if (cachedIndex >= 0 && linkedRow) itemsCache[cachedIndex] = linkedRow;
       const linkedItemId = prepLinkTargetItemId;
       prepLinkTargetItemId = null;
       closeModal('prep-link-modal');
@@ -3453,6 +3597,57 @@ let tripsCache = [];
       }
 
       showToast('준비함 원문을 연결했어. 사진도 같이 볼 수 있어.');
+    }
+
+    async function unlinkPrepSourceFromSchedule() {
+      if (!editingItemId || isReadOnlyMode || !currentUser) return;
+
+      const item = itemsCache.find(row => row.id === editingItemId);
+      if (!item) return showToast('일정을 찾지 못했어.', true);
+
+      const source = resolvePrepSourceForItem(item);
+      if (!source) {
+        updateItemPrepSourceField(item);
+        return;
+      }
+
+      const ok = confirm(
+        '일정 내용은 그대로 두고 준비함 원문·사진 연결만 해제할까?\n\n' +
+        '준비함에 있는 원본과 사진은 삭제되지 않고, 나중에 다시 연결할 수 있어.'
+      );
+      if (!ok) return;
+
+      const button = document.getElementById('item-prep-source-unlink');
+      button.disabled = true;
+      button.textContent = '해제 중...';
+
+      const { data: detachedRow, error } = await supabaseApp
+        .from('itinerary_items')
+        .update({
+          source_prep_item_id:null,
+          prep_source_detached:true
+        })
+        .eq('id', editingItemId)
+        .select('*')
+        .single();
+
+      button.disabled = false;
+      button.textContent = '연결 해제';
+
+      if (error) {
+        if (/prep_source_detached/i.test(String(error.message || ''))) {
+          return showToast('연결 해제 기능용 DB 컬럼이 아직 없어. 같이 준 SQL을 먼저 한 번 실행해 줘.', true);
+        }
+        return showToast('준비함 연결을 해제하지 못했어: ' + error.message, true);
+      }
+
+      const cachedIndex = itemsCache.findIndex(row => row.id === editingItemId);
+      if (cachedIndex >= 0 && detachedRow) itemsCache[cachedIndex] = detachedRow;
+
+      const refreshed = itemsCache.find(row => row.id === editingItemId);
+      if (refreshed) updateItemPrepSourceField(refreshed);
+      renderCurrentDayItems();
+      showToast('준비함 연결만 해제했어. 일정과 준비함 원본은 그대로야.');
     }
 
 
@@ -4480,6 +4675,15 @@ let tripsCache = [];
         const item = itemsCache.find(row => row.id === editingItemId);
         if (item) openPrepSourceForItem(item, false);
       });
+      document.getElementById('item-prep-source-unlink').addEventListener('click', unlinkPrepSourceFromSchedule);
+
+      document.getElementById('schedule-sticky-select').addEventListener('change', event => {
+        const day = Number(event.target.value);
+        if (Number.isInteger(day) && day >= 1 && day <= getTripDayCount()) selectDay(day);
+      });
+      window.addEventListener('scroll', updateScheduleStickyVisibility, { passive:true });
+      window.addEventListener('resize', updateScheduleStickyVisibility);
+
       initGoogleFeatures();
 
       document.addEventListener('click', () => closePlannerMenu());
@@ -4544,6 +4748,7 @@ let tripsCache = [];
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
       document.getElementById(id).classList.add('active');
+      requestAnimationFrame(updateScheduleStickyVisibility);
     }
 
     function showAdminLogin() {
@@ -5070,6 +5275,8 @@ let tripsCache = [];
         tabs.appendChild(button);
       }
       updateDayTitle();
+      renderScheduleStickyNav();
+      requestAnimationFrame(updateScheduleStickyVisibility);
     }
 
     function selectDay(day) {
@@ -5085,6 +5292,62 @@ let tripsCache = [];
       const date = parseLocalDate(currentTrip.start_date);
       date.setDate(date.getDate() + day - 1);
       return `${day}일차 · ${date.getMonth() + 1}/${date.getDate()}`;
+    }
+
+    function getStickyDayLabel(day) {
+      if (!currentTrip?.start_date) return `${day}일차`;
+      const date = parseLocalDate(currentTrip.start_date);
+      date.setDate(date.getDate() + day - 1);
+      const weekdays = ['일','월','화','수','목','금','토'];
+      return `${day}일차 · ${date.getMonth() + 1}/${date.getDate()} ${weekdays[date.getDay()]}`;
+    }
+
+    function renderScheduleStickyNav() {
+      const days = document.getElementById('schedule-sticky-days');
+      const select = document.getElementById('schedule-sticky-select');
+      const add = document.getElementById('schedule-sticky-add');
+      if (!days || !select || !add || !currentTrip) return;
+
+      days.replaceChildren();
+      select.replaceChildren();
+
+      const count = getTripDayCount();
+      for (let day = 1; day <= count; day += 1) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'schedule-sticky-day' + (day === currentDayNumber ? ' active' : '');
+        button.textContent = getDayTabLabel(day);
+        button.addEventListener('click', () => selectDay(day));
+        days.appendChild(button);
+
+        const option = document.createElement('option');
+        option.value = String(day);
+        option.textContent = getStickyDayLabel(day);
+        option.selected = day === currentDayNumber;
+        select.appendChild(option);
+      }
+
+      add.classList.toggle('hidden', isReadOnlyMode);
+    }
+
+    function updateScheduleStickyVisibility() {
+      const nav = document.getElementById('schedule-sticky-nav');
+      const tabsWrap = document.querySelector('#screen-planner .tabs-wrap');
+      const planner = document.getElementById('screen-planner');
+      if (!nav || !tabsWrap || !planner) return;
+
+      const plannerVisible = planner.classList.contains('active') && Boolean(currentTrip);
+      if (!plannerVisible) {
+        nav.classList.remove('show');
+        nav.setAttribute('aria-hidden','true');
+        return;
+      }
+
+      const rect = tabsWrap.getBoundingClientRect();
+      const shouldShow = rect.bottom <= 8;
+
+      nav.classList.toggle('show', shouldShow);
+      nav.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
     }
 
     function updateDayTitle() {
@@ -5939,8 +6202,7 @@ let tripsCache = [];
           }
         });
       } catch (error) {
-        document.getElementById('route-summary').textContent = 'Google 지도를 불러오지 못했어. API 설정과 도메인 제한을 확인해 줘.';
-        console.error(error);
+        console.error('Google 지도를 불러오지 못했어.', error);
       }
     }
 
@@ -5968,30 +6230,6 @@ let tripsCache = [];
       }
     }
 
-    function openCurrentDayInGoogleMaps() {
-      const items = getCurrentDayMappedItems();
-      if (!items.length) return showToast('Google 지도에서 열 장소가 아직 없어.', true);
-
-      if (items.length === 1) {
-        const item = items[0];
-        const query = `${item.latitude},${item.longitude}`;
-        const params = new URLSearchParams({ api: '1', query });
-        if (item.google_place_id) params.set('query_place_id', item.google_place_id);
-        const url = `https://www.google.com/maps/search/?${params.toString()}`;
-        window.open(url, '_blank', 'noopener,noreferrer');
-        return;
-      }
-
-      const points = items.slice(0, 5);
-      const origin = `${points[0].latitude},${points[0].longitude}`;
-      const destination = `${points[points.length - 1].latitude},${points[points.length - 1].longitude}`;
-      const params = new URLSearchParams({ api: '1', origin, destination });
-      const waypoints = points.slice(1, -1).map(item => `${item.latitude},${item.longitude}`);
-      if (waypoints.length) params.set('waypoints', waypoints.join('|'));
-      window.open(`https://www.google.com/maps/dir/?${params.toString()}`, '_blank', 'noopener,noreferrer');
-      if (items.length > points.length) showToast('Google 지도 링크에는 앞의 5개 장소까지만 넣었어.');
-    }
-
     function clearMapOverlays() {
       mapMarkers.forEach(marker => marker.setMap(null));
       mapMarkers = [];
@@ -6002,13 +6240,9 @@ let tripsCache = [];
     async function renderCurrentDayMap() {
       if (!map) return;
       clearMapOverlays();
-      const summary = document.getElementById('route-summary');
       const items = getCurrentDayMappedItems();
 
-      if (!items.length) {
-        summary.textContent = '이 날짜에는 지도에 표시할 장소가 아직 없어.';
-        return;
-      }
+      if (!items.length) return;
 
       const bounds = new google.maps.LatLngBounds();
       const positions = items.map((item, index) => {
@@ -6038,10 +6272,6 @@ let tripsCache = [];
 
       map.fitBounds(bounds);
       if (items.length === 1) map.setZoom(15);
-
-      summary.textContent = items.length === 1
-        ? '장소 1개를 지도에 표시했어.'
-        : `마커 ${items.length}개를 일정 순서대로 직선으로 연결했어. 실제 도로 경로가 아니라 위치 흐름을 보는 선이야.`;
     }
 
     async function deleteCurrentTrip() {
