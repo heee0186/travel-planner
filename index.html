@@ -1902,6 +1902,81 @@ body{
 .prep-link-recommend{color:#4f725c;font-weight:900}
 @media(max-width:680px){.prep-link-box{padding:17px}.prep-link-item{grid-template-columns:1fr}.prep-link-action{justify-self:end}}
 
+
+/* ==========================================================
+   편집창 안에서 준비함 연결 + 이동 메모 2줄
+   ========================================================== */
+#item-input-move-after{
+  min-height:68px;
+  resize:vertical;
+  line-height:1.5;
+}
+.transfer-pill{
+  white-space:pre-line;
+  border-radius:12px;
+  line-height:1.45;
+}
+.item-prep-source-field{
+  margin-top:4px;
+}
+.item-prep-source-panel{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:13px;
+  padding:12px 13px;
+  border:1px solid #dfe6e1;
+  border-radius:12px;
+  background:#f8fbf9;
+}
+.item-prep-source-panel > div:first-child{
+  min-width:0;
+}
+.item-prep-source-panel strong{
+  display:block;
+  color:#405047;
+  font-size:14px;
+  line-height:1.4;
+}
+.item-prep-source-panel small{
+  display:block;
+  margin-top:4px;
+  color:#7b857f;
+  font-size:12px;
+  line-height:1.45;
+}
+.item-prep-source-actions{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.item-prep-source-actions button{
+  border:1px solid #cad8cf;
+  border-radius:9px;
+  padding:8px 10px;
+  background:#fff;
+  color:#4c6656;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+#item-prep-source-find{
+  background:#60786b;
+  border-color:#60786b;
+  color:#fff;
+}
+@media(max-width:680px){
+  .item-prep-source-panel{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .item-prep-source-actions{
+    width:100%;
+    justify-content:flex-end;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2239,8 +2314,22 @@ body{
 
           <div class="field">
             <label for="item-input-move-after">다음 일정까지 이동 · 선택</label>
-            <input id="item-input-move-after" type="text" maxlength="120" placeholder="예: 🚕 택시 약 15분 / 🚶 도보 5분">
-            <div class="help">입력하면 현재 일정과 다음 일정 사이 타임라인에 작게 표시돼.</div>
+            <textarea id="item-input-move-after" rows="2" maxlength="220" placeholder="예: 🚶 도보 5분&#10;큰길 따라 직진 후 오른쪽 골목"></textarea>
+            <div class="help">두 줄까지 편하게 적어도 돼. 현재 일정과 다음 일정 사이에 그대로 표시돼.</div>
+          </div>
+
+          <div id="item-prep-source-field" class="field item-prep-source-field hidden">
+            <label>준비함 원문 / 사진</label>
+            <div class="item-prep-source-panel">
+              <div>
+                <strong id="item-prep-source-status">연결된 준비함 원문이 없어.</strong>
+                <small id="item-prep-source-detail">준비함에 저장해둔 메모나 사진을 이 일정과 연결할 수 있어.</small>
+              </div>
+              <div class="item-prep-source-actions">
+                <button id="item-prep-source-view" class="hidden" type="button">원문 보기</button>
+                <button id="item-prep-source-find" type="button">준비함에서 찾기</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2577,6 +2666,42 @@ let tripsCache = [];
       return prepSourceImagesCache.filter(image => image.item_id === sourceId);
     }
 
+    function updateItemPrepSourceField(item) {
+      const field = document.getElementById('item-prep-source-field');
+      if (!field) return;
+
+      if (!item || !editingItemId || isReadOnlyMode) {
+        field.classList.add('hidden');
+        return;
+      }
+
+      field.classList.remove('hidden');
+
+      const source = resolvePrepSourceForItem(item);
+      const status = document.getElementById('item-prep-source-status');
+      const detail = document.getElementById('item-prep-source-detail');
+      const viewBtn = document.getElementById('item-prep-source-view');
+      const findBtn = document.getElementById('item-prep-source-find');
+
+      if (source) {
+        const imageCount = prepImagesForSource(source.id).length;
+        status.textContent = `📌 ${source.title || '준비함 원문'}`;
+        detail.textContent = imageCount
+          ? `연결됨 · 사진 ${imageCount}장`
+          : '연결됨 · 첨부 사진 없음';
+        viewBtn.classList.remove('hidden');
+        findBtn.textContent = '다른 원문 찾기';
+      } else {
+        status.textContent = '연결된 준비함 원문이 없어.';
+        detail.textContent = prepSourceItemsCache.length
+          ? '준비함에 있는 메모나 사진을 이 일정과 연결할 수 있어.'
+          : '이 여행 준비함에 아직 저장된 항목이 없어.';
+        viewBtn.classList.add('hidden');
+        findBtn.textContent = '준비함에서 찾기';
+      }
+    }
+
+
     function normalizedSearchText(value) {
       return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
     }
@@ -2707,9 +2832,16 @@ let tripsCache = [];
       if (error) return showToast('준비함 원문을 연결하지 못했어: ' + error.message, true);
       const cached = itemsCache.find(row => row.id === prepLinkTargetItemId);
       if (cached) cached.source_prep_item_id = sourceId;
+      const linkedItemId = prepLinkTargetItemId;
       prepLinkTargetItemId = null;
       closeModal('prep-link-modal');
       renderCurrentDayItems();
+
+      if (editingItemId === linkedItemId) {
+        const refreshedItem = itemsCache.find(row => row.id === linkedItemId);
+        if (refreshedItem) updateItemPrepSourceField(refreshedItem);
+      }
+
       showToast('준비함 원문을 연결했어. 사진도 같이 볼 수 있어.');
     }
 
@@ -3158,6 +3290,15 @@ let tripsCache = [];
         search.value = '';
         renderPrepLinkCandidates('');
         search.focus();
+      });
+      document.getElementById('item-prep-source-find').addEventListener('click', () => {
+        if (!editingItemId) return;
+        openPrepLinkModal(editingItemId);
+      });
+      document.getElementById('item-prep-source-view').addEventListener('click', () => {
+        if (!editingItemId) return;
+        const item = itemsCache.find(row => row.id === editingItemId);
+        if (item) openPrepSourceForItem(item, false);
       });
       initGoogleFeatures();
 
@@ -3929,13 +4070,6 @@ let tripsCache = [];
             photoBtn.addEventListener('click', () => openPrepSourceForItem(item, true));
             quick.appendChild(photoBtn);
           }
-        } else if (!isReadOnlyMode && prepSourceItemsCache.length) {
-          const linkBtn = document.createElement('button');
-          linkBtn.type = 'button';
-          linkBtn.className = 'timeline-link-button';
-          linkBtn.textContent = '🔗 준비함에서 찾기';
-          linkBtn.addEventListener('click', () => openPrepLinkModal(item.id));
-          quick.appendChild(linkBtn);
         }
 
         if (item.map_url || item.latitude != null || item.longitude != null || item.place_name) {
@@ -4085,6 +4219,7 @@ let tripsCache = [];
       document.getElementById('selected-place').textContent = '';
       document.getElementById('item-input-currency').value = currentTrip.default_currency || 'KRW';
       document.getElementById('item-input-date').value = getDateForDay(currentDayNumber) || '';
+      updateItemPrepSourceField(null);
       syncItemTypeFields();
       openModal('item-modal');
       setTimeout(() => document.getElementById('item-input-title').focus(), 60);
@@ -4261,6 +4396,7 @@ let tripsCache = [];
         document.getElementById('flight-baggage').value = flight.baggage || '';
       }
 
+      updateItemPrepSourceField(item);
       syncItemTypeFields();
       openModal('item-modal');
       setTimeout(() => document.getElementById('item-input-title').focus(), 60);
