@@ -1835,6 +1835,73 @@ body{
   }
 }
 
+
+/* ==========================================================
+   일정에서 준비함 원문 찾기
+   ========================================================== */
+.timeline-link-button{
+  border:1px dashed #9db1a3 !important;
+  background:#fbfdfb !important;
+  color:#4d6856 !important;
+}
+.prep-link-box{
+  width:min(680px,100%);
+  max-height:88vh;
+  overflow:hidden;
+  padding:22px;
+  display:flex;
+  flex-direction:column;
+}
+.prep-link-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+}
+.prep-link-kicker{
+  display:inline-flex;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#edf3ef;
+  color:#4f6d59;
+  font-size:12px;
+  font-weight:900;
+}
+.prep-link-head h3{margin:8px 0 0;font-size:22px;line-height:1.35}
+.prep-link-head p{margin:5px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+.prep-link-close{
+  flex:0 0 auto;width:36px;height:36px;border:0;border-radius:10px;
+  background:#f3f2ee;color:#6f746f;font-size:22px;line-height:1
+}
+.prep-link-search-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:17px}
+.prep-link-search-wrap input{
+  width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;
+  color:var(--text);background:#fff;font-size:15px;outline:none
+}
+.prep-link-search-wrap input:focus{border-color:#9eb0a4;box-shadow:0 0 0 3px rgba(96,120,107,.1)}
+.prep-link-search-wrap button{
+  border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#f6f5f1;
+  color:#686e69;font-size:13px;font-weight:850
+}
+.prep-link-help{margin-top:9px;color:var(--muted);font-size:12px;line-height:1.5}
+.prep-link-list{min-height:120px;max-height:52vh;overflow:auto;display:grid;gap:8px;margin-top:14px;padding-right:3px}
+.prep-link-empty{padding:25px 16px;border:1px dashed var(--line);border-radius:13px;background:#fbfaf7;color:var(--muted);font-size:14px;text-align:center}
+.prep-link-item{
+  width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:13px;align-items:center;
+  padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#fff;text-align:left
+}
+.prep-link-item:hover{border-color:#b9c7bd;background:#fbfdfb}
+.prep-link-main{min-width:0}
+.prep-link-item-top{display:flex;align-items:center;gap:7px;min-width:0}
+.prep-link-category{flex:0 0 auto;display:inline-flex;padding:4px 7px;border-radius:999px;background:#f1f3ef;color:#606a63;font-size:11px;font-weight:900}
+.prep-link-item-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#343a36;font-size:15px;font-weight:900}
+.prep-link-item p{display:-webkit-box;overflow:hidden;margin:6px 0 0;color:#6e746f;font-size:13px;line-height:1.5;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.prep-link-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;color:#87908a;font-size:11px}
+.prep-link-action{flex:0 0 auto;border:0;border-radius:10px;background:var(--primary);color:#fff;padding:8px 10px;font-size:12px;font-weight:900}
+.prep-link-item.recommended{border-color:#9fb4a6;box-shadow:0 0 0 2px rgba(96,120,107,.06)}
+.prep-link-recommend{color:#4f725c;font-weight:900}
+@media(max-width:680px){.prep-link-box{padding:17px}.prep-link-item{grid-template-columns:1fr}.prep-link-action{justify-self:end}}
+
 </style>
 </head>
 <body>
@@ -2314,6 +2381,32 @@ body{
   </div>
 
 
+
+  <!-- 일정 ↔ 준비함 연결 -->
+  <div id="prep-link-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="prep-link-modal-title">
+    <div class="modal-box prep-link-box">
+      <div class="prep-link-head">
+        <div>
+          <span class="prep-link-kicker">준비함 연결</span>
+          <h3 id="prep-link-modal-title">이 일정과 준비함 원문 연결</h3>
+          <p id="prep-link-target"></p>
+        </div>
+        <button class="prep-link-close" type="button" onclick="closeModal('prep-link-modal')" aria-label="닫기">×</button>
+      </div>
+
+      <div class="prep-link-search-wrap">
+        <input id="prep-link-search" type="search" placeholder="준비함 제목이나 내용 검색">
+        <button id="prep-link-search-clear" type="button">지우기</button>
+      </div>
+
+      <div class="prep-link-help">
+        일정은 그대로 두고 준비함 원문만 연결해. 연결하면 사진과 원문 버튼이 일정 카드에 바로 생겨.
+      </div>
+
+      <div id="prep-link-list" class="prep-link-list"></div>
+    </div>
+  </div>
+
   <!-- 준비함 원문 보기 -->
   <div id="prep-source-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="prep-source-title">
     <div class="modal-box prep-source-box">
@@ -2378,6 +2471,7 @@ let tripsCache = [];
     let expensesCache = [];
     let prepSourceItemsCache = [];
     let prepSourceImagesCache = [];
+    let prepLinkTargetItemId = null;
     let editingExpenseId = null;
     let expenseLinkedItemId = null;
     let authReady = false;
@@ -2482,6 +2576,143 @@ let tripsCache = [];
     function prepImagesForSource(sourceId) {
       return prepSourceImagesCache.filter(image => image.item_id === sourceId);
     }
+
+    function normalizedSearchText(value) {
+      return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
+    function prepMatchScore(item, source) {
+      const itemTitle = normalizedSearchText(item?.place_name);
+      const itemMemo = normalizedSearchText(item?.memo);
+      const sourceTitle = normalizedSearchText(source?.title);
+      const sourceContent = normalizedSearchText(source?.content);
+      let score = 0;
+      if (itemTitle && sourceTitle === itemTitle) score += 100;
+      else if (itemTitle && sourceTitle.includes(itemTitle)) score += 65;
+      else if (itemTitle && itemTitle.includes(sourceTitle) && sourceTitle.length >= 3) score += 55;
+      const tokens = itemTitle.split(/[\s·,/()\-]+/).filter(token => token.length >= 2);
+      const sourceText = `${sourceTitle} ${sourceContent}`;
+      tokens.forEach(token => {
+        if (sourceTitle.includes(token)) score += 12;
+        else if (sourceContent.includes(token)) score += 5;
+      });
+      if (itemMemo && sourceContent === itemMemo) score += 40;
+      else if (itemMemo && sourceContent) {
+        const itemPiece = itemMemo.slice(0, Math.min(itemMemo.length, 40));
+        const sourcePiece = sourceContent.slice(0, Math.min(sourceContent.length, 40));
+        if ((itemPiece && sourceContent.includes(itemPiece)) || (sourcePiece && itemMemo.includes(sourcePiece))) score += 18;
+      }
+      return score;
+    }
+
+    function renderPrepLinkCandidates(searchText = '') {
+      const list = document.getElementById('prep-link-list');
+      if (!list) return;
+      list.replaceChildren();
+      const item = itemsCache.find(row => row.id === prepLinkTargetItemId);
+      if (!item) {
+        const empty = document.createElement('div');
+        empty.className = 'prep-link-empty';
+        empty.textContent = '연결할 일정을 찾지 못했어.';
+        list.appendChild(empty);
+        return;
+      }
+      const query = normalizedSearchText(searchText);
+      const rows = prepSourceItemsCache
+        .map(source => {
+          const haystack = normalizedSearchText(`${source.title || ''} ${source.content || ''}`);
+          return { source, score: prepMatchScore(item, source), matchesQuery: !query || haystack.includes(query) };
+        })
+        .filter(row => row.matchesQuery)
+        .sort((a,b) => b.score !== a.score ? b.score - a.score : String(b.source.created_at || '').localeCompare(String(a.source.created_at || '')));
+
+      if (!rows.length) {
+        const empty = document.createElement('div');
+        empty.className = 'prep-link-empty';
+        empty.textContent = query ? '검색 결과가 없어. 다른 검색어로 찾아봐.' : '이 여행의 준비함에 저장된 항목이 없어.';
+        list.appendChild(empty);
+        return;
+      }
+
+      rows.forEach(({source, score}, index) => {
+        const row = document.createElement('div');
+        const recommended = score >= 35 && index < 3;
+        row.className = 'prep-link-item' + (recommended ? ' recommended' : '');
+        const main = document.createElement('div');
+        main.className = 'prep-link-main';
+        const top = document.createElement('div');
+        top.className = 'prep-link-item-top';
+        const category = document.createElement('span');
+        category.className = 'prep-link-category';
+        category.textContent = PREP_CATEGORY_LABELS[source.category] || '준비함';
+        const title = document.createElement('span');
+        title.className = 'prep-link-item-title';
+        title.textContent = source.title || '제목 없는 항목';
+        top.append(category, title);
+        main.appendChild(top);
+        if (source.content) {
+          const content = document.createElement('p');
+          content.textContent = source.content;
+          main.appendChild(content);
+        }
+        const meta = document.createElement('div');
+        meta.className = 'prep-link-meta';
+        const imageCount = prepImagesForSource(source.id).length;
+        if (recommended) {
+          const recommend = document.createElement('span');
+          recommend.className = 'prep-link-recommend';
+          recommend.textContent = '✨ 비슷한 항목';
+          meta.appendChild(recommend);
+        }
+        if (imageCount) {
+          const photos = document.createElement('span');
+          photos.textContent = `🖼️ 사진 ${imageCount}`;
+          meta.appendChild(photos);
+        }
+        if (source.area === 'reservation') {
+          const reservation = document.createElement('span');
+          reservation.textContent = '예약 완료';
+          meta.appendChild(reservation);
+        }
+        if (meta.children.length) main.appendChild(meta);
+        const action = document.createElement('button');
+        action.type = 'button';
+        action.className = 'prep-link-action';
+        action.textContent = '이 원문 연결';
+        action.addEventListener('click', () => linkPrepSourceToSchedule(source.id));
+        row.append(main, action);
+        list.appendChild(row);
+      });
+    }
+
+    function openPrepLinkModal(itemId) {
+      if (isReadOnlyMode || !currentUser) return;
+      const item = itemsCache.find(row => row.id === itemId);
+      if (!item) return showToast('연결할 일정을 찾지 못했어.', true);
+      prepLinkTargetItemId = itemId;
+      document.getElementById('prep-link-target').textContent = `일정: ${item.place_name || '제목 없는 일정'}`;
+      const search = document.getElementById('prep-link-search');
+      search.value = item.place_name || '';
+      renderPrepLinkCandidates(search.value);
+      document.getElementById('prep-link-modal').classList.add('open');
+      setTimeout(() => { search.focus(); search.select(); }, 60);
+    }
+
+    async function linkPrepSourceToSchedule(sourceId) {
+      if (!prepLinkTargetItemId || !sourceId) return;
+      const item = itemsCache.find(row => row.id === prepLinkTargetItemId);
+      const source = prepSourceItemsCache.find(row => row.id === sourceId);
+      if (!item || !source) return showToast('연결할 자료를 찾지 못했어.', true);
+      const { error } = await supabaseApp.from('itinerary_items').update({ source_prep_item_id: sourceId }).eq('id', prepLinkTargetItemId);
+      if (error) return showToast('준비함 원문을 연결하지 못했어: ' + error.message, true);
+      const cached = itemsCache.find(row => row.id === prepLinkTargetItemId);
+      if (cached) cached.source_prep_item_id = sourceId;
+      prepLinkTargetItemId = null;
+      closeModal('prep-link-modal');
+      renderCurrentDayItems();
+      showToast('준비함 원문을 연결했어. 사진도 같이 볼 수 있어.');
+    }
+
 
     function openPrepImageLightbox(url) {
       if (!url) return;
@@ -2918,6 +3149,15 @@ let tripsCache = [];
       document.getElementById('item-input-type').addEventListener('change', syncItemTypeFields);
       document.getElementById('item-delete-btn').addEventListener('click', () => {
         if (editingItemId) deleteItineraryItem(editingItemId);
+      });
+      document.getElementById('prep-link-search').addEventListener('input', event => {
+        renderPrepLinkCandidates(event.target.value);
+      });
+      document.getElementById('prep-link-search-clear').addEventListener('click', () => {
+        const search = document.getElementById('prep-link-search');
+        search.value = '';
+        renderPrepLinkCandidates('');
+        search.focus();
       });
       initGoogleFeatures();
 
@@ -3689,6 +3929,13 @@ let tripsCache = [];
             photoBtn.addEventListener('click', () => openPrepSourceForItem(item, true));
             quick.appendChild(photoBtn);
           }
+        } else if (!isReadOnlyMode && prepSourceItemsCache.length) {
+          const linkBtn = document.createElement('button');
+          linkBtn.type = 'button';
+          linkBtn.className = 'timeline-link-button';
+          linkBtn.textContent = '🔗 준비함에서 찾기';
+          linkBtn.addEventListener('click', () => openPrepLinkModal(item.id));
+          quick.appendChild(linkBtn);
         }
 
         if (item.map_url || item.latitude != null || item.longitude != null || item.place_name) {
@@ -4528,7 +4775,10 @@ let tripsCache = [];
     }
 
     function openModal(id) { document.getElementById(id).classList.add('open'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      if (id === 'prep-link-modal') prepLinkTargetItemId = null;
+    }
 
     function getDateForDay(day) {
       if (!currentTrip?.start_date) return null;
