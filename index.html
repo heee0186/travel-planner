@@ -2257,6 +2257,196 @@ body{
   }
 }
 
+
+/* ==========================================================
+   확정형 듀얼 타임라인
+   - PC: 박스 없이 두 개의 세로 타임라인
+   - 모바일: 자동 드롭다운 + 선택한 한 사람의 기존 타임라인
+   ========================================================== */
+
+/* ⭐ 꼭!은 스티커만 표시 */
+.timeline-card.must-do{
+  border-color:var(--line) !important;
+  box-shadow:0 6px 18px rgba(40,45,42,.035) !important;
+  background:#fff !important;
+}
+
+#item-lane-field select,
+#group-secondary-name{
+  width:100%;
+}
+
+/* PC 듀얼 타임라인 */
+.dual-timeline-wrap{
+  margin:8px 0 8px 92px;
+}
+.dual-timeline-heads{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:28px;
+  margin-bottom:4px;
+}
+.dual-timeline-head{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:5px 2px 8px;
+  border-bottom:2px solid #dbe4de;
+  color:#53695b;
+  font-size:13px;
+  font-weight:950;
+}
+.dual-timeline-head.secondary{
+  border-bottom-color:#dce5ec;
+  color:#526b80;
+}
+.dual-time-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  column-gap:28px;
+}
+.dual-time-row{
+  grid-column:1 / -1;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  column-gap:28px;
+  min-height:70px;
+}
+.dual-lane-cell{
+  position:relative;
+  min-width:0;
+  padding:5px 0 8px;
+}
+.dual-lane-cell::before{
+  content:"";
+  position:absolute;
+  left:49px;
+  top:0;
+  bottom:0;
+  width:2px;
+  background:#dce2dd;
+}
+.dual-lane-cell.secondary::before{
+  background:#dce4ea;
+}
+.dual-lane-cell.empty{
+  min-height:78px;
+}
+.dual-lane-event{
+  position:relative;
+  display:grid;
+  grid-template-columns:40px 18px minmax(0,1fr);
+  gap:6px;
+  align-items:start;
+}
+.dual-lane-event + .dual-lane-event{
+  margin-top:10px;
+}
+.dual-lane-time{
+  padding-top:16px;
+  color:#456b81;
+  font-size:12px;
+  font-weight:950;
+  text-align:right;
+}
+.dual-lane-dot{
+  position:relative;
+  z-index:2;
+  width:12px;
+  height:12px;
+  margin-top:18px;
+  border:3px solid #fff;
+  border-radius:50%;
+  background:#6c8b78;
+  box-shadow:0 0 0 2px #cbdcd0;
+}
+.dual-lane-cell.secondary .dual-lane-dot{
+  background:#6d89a0;
+  box-shadow:0 0 0 2px #cbd7e0;
+}
+.dual-lane-card{
+  min-width:0;
+}
+.dual-lane-card .timeline-card{
+  padding:14px 14px 12px;
+}
+.dual-lane-card .timeline-title{
+  font-size:17px;
+}
+.dual-lane-card .timeline-memo{
+  font-size:14px;
+}
+.dual-lane-card .timeline-sub{
+  font-size:13px;
+}
+.dual-lane-card .timeline-card-bottom{
+  margin-top:9px;
+  padding-top:9px;
+}
+.dual-lane-card .timeline-quick button,
+.dual-lane-card .timeline-edit,
+.dual-lane-card .timeline-delete,
+.dual-lane-card .timeline-payment-button{
+  font-size:12px;
+}
+.dual-lane-transfer{
+  display:grid;
+  grid-template-columns:40px 18px minmax(0,1fr);
+  gap:6px;
+  margin:2px 0 7px;
+}
+.dual-lane-transfer .transfer-pill{
+  grid-column:3;
+  justify-self:start;
+  max-width:100%;
+  font-size:12px;
+}
+
+/* 모바일 자동 전환 */
+.dual-mobile-switch,
+.dual-mobile-timelines{
+  display:none;
+}
+
+@media(max-width:720px){
+  .dual-timeline-desktop{
+    display:none;
+  }
+  .dual-timeline-wrap{
+    margin:7px 0;
+  }
+  .dual-mobile-switch{
+    display:block;
+    margin:6px 0 10px 70px;
+  }
+  .dual-mobile-switch select{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid #d9ddd9;
+    border-radius:10px;
+    background:#fff;
+    color:#4f5c54;
+    font-size:13px;
+    font-weight:900;
+  }
+  .dual-mobile-timelines{
+    display:block;
+  }
+  .dual-mobile-lane{
+    display:none;
+  }
+  .dual-mobile-lane.active{
+    display:block;
+  }
+}
+
+/* 아주 좁은 화면에서도 드롭다운은 카드 시작선과 맞춤 */
+@media(max-width:520px){
+  .dual-mobile-switch{
+    margin-left:70px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2628,7 +2818,21 @@ body{
               <option value="move">✈️ 별도 이동</option>
             </select>
           </div>
+          <div id="group-secondary-name-field" class="field hidden">
+            <label for="group-secondary-name">오른쪽 일행 이름</label>
+            <input id="group-secondary-name" type="text" maxlength="40" placeholder="예: 호앗">
+            <div class="help">분기 시작일 때 오른쪽 타임라인에 표시할 이름이야.</div>
+          </div>
           <div class="help">일반 일정 카드가 아니라 타임라인 사이에 얇게 표시돼. 그날만 필요할 때 쓰면 돼.</div>
+        </div>
+
+        <div id="item-lane-field" class="field hidden">
+          <label for="item-timeline-lane">분기 중 어느 쪽 일정?</label>
+          <select id="item-timeline-lane">
+            <option value="main">👭 우리</option>
+            <option value="secondary">👤 다른 일행</option>
+          </select>
+          <div class="help">분기 구간에 들어가는 일정만 선택하면 돼. 저장된 값 그대로 왼쪽/오른쪽에 배치해.</div>
         </div>
 
         <div id="flight-fields" class="flight-fields hidden">
@@ -3298,6 +3502,466 @@ let tripsCache = [];
       return GROUP_EVENT_KINDS[value] ? value : 'split';
     }
 
+    function itemMinuteValue(itemOrTime) {
+      const raw = typeof itemOrTime === 'string' ? itemOrTime : itemOrTime?.start_time;
+      if (!raw) return 24 * 60 + 1;
+      const [h,m] = String(raw).slice(0,5).split(':').map(Number);
+      return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+    }
+
+    function directTimelineLane(value) {
+      return value === 'secondary' ? 'secondary' : 'main';
+    }
+
+    function getParallelSegmentsForDay(dayNumber) {
+      const dayItems = itemsCache
+        .filter(item => item.day_number === dayNumber)
+        .sort((a,b) => {
+          const diff = itemMinuteValue(a) - itemMinuteValue(b);
+          if (diff !== 0) return diff;
+          return Number(a.sort_order || 0) - Number(b.sort_order || 0);
+        });
+
+      const segments = [];
+      for (let i = 0; i < dayItems.length; i += 1) {
+        const item = dayItems[i];
+        const type = normalizeItemType(item.item_type || inferItemType(item));
+        if (type !== 'group' || normalizeGroupEventKind(item.group_event_kind) !== 'split') continue;
+
+        const startMinute = itemMinuteValue(item);
+        let join = null;
+        for (let j = i + 1; j < dayItems.length; j += 1) {
+          const candidate = dayItems[j];
+          const candidateType = normalizeItemType(candidate.item_type || inferItemType(candidate));
+          if (
+            candidateType === 'group' &&
+            normalizeGroupEventKind(candidate.group_event_kind) === 'join' &&
+            itemMinuteValue(candidate) >= startMinute
+          ) {
+            join = candidate;
+            break;
+          }
+        }
+
+        segments.push({
+          split:item,
+          join,
+          startMinute,
+          endMinute:join ? itemMinuteValue(join) : 24 * 60 + 1,
+          secondaryLabel:String(item.secondary_lane_name || '다른 일행').trim() || '다른 일행'
+        });
+
+        if (join) {
+          const joinIndex = dayItems.findIndex(row => row.id === join.id);
+          if (joinIndex > i) i = joinIndex;
+        }
+      }
+      return segments;
+    }
+
+    function getParallelSegmentForForm() {
+      const date = document.getElementById('item-input-date')?.value;
+      const dayNumber = date ? dayNumberForDate(date) : currentDayNumber;
+      const segments = getParallelSegmentsForDay(dayNumber);
+      if (!segments.length) return null;
+
+      const selected = getSelectedTime();
+      if (!selected?.value) return segments[0];
+
+      const minute = itemMinuteValue(selected.value);
+      return segments.find(segment => minute >= segment.startMinute && minute < segment.endMinute) || segments[0];
+    }
+
+    function syncGroupSecondaryNameField() {
+      const type = normalizeItemType(document.getElementById('item-input-type').value);
+      const kind = normalizeGroupEventKind(document.getElementById('group-event-kind').value);
+      const field = document.getElementById('group-secondary-name-field');
+      if (field) field.classList.toggle('hidden', !(type === 'group' && kind === 'split'));
+    }
+
+    function syncTimelineLaneField() {
+      const type = normalizeItemType(document.getElementById('item-input-type').value);
+      const field = document.getElementById('item-lane-field');
+      const select = document.getElementById('item-timeline-lane');
+      if (!field || !select) return;
+
+      if (type === 'group') {
+        field.classList.add('hidden');
+        return;
+      }
+
+      const segment = getParallelSegmentForForm();
+      field.classList.toggle('hidden', !segment);
+
+      if (segment) {
+        const secondary = select.querySelector('option[value="secondary"]');
+        if (secondary) secondary.textContent = `👤 ${segment.secondaryLabel}`;
+      }
+    }
+
+    function buildTimelineCard(item) {
+      const linkedExpenses = expensesCache.filter(expense => expense.itinerary_item_id === item.id);
+      const typeKey = normalizeItemType(item.item_type || inferItemType(item));
+      const type = ITEM_TYPES[typeKey];
+
+      const card = document.createElement('div');
+      card.className = 'timeline-card' + (item.is_must_do ? ' must-do' : '');
+
+      const head = document.createElement('div');
+      head.className = 'timeline-card-head';
+
+      const main = document.createElement('div');
+      main.className = 'timeline-card-main';
+
+      const chip = document.createElement('span');
+      chip.className = `item-type-chip item-type-${type.className}`;
+
+      const chipIcon = document.createElement('span');
+      chipIcon.className = 'item-type-icon';
+      chipIcon.textContent = type.icon;
+
+      const chipLabel = document.createElement('span');
+      chipLabel.className = 'item-type-label';
+      chipLabel.textContent = type.label;
+
+      chip.append(chipIcon, chipLabel);
+
+      const title = document.createElement('div');
+      title.className = 'timeline-title';
+      title.textContent = item.place_name || '제목 없는 일정';
+
+      main.append(chip, title);
+
+      const subParts = [];
+      if (item.address) subParts.push(item.address);
+      if (typeKey === 'flight') {
+        const flight = safeFlightDetails(item.flight_details);
+        if (flight.number) subParts.unshift([flight.airline, flight.number].filter(Boolean).join(' '));
+      }
+      if (subParts.length) {
+        const sub = document.createElement('div');
+        sub.className = 'timeline-sub';
+        sub.textContent = subParts.join(' · ');
+        main.appendChild(sub);
+      }
+
+      if (item.memo) {
+        const memo = document.createElement('div');
+        memo.className = 'timeline-memo';
+        memo.textContent = item.memo;
+
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'timeline-more';
+        more.textContent = '더보기 ⌄';
+        more.addEventListener('click', () => {
+          const open = memo.classList.toggle('expanded');
+          more.textContent = open ? '접기 ⌃' : '더보기 ⌄';
+        });
+
+        main.append(memo, more);
+        requestAnimationFrame(() => {
+          if (memo.scrollHeight > memo.clientHeight + 2) more.classList.add('show');
+        });
+      }
+
+      head.appendChild(main);
+
+      if (item.is_must_do) {
+        const mustBadge = document.createElement('span');
+        mustBadge.className = 'timeline-must-badge';
+        mustBadge.textContent = '⭐ 꼭!';
+        head.appendChild(mustBadge);
+      }
+
+      card.appendChild(head);
+
+      const bottom = document.createElement('div');
+      bottom.className = 'timeline-card-bottom';
+
+      const quick = document.createElement('div');
+      quick.className = 'timeline-quick';
+
+      const prepSource = resolvePrepSourceForItem(item);
+      if (prepSource) {
+        const sourceBtn = document.createElement('button');
+        sourceBtn.type = 'button';
+        sourceBtn.className = 'timeline-source-button';
+        sourceBtn.textContent = '📌 준비함 원문';
+        sourceBtn.addEventListener('click', () => openPrepSourceForItem(item, false));
+        quick.appendChild(sourceBtn);
+
+        const sourceImages = prepImagesForSource(prepSource.id);
+        if (sourceImages.length) {
+          const photoBtn = document.createElement('button');
+          photoBtn.type = 'button';
+          photoBtn.className = 'timeline-photo-button';
+          photoBtn.textContent = `🖼️ 사진 ${sourceImages.length}`;
+          photoBtn.addEventListener('click', () => openPrepSourceForItem(item, true));
+          quick.appendChild(photoBtn);
+        }
+      }
+
+      if (item.map_url || item.latitude != null || item.longitude != null || item.place_name) {
+        const mapBtn = document.createElement('button');
+        mapBtn.type = 'button';
+        mapBtn.textContent = '🧭 지도';
+        mapBtn.addEventListener('click', () => openItemMap(item));
+        quick.appendChild(mapBtn);
+      }
+
+      if (!isReadOnlyMode) {
+        const expenseBtn = document.createElement('button');
+        expenseBtn.type = 'button';
+        expenseBtn.textContent = '+ 결제';
+        expenseBtn.addEventListener('click', () => openExpenseModal(item.id));
+        quick.appendChild(expenseBtn);
+      }
+
+      const admin = document.createElement('div');
+      admin.className = 'timeline-admin';
+
+      if (linkedExpenses.length) {
+        const totalButton = document.createElement('button');
+        totalButton.type = 'button';
+        totalButton.className = 'timeline-payment-button';
+        totalButton.textContent = formatCurrencyTotals(sumByCurrency(linkedExpenses));
+
+        const expenseDetails = document.createElement('div');
+        expenseDetails.className = 'timeline-expenses';
+
+        linkedExpenses.forEach(expense => {
+          const row = document.createElement('div');
+          row.className = 'timeline-expense-row';
+
+          const label = document.createElement('span');
+          label.textContent = [expense.payer_name, expense.description].filter(Boolean).join(' · ') || '결제';
+
+          const amount = document.createElement('strong');
+          amount.textContent = formatMoney(expense.amount, expense.currency);
+
+          row.append(label, amount);
+
+          if (!isReadOnlyMode) {
+            const actions = document.createElement('span');
+            actions.className = 'timeline-expense-actions';
+
+            const edit = document.createElement('button');
+            edit.type = 'button';
+            edit.textContent = '수정';
+            edit.addEventListener('click', () => openEditExpenseModal(expense.id));
+
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'danger';
+            del.textContent = '삭제';
+            del.addEventListener('click', () => deleteTripExpense(expense.id));
+
+            actions.append(edit, del);
+            row.appendChild(actions);
+          }
+
+          expenseDetails.appendChild(row);
+        });
+
+        totalButton.addEventListener('click', () => expenseDetails.classList.toggle('open'));
+        admin.appendChild(totalButton);
+        card.appendChild(expenseDetails);
+      }
+
+      if (!isReadOnlyMode) {
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'timeline-edit';
+        edit.textContent = '수정';
+        edit.addEventListener('click', () => openEditItemModal(item.id));
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'timeline-delete';
+        del.textContent = '삭제';
+        del.addEventListener('click', () => deleteItineraryItem(item.id));
+
+        admin.append(edit, del);
+      }
+
+      bottom.append(quick, admin);
+      card.appendChild(bottom);
+      return card;
+    }
+
+    function buildStandardTimelineEvent(item) {
+      const event = document.createElement('article');
+      event.className = 'timeline-event';
+
+      const time = document.createElement('div');
+      time.className = 'timeline-time';
+      time.textContent = item.start_time ? item.start_time.slice(0,5) : '미정';
+
+      const rail = document.createElement('div');
+      rail.className = 'timeline-rail';
+
+      const dot = document.createElement('div');
+      dot.className = 'timeline-dot';
+      rail.appendChild(dot);
+
+      event.append(time, rail, buildTimelineCard(item));
+      return event;
+    }
+
+    function buildStandardTransfer(item) {
+      if (!item.move_after) return null;
+      const transfer = document.createElement('div');
+      transfer.className = 'timeline-transfer';
+
+      const blank = document.createElement('div');
+      const transferRail = document.createElement('div');
+      transferRail.className = 'timeline-rail';
+
+      const pill = document.createElement('div');
+      pill.className = 'transfer-pill';
+      pill.textContent = formatMoveAfterDisplay(item.move_after);
+
+      transfer.append(blank, transferRail, pill);
+      return transfer;
+    }
+
+    function buildDualCell(items, lane) {
+      const cell = document.createElement('div');
+      cell.className = `dual-lane-cell ${lane}` + (items.length ? '' : ' empty');
+
+      items.forEach(item => {
+        const event = document.createElement('div');
+        event.className = 'dual-lane-event';
+
+        const time = document.createElement('div');
+        time.className = 'dual-lane-time';
+        time.textContent = item.start_time ? item.start_time.slice(0,5) : '미정';
+
+        const dot = document.createElement('div');
+        dot.className = 'dual-lane-dot';
+
+        const cardWrap = document.createElement('div');
+        cardWrap.className = 'dual-lane-card';
+        cardWrap.appendChild(buildTimelineCard(item));
+
+        event.append(time, dot, cardWrap);
+        cell.appendChild(event);
+
+        if (item.move_after) {
+          const transfer = document.createElement('div');
+          transfer.className = 'dual-lane-transfer';
+
+          const blank = document.createElement('div');
+          const blank2 = document.createElement('div');
+          const pill = document.createElement('div');
+          pill.className = 'transfer-pill';
+          pill.textContent = formatMoveAfterDisplay(item.move_after);
+
+          transfer.append(blank, blank2, pill);
+          cell.appendChild(transfer);
+        }
+      });
+
+      return cell;
+    }
+
+    function buildDualMobileLane(items) {
+      const lane = document.createElement('div');
+      items.forEach((item, index) => {
+        lane.appendChild(buildStandardTimelineEvent(item));
+        if (index < items.length - 1) {
+          const transfer = buildStandardTransfer(item);
+          if (transfer) lane.appendChild(transfer);
+        }
+      });
+      return lane;
+    }
+
+    function renderDualTimelineBlock(segment, rangeItems) {
+      const wrap = document.createElement('section');
+      wrap.className = 'dual-timeline-wrap';
+
+      const desktop = document.createElement('div');
+      desktop.className = 'dual-timeline-desktop';
+
+      const heads = document.createElement('div');
+      heads.className = 'dual-timeline-heads';
+
+      const mainHead = document.createElement('div');
+      mainHead.className = 'dual-timeline-head';
+      mainHead.textContent = '👭 우리';
+
+      const secondaryHead = document.createElement('div');
+      secondaryHead.className = 'dual-timeline-head secondary';
+      secondaryHead.textContent = `👤 ${segment.secondaryLabel}`;
+
+      heads.append(mainHead, secondaryHead);
+
+      const grid = document.createElement('div');
+      grid.className = 'dual-time-grid';
+
+      const times = [...new Set(
+        rangeItems.map(item => String(item.start_time || '99:99').slice(0,5))
+      )].sort();
+
+      times.forEach(timeKey => {
+        const row = document.createElement('div');
+        row.className = 'dual-time-row';
+
+        const atTime = rangeItems.filter(item => String(item.start_time || '99:99').slice(0,5) === timeKey);
+        const mainItems = atTime.filter(item => directTimelineLane(item.timeline_lane) === 'main');
+        const secondaryItems = atTime.filter(item => directTimelineLane(item.timeline_lane) === 'secondary');
+
+        row.append(
+          buildDualCell(mainItems, 'main'),
+          buildDualCell(secondaryItems, 'secondary')
+        );
+        grid.appendChild(row);
+      });
+
+      desktop.append(heads, grid);
+
+      const mobileSwitch = document.createElement('div');
+      mobileSwitch.className = 'dual-mobile-switch';
+
+      const select = document.createElement('select');
+      const mainOption = document.createElement('option');
+      mainOption.value = 'main';
+      mainOption.textContent = '👭 우리 일정 보기';
+
+      const secondaryOption = document.createElement('option');
+      secondaryOption.value = 'secondary';
+      secondaryOption.textContent = `👤 ${segment.secondaryLabel} 일정 보기`;
+
+      select.append(mainOption, secondaryOption);
+      mobileSwitch.appendChild(select);
+
+      const mobileTimelines = document.createElement('div');
+      mobileTimelines.className = 'dual-mobile-timelines';
+
+      const mainLane = buildDualMobileLane(
+        rangeItems.filter(item => directTimelineLane(item.timeline_lane) === 'main')
+      );
+      mainLane.classList.add('dual-mobile-lane','active');
+
+      const secondaryLane = buildDualMobileLane(
+        rangeItems.filter(item => directTimelineLane(item.timeline_lane) === 'secondary')
+      );
+      secondaryLane.classList.add('dual-mobile-lane');
+
+      select.addEventListener('change', () => {
+        const showSecondary = select.value === 'secondary';
+        mainLane.classList.toggle('active', !showSecondary);
+        secondaryLane.classList.toggle('active', showSecondary);
+      });
+
+      mobileTimelines.append(mainLane, secondaryLane);
+      wrap.append(desktop, mobileSwitch, mobileTimelines);
+      return wrap;
+    }
+
+
     function renderGroupTimelineEvent(item) {
       const wrapper = document.createElement('article');
       wrapper.className = 'timeline-group-event';
@@ -3706,6 +4370,13 @@ let tripsCache = [];
       initializeTimeSelects();
       initializeThemePicker();
       document.getElementById('item-input-type').addEventListener('change', syncItemTypeFields);
+      document.getElementById('group-event-kind').addEventListener('change', () => {
+        syncGroupSecondaryNameField();
+        syncTimelineLaneField();
+      });
+      document.getElementById('item-input-date').addEventListener('change', syncTimelineLaneField);
+      document.getElementById('item-input-hour').addEventListener('change', syncTimelineLaneField);
+      document.getElementById('item-input-minute').addEventListener('change', syncTimelineLaneField);
       document.getElementById('item-delete-btn').addEventListener('click', () => {
         if (editingItemId) deleteItineraryItem(editingItemId);
       });
@@ -4392,233 +5063,65 @@ let tripsCache = [];
         return;
       }
 
-      items.forEach((item, index) => {
-        const linkedExpenses = expensesCache.filter(expense => expense.itinerary_item_id === item.id);
+      const segments = getParallelSegmentsForDay(currentDayNumber);
+      const consumed = new Set();
+
+      segments.forEach(segment => {
+        consumed.add(segment.split.id);
+        if (segment.join) consumed.add(segment.join.id);
+
+        items.forEach(item => {
+          const type = normalizeItemType(item.item_type || inferItemType(item));
+          if (type === 'group') return;
+          const minute = itemMinuteValue(item);
+          if (minute >= segment.startMinute && minute < segment.endMinute) consumed.add(item.id);
+        });
+      });
+
+      for (let index = 0; index < items.length; index += 1) {
+        const item = items[index];
         const typeKey = normalizeItemType(item.item_type || inferItemType(item));
-        const type = ITEM_TYPES[typeKey];
+
+        const startingSegment = segments.find(segment => segment.split.id === item.id);
+        if (startingSegment) {
+          list.appendChild(renderGroupTimelineEvent(startingSegment.split));
+
+          const rangeItems = items.filter(candidate => {
+            const candidateType = normalizeItemType(candidate.item_type || inferItemType(candidate));
+            if (candidateType === 'group') return false;
+            const minute = itemMinuteValue(candidate);
+            return minute >= startingSegment.startMinute && minute < startingSegment.endMinute;
+          });
+
+          if (rangeItems.length) list.appendChild(renderDualTimelineBlock(startingSegment, rangeItems));
+          continue;
+        }
+
+        const endingSegment = segments.find(segment => segment.join?.id === item.id);
+        if (endingSegment) {
+          list.appendChild(renderGroupTimelineEvent(item));
+          continue;
+        }
+
+        if (consumed.has(item.id)) continue;
 
         if (typeKey === 'group') {
           list.appendChild(renderGroupTimelineEvent(item));
-          return;
+          continue;
         }
 
-        const event = document.createElement('article');
-        event.className = 'timeline-event';
+        list.appendChild(buildStandardTimelineEvent(item));
 
-        const time = document.createElement('div');
-        time.className = 'timeline-time';
-        time.textContent = item.start_time ? item.start_time.slice(0,5) : '미정';
+        const nextNormal = items.slice(index + 1).find(candidate => {
+          const candidateType = normalizeItemType(candidate.item_type || inferItemType(candidate));
+          return candidateType !== 'group' && !consumed.has(candidate.id);
+        });
 
-        const rail = document.createElement('div');
-        rail.className = 'timeline-rail';
-        const dot = document.createElement('div');
-        dot.className = 'timeline-dot';
-        rail.appendChild(dot);
-
-        const card = document.createElement('div');
-        card.className = 'timeline-card' + (item.is_must_do ? ' must-do' : '');
-
-        const head = document.createElement('div');
-        head.className = 'timeline-card-head';
-
-        const main = document.createElement('div');
-        main.className = 'timeline-card-main';
-
-        const chip = document.createElement('span');
-        chip.className = `item-type-chip item-type-${type.className}`;
-
-        const chipIcon = document.createElement('span');
-        chipIcon.className = 'item-type-icon';
-        chipIcon.textContent = type.icon;
-
-        const chipLabel = document.createElement('span');
-        chipLabel.className = 'item-type-label';
-        chipLabel.textContent = type.label;
-
-        chip.append(chipIcon, chipLabel);
-
-        const title = document.createElement('div');
-        title.className = 'timeline-title';
-        title.textContent = item.place_name || '제목 없는 일정';
-
-        main.append(chip, title);
-
-        const subParts = [];
-        if (item.address) subParts.push(item.address);
-        if (typeKey === 'flight') {
-          const flight = safeFlightDetails(item.flight_details);
-          if (flight.number) subParts.unshift([flight.airline, flight.number].filter(Boolean).join(' '));
+        if (nextNormal && item.move_after) {
+          const transfer = buildStandardTransfer(item);
+          if (transfer) list.appendChild(transfer);
         }
-        if (subParts.length) {
-          const sub = document.createElement('div');
-          sub.className = 'timeline-sub';
-          sub.textContent = subParts.join(' · ');
-          main.appendChild(sub);
-        }
-
-        if (item.memo) {
-          const memo = document.createElement('div');
-          memo.className = 'timeline-memo';
-          memo.textContent = item.memo;
-
-          const more = document.createElement('button');
-          more.type = 'button';
-          more.className = 'timeline-more';
-          more.textContent = '더보기 ⌄';
-          more.addEventListener('click', () => {
-            const open = memo.classList.toggle('expanded');
-            more.textContent = open ? '접기 ⌃' : '더보기 ⌄';
-          });
-
-          main.append(memo, more);
-          requestAnimationFrame(() => {
-            if (memo.scrollHeight > memo.clientHeight + 2) more.classList.add('show');
-          });
-        }
-
-        head.appendChild(main);
-
-        if (item.is_must_do) {
-          const mustBadge = document.createElement('span');
-          mustBadge.className = 'timeline-must-badge';
-          mustBadge.textContent = '⭐ 꼭!';
-          head.appendChild(mustBadge);
-        }
-
-        card.appendChild(head);
-
-        const bottom = document.createElement('div');
-        bottom.className = 'timeline-card-bottom';
-
-        const quick = document.createElement('div');
-        quick.className = 'timeline-quick';
-
-        const prepSource = resolvePrepSourceForItem(item);
-        if (prepSource) {
-          const sourceBtn = document.createElement('button');
-          sourceBtn.type = 'button';
-          sourceBtn.className = 'timeline-source-button';
-          sourceBtn.textContent = '📌 준비함 원문';
-          sourceBtn.addEventListener('click', () => openPrepSourceForItem(item, false));
-          quick.appendChild(sourceBtn);
-
-          const sourceImages = prepImagesForSource(prepSource.id);
-          if (sourceImages.length) {
-            const photoBtn = document.createElement('button');
-            photoBtn.type = 'button';
-            photoBtn.className = 'timeline-photo-button';
-            photoBtn.textContent = `🖼️ 사진 ${sourceImages.length}`;
-            photoBtn.addEventListener('click', () => openPrepSourceForItem(item, true));
-            quick.appendChild(photoBtn);
-          }
-        }
-
-        if (item.map_url || item.latitude != null || item.longitude != null || item.place_name) {
-          const mapBtn = document.createElement('button');
-          mapBtn.type = 'button';
-          mapBtn.textContent = '🧭 지도';
-          mapBtn.addEventListener('click', () => openItemMap(item));
-          quick.appendChild(mapBtn);
-        }
-
-        if (!isReadOnlyMode) {
-          const expenseBtn = document.createElement('button');
-          expenseBtn.type = 'button';
-          expenseBtn.textContent = '+ 결제';
-          expenseBtn.addEventListener('click', () => openExpenseModal(item.id));
-          quick.appendChild(expenseBtn);
-        }
-
-        const admin = document.createElement('div');
-        admin.className = 'timeline-admin';
-
-        if (linkedExpenses.length) {
-          const totalButton = document.createElement('button');
-          totalButton.type = 'button';
-          totalButton.className = 'timeline-payment-button';
-          totalButton.textContent = formatCurrencyTotals(sumByCurrency(linkedExpenses));
-
-          const expenseDetails = document.createElement('div');
-          expenseDetails.className = 'timeline-expenses';
-
-          linkedExpenses.forEach(expense => {
-            const row = document.createElement('div');
-            row.className = 'timeline-expense-row';
-
-            const label = document.createElement('span');
-            label.textContent = [expense.payer_name, expense.description].filter(Boolean).join(' · ') || '결제';
-
-            const amount = document.createElement('strong');
-            amount.textContent = formatMoney(expense.amount, expense.currency);
-
-            row.append(label, amount);
-
-            if (!isReadOnlyMode) {
-              const actions = document.createElement('span');
-              actions.className = 'timeline-expense-actions';
-
-              const edit = document.createElement('button');
-              edit.type = 'button';
-              edit.textContent = '수정';
-              edit.addEventListener('click', () => openEditExpenseModal(expense.id));
-
-              const del = document.createElement('button');
-              del.type = 'button';
-              del.className = 'danger';
-              del.textContent = '삭제';
-              del.addEventListener('click', () => deleteTripExpense(expense.id));
-
-              actions.append(edit, del);
-              row.appendChild(actions);
-            }
-
-            expenseDetails.appendChild(row);
-          });
-
-          totalButton.addEventListener('click', () => {
-            expenseDetails.classList.toggle('open');
-          });
-          admin.appendChild(totalButton);
-          card.appendChild(expenseDetails);
-        }
-
-        if (!isReadOnlyMode) {
-          const edit = document.createElement('button');
-          edit.type = 'button';
-          edit.className = 'timeline-edit';
-          edit.textContent = '수정';
-          edit.addEventListener('click', () => openEditItemModal(item.id));
-
-          const del = document.createElement('button');
-          del.type = 'button';
-          del.className = 'timeline-delete';
-          del.textContent = '삭제';
-          del.addEventListener('click', () => deleteItineraryItem(item.id));
-
-          admin.append(edit, del);
-        }
-
-        bottom.append(quick, admin);
-        card.appendChild(bottom);
-
-        event.append(time, rail, card);
-        list.appendChild(event);
-
-        if (index < items.length - 1 && item.move_after) {
-          const transfer = document.createElement('div');
-          transfer.className = 'timeline-transfer';
-
-          const blank = document.createElement('div');
-          const transferRail = document.createElement('div');
-          transferRail.className = 'timeline-rail';
-          const pill = document.createElement('div');
-          pill.className = 'transfer-pill';
-          pill.textContent = formatMoveAfterDisplay(item.move_after);
-
-          transfer.append(blank, transferRail, pill);
-          list.appendChild(transfer);
-        }
-      });
+      }
 
       renderFlightSummary();
     }
@@ -4651,6 +5154,9 @@ let tripsCache = [];
         const number = document.getElementById('flight-number').value.trim().toUpperCase();
         if (airline || number) document.getElementById('item-input-title').value = [airline, number].filter(Boolean).join(' ');
       }
+
+      syncGroupSecondaryNameField();
+      syncTimelineLaneField();
     }
 
     function resetFlightFields() {
@@ -4672,6 +5178,8 @@ let tripsCache = [];
       setTimeSelects(null);
       resetFlightFields();
       document.getElementById('group-event-kind').value = 'split';
+      document.getElementById('group-secondary-name').value = '';
+      document.getElementById('item-timeline-lane').value = 'main';
       document.getElementById('item-input-must').checked = false;
       selectedGooglePlace = null;
       document.getElementById('item-input-place').value = '';
@@ -4697,6 +5205,12 @@ let tripsCache = [];
       const isMustDo = document.getElementById('item-input-must').checked;
       const groupEventKind = itemType === 'group'
         ? normalizeGroupEventKind(document.getElementById('group-event-kind').value)
+        : null;
+      const timelineLane = itemType === 'group'
+        ? 'main'
+        : directTimelineLane(document.getElementById('item-timeline-lane').value);
+      const secondaryLaneName = (itemType === 'group' && groupEventKind === 'split')
+        ? (document.getElementById('group-secondary-name').value.trim() || '다른 일행')
         : null;
       const scheduleDate = document.getElementById('item-input-date').value || null;
       const timeResult = getSelectedTime();
@@ -4783,7 +5297,9 @@ let tripsCache = [];
         map_url: mapUrl,
         flight_details: flightDetails,
         is_must_do: isMustDo,
-        group_event_kind: groupEventKind
+        group_event_kind: groupEventKind,
+        timeline_lane: timelineLane,
+        secondary_lane_name: secondaryLaneName
       };
 
       let result;
@@ -4793,7 +5309,7 @@ let tripsCache = [];
         result = await supabaseApp.from('itinerary_items').insert(fullPayload);
       }
 
-      if (result.error && /(item_type|move_after|map_url|flight_details|is_must_do|group_event_kind)/i.test(String(result.error.message || ''))) {
+      if (result.error && /(item_type|move_after|map_url|flight_details|is_must_do|group_event_kind|timeline_lane|secondary_lane_name)/i.test(String(result.error.message || ''))) {
         submit.disabled = false;
         submit.textContent = editingItemId ? '수정 저장' : '저장';
         return showToast('새 일정 기능용 DB 컬럼이 아직 없어. 같이 준 SQL을 먼저 한 번 실행해 줘.', true);
@@ -4824,6 +5340,7 @@ let tripsCache = [];
 
       document.getElementById('item-input-type').value = type;
       document.getElementById('group-event-kind').value = normalizeGroupEventKind(item.group_event_kind);
+      document.getElementById('group-secondary-name').value = item.secondary_lane_name || '';
       document.getElementById('item-input-must').checked = Boolean(item.is_must_do);
       document.getElementById('item-input-date').value = item.schedule_date || getDateForDay(item.day_number) || '';
       setTimeSelects(item.start_time ? item.start_time.slice(0,5) : null);
@@ -4870,6 +5387,12 @@ let tripsCache = [];
 
       updateItemPrepSourceField(item);
       syncItemTypeFields();
+
+      /* 중요: 좌우 위치는 이 값 하나만 사용하고, sync 뒤에 직접 세팅한다. */
+      document.getElementById('item-timeline-lane').value = directTimelineLane(item.timeline_lane);
+      syncGroupSecondaryNameField();
+      syncTimelineLaneField();
+
       openModal('item-modal');
       setTimeout(() => document.getElementById('item-input-title').focus(), 60);
     }
