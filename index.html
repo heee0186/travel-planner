@@ -2447,6 +2447,70 @@ body{
   }
 }
 
+
+/* ==========================================================
+   듀얼 타임라인 배치 보정
+   시간행 안에 다시 2열을 만드는 중첩 grid를 사용하지 않는다.
+   main cell = grid-column:1 / secondary cell = grid-column:2
+   ========================================================== */
+.dual-time-grid{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  column-gap:28px !important;
+  align-items:stretch;
+}
+
+/* 두 타임라인 선은 셀마다 그리지 않고, 각 열에 하나씩 끝까지 이어진다. */
+.dual-time-grid::before,
+.dual-time-grid::after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  top:0;
+  bottom:0;
+  width:2px;
+  pointer-events:none;
+}
+.dual-time-grid::before{
+  left:49px;
+  background:#dce2dd;
+}
+.dual-time-grid::after{
+  left:calc(50% + 63px);
+  background:#dce4ea;
+}
+
+/* 이전 중첩 row는 더 이상 사용하지 않음 */
+.dual-time-row{
+  display:contents !important;
+}
+
+.dual-lane-cell{
+  position:relative;
+  z-index:1;
+  min-width:0;
+  padding:5px 0 8px;
+}
+.dual-lane-cell::before{
+  display:none !important;
+}
+.dual-lane-cell.main{
+  grid-column:1 !important;
+}
+.dual-lane-cell.secondary{
+  grid-column:2 !important;
+}
+.dual-lane-cell.empty{
+  min-height:78px;
+}
+
+/* 점/카드는 각 열의 고정 세로선 위에서 그대로 */
+.dual-lane-event{
+  position:relative;
+  z-index:2;
+}
+
 </style>
 </head>
 <body>
@@ -3829,6 +3893,7 @@ let tripsCache = [];
     function buildDualCell(items, lane) {
       const cell = document.createElement('div');
       cell.className = `dual-lane-cell ${lane}` + (items.length ? '' : ' empty');
+      cell.dataset.timelineLane = lane;
 
       items.forEach(item => {
         const event = document.createElement('div');
@@ -3905,19 +3970,35 @@ let tripsCache = [];
         rangeItems.map(item => String(item.start_time || '99:99').slice(0,5))
       )].sort();
 
-      times.forEach(timeKey => {
-        const row = document.createElement('div');
-        row.className = 'dual-time-row';
-
-        const atTime = rangeItems.filter(item => String(item.start_time || '99:99').slice(0,5) === timeKey);
-        const mainItems = atTime.filter(item => directTimelineLane(item.timeline_lane) === 'main');
-        const secondaryItems = atTime.filter(item => directTimelineLane(item.timeline_lane) === 'secondary');
-
-        row.append(
-          buildDualCell(mainItems, 'main'),
-          buildDualCell(secondaryItems, 'secondary')
+      times.forEach((timeKey, rowIndex) => {
+        const atTime = rangeItems.filter(
+          item => String(item.start_time || '99:99').slice(0,5) === timeKey
         );
-        grid.appendChild(row);
+
+        /* 저장값 하나만 본다. 이름/시간으로 추론하지 않는다. */
+        const mainItems = atTime.filter(
+          item => directTimelineLane(item.timeline_lane) === 'main'
+        );
+        const secondaryItems = atTime.filter(
+          item => directTimelineLane(item.timeline_lane) === 'secondary'
+        );
+
+        const mainCell = buildDualCell(mainItems, 'main');
+        const secondaryCell = buildDualCell(secondaryItems, 'secondary');
+
+        /*
+          핵심:
+          wrapper 안에서 순서에 맡기지 않고 실제 CSS grid 열/행을 직접 지정한다.
+          secondary는 어떤 경우에도 2열 외에는 갈 수 없다.
+        */
+        mainCell.style.gridColumn = '1';
+        mainCell.style.gridRow = String(rowIndex + 1);
+
+        secondaryCell.style.gridColumn = '2';
+        secondaryCell.style.gridRow = String(rowIndex + 1);
+
+        grid.appendChild(mainCell);
+        grid.appendChild(secondaryCell);
       });
 
       desktop.append(heads, grid);
@@ -3926,6 +4007,7 @@ let tripsCache = [];
       mobileSwitch.className = 'dual-mobile-switch';
 
       const select = document.createElement('select');
+
       const mainOption = document.createElement('option');
       mainOption.value = 'main';
       mainOption.textContent = '👭 우리 일정 보기';
@@ -3943,7 +4025,7 @@ let tripsCache = [];
       const mainLane = buildDualMobileLane(
         rangeItems.filter(item => directTimelineLane(item.timeline_lane) === 'main')
       );
-      mainLane.classList.add('dual-mobile-lane','active');
+      mainLane.classList.add('dual-mobile-lane', 'active');
 
       const secondaryLane = buildDualMobileLane(
         rangeItems.filter(item => directTimelineLane(item.timeline_lane) === 'secondary')
