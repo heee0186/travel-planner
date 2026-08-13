@@ -2628,6 +2628,183 @@ body{
   color:#9a5d50;
 }
 
+
+/* ==========================================================
+   공유 보기 + 여행 메모
+   ========================================================== */
+.readonly-label-group{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.readonly-note-chip{
+  display:inline-flex;
+  align-items:center;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#edf6ef;
+  color:#52705b;
+  font-size:12px;
+  font-weight:900;
+}
+
+.timeline-note-button{
+  border-color:#dce6ec !important;
+  background:#f0f5f8 !important;
+  color:#496a81 !important;
+}
+.timeline-note-button.has-notes{
+  font-weight:900;
+}
+
+.schedule-note-thread{
+  display:none;
+  margin-top:10px;
+  padding:10px 11px;
+  border-radius:11px;
+  background:#f8f8f6;
+}
+.schedule-note-thread.open{
+  display:block;
+}
+.schedule-note-row + .schedule-note-row{
+  margin-top:9px;
+  padding-top:9px;
+  border-top:1px solid #e6e5e1;
+}
+.schedule-note-meta{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+  color:#858b86;
+  font-size:11px;
+}
+.schedule-note-name{
+  color:#52665a;
+  font-weight:950;
+}
+.schedule-note-owner{
+  padding:2px 6px;
+  border-radius:999px;
+  background:#edf4ef;
+  color:#587063;
+  font-size:9px;
+  font-weight:900;
+}
+.schedule-note-text{
+  margin-top:4px;
+  color:#3f4742;
+  font-size:12px;
+  line-height:1.55;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.schedule-note-actions{
+  display:flex;
+  gap:7px;
+  margin-top:6px;
+}
+.schedule-note-actions button{
+  border:0;
+  background:transparent;
+  padding:2px 0;
+  color:#6c7b72;
+  font-size:10px;
+  font-weight:900;
+}
+.schedule-note-actions button.danger{
+  color:#a4675c;
+}
+.schedule-note-reply{
+  margin:7px 0 0 12px;
+  padding:7px 9px;
+  border-left:2px solid #cfdad3;
+  border-radius:0 8px 8px 0;
+  background:#fff;
+}
+.schedule-note-reply + .schedule-note-reply{
+  margin-top:5px;
+}
+.schedule-note-thread-footer{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:9px;
+  padding-top:8px;
+  border-top:1px dashed #e3e2de;
+}
+.schedule-note-thread-footer button{
+  border:0;
+  border-radius:8px;
+  background:var(--primary);
+  color:#fff;
+  padding:7px 9px;
+  font-size:11px;
+  font-weight:900;
+}
+
+.schedule-note-modal-box{
+  max-width:460px;
+}
+.schedule-note-modal-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.schedule-note-modal-head h3{
+  margin:3px 0 4px;
+}
+.schedule-note-modal-head p{
+  margin:0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+.schedule-note-kicker{
+  color:var(--primary);
+  font-size:11px;
+  font-weight:900;
+}
+.schedule-note-close{
+  flex:0 0 auto;
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:#f3f2ef;
+  color:#666d68;
+  font-size:20px;
+}
+#schedule-note-body{
+  min-height:100px;
+}
+
+/* 공유 모드에서도 준비함 원문/사진 버튼은 그대로 보임 */
+body.shared-view .timeline-source-button,
+body.shared-view .timeline-photo-button{
+  display:inline-flex;
+}
+
+@media(max-width:680px){
+  .readonly-label-group{
+    gap:5px;
+  }
+  .readonly-chip,
+  .readonly-note-chip{
+    font-size:11px;
+    padding:6px 8px;
+  }
+  .schedule-note-thread{
+    padding:9px;
+  }
+  .schedule-note-reply{
+    margin-left:8px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2710,7 +2887,7 @@ body{
           <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
         </div>
         <div id="planner-public-user" class="user-area hidden">
-          <span class="public-top-message">읽기 전용 공유 일정</span>
+          <span class="public-top-message">읽기 전용 · 여행 메모 가능</span>
           <button id="public-owner-btn" class="ghost-btn" type="button" onclick="openOwnerArea()">관리자 로그인</button>
         </div>
       </header>
@@ -2742,8 +2919,9 @@ body{
               </div>
             </div>
           </div>
-          <div id="planner-readonly-label" class="hidden">
-            <span class="readonly-chip">보기 전용</span>
+          <div id="planner-readonly-label" class="hidden readonly-label-group">
+            <span class="readonly-chip">🔒 보기 전용</span>
+            <span class="readonly-note-chip">💬 여행 메모 가능</span>
           </div>
         </div>
         <div class="tabs-wrap"><div id="day-tabs" class="tabs"></div></div>
@@ -3227,6 +3405,34 @@ body{
     <img id="prep-lightbox-image" src="" alt="준비함 첨부 사진">
   </div>
 
+  <!-- 공유 여행 메모 / 답글 -->
+  <div id="schedule-note-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="schedule-note-modal-title">
+    <div class="modal-box schedule-note-modal-box">
+      <div class="schedule-note-modal-head">
+        <div>
+          <span class="schedule-note-kicker">여행 메모</span>
+          <h3 id="schedule-note-modal-title">💬 메모 남기기</h3>
+          <p id="schedule-note-target">이 일정에 의견이나 메모를 남길 수 있어.</p>
+        </div>
+        <button class="schedule-note-close" type="button" onclick="closeModal('schedule-note-modal')" aria-label="닫기">×</button>
+      </div>
+      <form id="schedule-note-form">
+        <div class="field">
+          <label for="schedule-note-author">이름 또는 별명</label>
+          <input id="schedule-note-author" type="text" maxlength="40" placeholder="예: 호앗, 미선" required>
+        </div>
+        <div class="field">
+          <label for="schedule-note-body">메모</label>
+          <textarea id="schedule-note-body" maxlength="1000" placeholder="예: 여기 꼭 가고 싶어! / 이 시간 조금 늦추는 건 어때?" required></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-btn" type="button" onclick="closeModal('schedule-note-modal')">취소</button>
+          <button id="schedule-note-submit" class="primary-btn" type="submit">남기기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast"></div>
 
   <script>
@@ -3264,6 +3470,10 @@ let tripsCache = [];
     let expensesCache = [];
     let prepSourceItemsCache = [];
     let prepSourceImagesCache = [];
+    let scheduleNotesCache = [];
+    const openScheduleNoteThreads = new Set();
+    let scheduleNoteItemId = null;
+    let scheduleNoteParentId = null;
     let prepLinkTargetItemId = null;
     let editingExpenseId = null;
     let expenseLinkedItemId = null;
@@ -3318,19 +3528,30 @@ let tripsCache = [];
       prepSourceItemsCache = [];
       prepSourceImagesCache = [];
 
-      if (isReadOnlyMode || !currentUser || !currentTrip?.id) return;
+      if (!currentTrip?.id) return;
 
-      const [itemsResult, imagesResult] = await Promise.all([
-        supabaseApp
-          .from('travel_prep_items')
-          .select('id,trip_id,category,area,title,content,created_at')
-          .eq('trip_id', currentTrip.id),
-        supabaseApp
-          .from('travel_prep_item_images')
-          .select('id,trip_id,item_id,storage_path,sort_order,created_at')
-          .eq('trip_id', currentTrip.id)
-          .order('sort_order', { ascending:true })
-      ]);
+      let itemsResult;
+      let imagesResult;
+
+      if (isReadOnlyMode) {
+        [itemsResult, imagesResult] = await Promise.all([
+          supabaseApp.rpc('get_shared_prep_items', { p_share_token: currentShareToken }),
+          supabaseApp.rpc('get_shared_prep_images', { p_share_token: currentShareToken })
+        ]);
+      } else {
+        if (!currentUser) return;
+        [itemsResult, imagesResult] = await Promise.all([
+          supabaseApp
+            .from('travel_prep_items')
+            .select('id,trip_id,category,area,title,content,created_at')
+            .eq('trip_id', currentTrip.id),
+          supabaseApp
+            .from('travel_prep_item_images')
+            .select('id,trip_id,item_id,storage_path,sort_order,created_at')
+            .eq('trip_id', currentTrip.id)
+            .order('sort_order', { ascending:true })
+        ]);
+      }
 
       if (itemsResult.error) {
         console.warn('준비함 원문 불러오기 실패', itemsResult.error);
@@ -3341,11 +3562,13 @@ let tripsCache = [];
 
       if (!imagesResult.error) {
         prepSourceImagesCache = await createPrepSignedImageUrls(imagesResult.data || []);
+      } else {
+        console.warn('준비함 사진 목록 불러오기 실패', imagesResult.error);
       }
     }
 
     function resolvePrepSourceForItem(item) {
-      if (!item || isReadOnlyMode) return null;
+      if (!item) return null;
 
       if (item.source_prep_item_id) {
         const exact = prepSourceItemsCache.find(source => source.id === item.source_prep_item_id);
@@ -3371,6 +3594,261 @@ let tripsCache = [];
 
     function prepImagesForSource(sourceId) {
       return prepSourceImagesCache.filter(image => image.item_id === sourceId);
+    }
+
+    function noteShareToken() {
+      return isReadOnlyMode ? currentShareToken : currentTrip?.share_token || null;
+    }
+
+    function getNotesForItem(itemId) {
+      return scheduleNotesCache
+        .filter(note => note.itinerary_item_id === itemId)
+        .sort((a,b) => String(a.created_at || '').localeCompare(String(b.created_at || '')));
+    }
+
+    function formatScheduleNoteTime(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const hour = String(date.getHours()).padStart(2,'0');
+      const minute = String(date.getMinutes()).padStart(2,'0');
+      return `${month}/${day} ${hour}:${minute}`;
+    }
+
+    async function loadScheduleNotes() {
+      scheduleNotesCache = [];
+      const token = noteShareToken();
+      if (!token || !currentTrip?.id) return;
+
+      const { data, error } = await supabaseApp.rpc('get_shared_schedule_notes', {
+        p_share_token: token
+      });
+
+      if (error) {
+        console.warn('여행 메모 불러오기 실패', error);
+        return;
+      }
+      scheduleNotesCache = data || [];
+    }
+
+    function getSavedScheduleNoteName() {
+      try {
+        const saved = localStorage.getItem('travel_schedule_note_name');
+        if (saved) return saved;
+      } catch {}
+      if (currentUser?.email) return currentUser.email.split('@')[0] || '';
+      return '';
+    }
+
+    function saveScheduleNoteName(value) {
+      try {
+        localStorage.setItem('travel_schedule_note_name', value);
+      } catch {}
+    }
+
+    function openScheduleNoteModal(itemId, parentNoteId = null) {
+      const item = itemsCache.find(row => row.id === itemId);
+      if (!item) return showToast('메모를 남길 일정을 찾지 못했어.', true);
+
+      scheduleNoteItemId = itemId;
+      scheduleNoteParentId = parentNoteId || null;
+
+      const parent = parentNoteId
+        ? scheduleNotesCache.find(note => note.id === parentNoteId)
+        : null;
+
+      document.getElementById('schedule-note-modal-title').textContent =
+        parent ? '↩ 답글 남기기' : '💬 여행 메모 남기기';
+
+      document.getElementById('schedule-note-target').textContent =
+        parent
+          ? `“${item.place_name || '이 일정'}”의 ${parent.author_name || '메모'}님 글에 답글을 남겨.`
+          : `“${item.place_name || '이 일정'}”에 의견이나 메모를 남길 수 있어.`;
+
+      document.getElementById('schedule-note-author').value = getSavedScheduleNoteName();
+      document.getElementById('schedule-note-body').value = '';
+      openModal('schedule-note-modal');
+      setTimeout(() => {
+        const author = document.getElementById('schedule-note-author');
+        const body = document.getElementById('schedule-note-body');
+        (author.value.trim() ? body : author).focus();
+      }, 50);
+    }
+
+    function buildScheduleNoteThread(item) {
+      const allNotes = getNotesForItem(item.id);
+      const topLevel = allNotes.filter(note => !note.parent_note_id);
+
+      const thread = document.createElement('div');
+      thread.className = 'schedule-note-thread' + (openScheduleNoteThreads.has(item.id) ? ' open' : '');
+      thread.dataset.itemId = item.id;
+
+      topLevel.forEach(note => {
+        const row = document.createElement('div');
+        row.className = 'schedule-note-row';
+
+        const meta = document.createElement('div');
+        meta.className = 'schedule-note-meta';
+
+        const name = document.createElement('span');
+        name.className = 'schedule-note-name';
+        name.textContent = note.author_name || '이름 없음';
+        meta.appendChild(name);
+
+        if (note.is_owner) {
+          const owner = document.createElement('span');
+          owner.className = 'schedule-note-owner';
+          owner.textContent = '여행 만든 사람';
+          meta.appendChild(owner);
+        }
+
+        const time = document.createElement('span');
+        time.textContent = formatScheduleNoteTime(note.created_at);
+        meta.appendChild(time);
+
+        const text = document.createElement('div');
+        text.className = 'schedule-note-text';
+        text.textContent = note.body || '';
+
+        const actions = document.createElement('div');
+        actions.className = 'schedule-note-actions';
+
+        const reply = document.createElement('button');
+        reply.type = 'button';
+        reply.textContent = '답글';
+        reply.addEventListener('click', () => openScheduleNoteModal(item.id, note.id));
+        actions.appendChild(reply);
+
+        if (!isReadOnlyMode && currentUser) {
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'danger';
+          del.textContent = '삭제';
+          del.addEventListener('click', () => deleteScheduleNote(note.id, item.id));
+          actions.appendChild(del);
+        }
+
+        row.append(meta, text, actions);
+
+        const replies = allNotes.filter(replyNote => replyNote.parent_note_id === note.id);
+        replies.forEach(replyNote => {
+          const replyBox = document.createElement('div');
+          replyBox.className = 'schedule-note-reply';
+
+          const replyMeta = document.createElement('div');
+          replyMeta.className = 'schedule-note-meta';
+
+          const replyName = document.createElement('span');
+          replyName.className = 'schedule-note-name';
+          replyName.textContent = replyNote.author_name || '이름 없음';
+          replyMeta.appendChild(replyName);
+
+          if (replyNote.is_owner) {
+            const owner = document.createElement('span');
+            owner.className = 'schedule-note-owner';
+            owner.textContent = '여행 만든 사람';
+            replyMeta.appendChild(owner);
+          }
+
+          const replyTime = document.createElement('span');
+          replyTime.textContent = formatScheduleNoteTime(replyNote.created_at);
+          replyMeta.appendChild(replyTime);
+
+          const replyText = document.createElement('div');
+          replyText.className = 'schedule-note-text';
+          replyText.textContent = replyNote.body || '';
+
+          replyBox.append(replyMeta, replyText);
+
+          if (!isReadOnlyMode && currentUser) {
+            const replyActions = document.createElement('div');
+            replyActions.className = 'schedule-note-actions';
+
+            const delReply = document.createElement('button');
+            delReply.type = 'button';
+            delReply.className = 'danger';
+            delReply.textContent = '삭제';
+            delReply.addEventListener('click', () => deleteScheduleNote(replyNote.id, item.id));
+
+            replyActions.appendChild(delReply);
+            replyBox.appendChild(replyActions);
+          }
+
+          row.appendChild(replyBox);
+        });
+
+        thread.appendChild(row);
+      });
+
+      const footer = document.createElement('div');
+      footer.className = 'schedule-note-thread-footer';
+
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.textContent = '＋ 메모 남기기';
+      add.addEventListener('click', () => openScheduleNoteModal(item.id));
+
+      footer.appendChild(add);
+      thread.appendChild(footer);
+
+      return thread;
+    }
+
+    async function saveScheduleNote(event) {
+      event.preventDefault();
+      const token = noteShareToken();
+      const item = itemsCache.find(row => row.id === scheduleNoteItemId);
+      if (!token || !item) return showToast('메모를 남길 일정을 찾지 못했어.', true);
+
+      const author = document.getElementById('schedule-note-author').value.trim();
+      const body = document.getElementById('schedule-note-body').value.trim();
+      const submit = document.getElementById('schedule-note-submit');
+
+      if (!author) return showToast('이름이나 별명을 입력해.', true);
+      if (!body) return showToast('메모 내용을 입력해.', true);
+
+      submit.disabled = true;
+      submit.textContent = scheduleNoteParentId ? '답글 저장 중...' : '메모 저장 중...';
+
+      const { error } = await supabaseApp.rpc('add_shared_schedule_note', {
+        p_share_token: token,
+        p_itinerary_item_id: item.id,
+        p_author_name: author,
+        p_body: body,
+        p_parent_note_id: scheduleNoteParentId
+      });
+
+      submit.disabled = false;
+      submit.textContent = '남기기';
+
+      if (error) return showToast('여행 메모를 남기지 못했어: ' + error.message, true);
+
+      saveScheduleNoteName(author);
+      openScheduleNoteThreads.add(item.id);
+      scheduleNoteItemId = null;
+      scheduleNoteParentId = null;
+      closeModal('schedule-note-modal');
+
+      await loadScheduleNotes();
+      renderCurrentDayItems();
+      showToast('여행 메모를 남겼어.');
+    }
+
+    async function deleteScheduleNote(noteId, itemId) {
+      if (isReadOnlyMode || !currentUser) return;
+      if (!confirm('이 여행 메모를 삭제할까? 답글이 달린 메모라면 답글도 같이 삭제돼.')) return;
+
+      const { error } = await supabaseApp.rpc('delete_schedule_note', {
+        p_note_id: noteId
+      });
+      if (error) return showToast('여행 메모 삭제 실패: ' + error.message, true);
+
+      openScheduleNoteThreads.add(itemId);
+      await loadScheduleNotes();
+      renderCurrentDayItems();
+      showToast('여행 메모를 삭제했어.');
     }
 
     function updateItemPrepSourceField(item) {
@@ -3977,6 +4455,27 @@ let tripsCache = [];
         quick.appendChild(expenseBtn);
       }
 
+      const itemNotes = getNotesForItem(item.id);
+      const topNoteCount = itemNotes.filter(note => !note.parent_note_id).length;
+      const noteBtn = document.createElement('button');
+      noteBtn.type = 'button';
+      noteBtn.className = 'timeline-note-button' + (topNoteCount ? ' has-notes' : '');
+      noteBtn.textContent = topNoteCount ? `💬 메모 ${topNoteCount}` : '＋ 메모';
+      noteBtn.addEventListener('click', () => {
+        if (!topNoteCount) {
+          openScheduleNoteModal(item.id);
+          return;
+        }
+        if (openScheduleNoteThreads.has(item.id)) {
+          openScheduleNoteThreads.delete(item.id);
+        } else {
+          openScheduleNoteThreads.add(item.id);
+        }
+        const thread = card.querySelector('.schedule-note-thread');
+        thread?.classList.toggle('open', openScheduleNoteThreads.has(item.id));
+      });
+      quick.appendChild(noteBtn);
+
       const admin = document.createElement('div');
       admin.className = 'timeline-admin';
 
@@ -4046,6 +4545,11 @@ let tripsCache = [];
 
       bottom.append(quick, admin);
       card.appendChild(bottom);
+
+      if (topNoteCount) {
+        card.appendChild(buildScheduleNoteThread(item));
+      }
+
       return card;
     }
 
@@ -4676,6 +5180,7 @@ let tripsCache = [];
         if (item) openPrepSourceForItem(item, false);
       });
       document.getElementById('item-prep-source-unlink').addEventListener('click', unlinkPrepSourceFromSchedule);
+      document.getElementById('schedule-note-form').addEventListener('submit', saveScheduleNote);
 
       document.getElementById('schedule-sticky-select').addEventListener('change', event => {
         const day = Number(event.target.value);
@@ -4853,6 +5358,7 @@ let tripsCache = [];
     }
 
     function applyPlannerMode() {
+      document.body.classList.toggle('shared-view', isReadOnlyMode);
       document.getElementById('planner-back-btn').classList.toggle('hidden', isReadOnlyMode);
       document.getElementById('planner-owner-user').classList.toggle('hidden', isReadOnlyMode);
       document.getElementById('planner-public-user').classList.toggle('hidden', !isReadOnlyMode);
@@ -4870,7 +5376,7 @@ let tripsCache = [];
         chip.textContent = '공유된 일정';
         chip.classList.add('shared');
         document.getElementById('share-copy-btn').classList.add('hidden');
-        document.getElementById('share-state').textContent = '관리자만 내용을 수정할 수 있어.';
+        document.getElementById('share-state').textContent = '일정은 수정할 수 없고, 카드마다 여행 메모를 남길 수 있어.';
       }
     }
 
@@ -5380,7 +5886,7 @@ let tripsCache = [];
         return showToast('일정 불러오기 오류: ' + error.message, true);
       }
       itemsCache = data || [];
-      await loadPrepSourceData();
+      await Promise.all([loadPrepSourceData(), loadScheduleNotes()]);
       renderCurrentDayItems();
       await renderCurrentDayMap();
     }
