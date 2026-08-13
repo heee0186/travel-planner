@@ -5304,9 +5304,18 @@ let tripsCache = [];
 
       let result;
       if (editingItemId) {
-        result = await supabaseApp.from('itinerary_items').update(fullPayload).eq('id', editingItemId);
+        result = await supabaseApp
+          .from('itinerary_items')
+          .update(fullPayload)
+          .eq('id', editingItemId)
+          .select('*')
+          .single();
       } else {
-        result = await supabaseApp.from('itinerary_items').insert(fullPayload);
+        result = await supabaseApp
+          .from('itinerary_items')
+          .insert(fullPayload)
+          .select('*')
+          .single();
       }
 
       if (result.error && /(item_type|move_after|map_url|flight_details|is_must_do|group_event_kind|timeline_lane|secondary_lane_name)/i.test(String(result.error.message || ''))) {
@@ -5315,16 +5324,68 @@ let tripsCache = [];
         return showToast('새 일정 기능용 DB 컬럼이 아직 없어. 같이 준 SQL을 먼저 한 번 실행해 줘.', true);
       }
 
+      if (result.error) {
+        submit.disabled = false;
+        submit.textContent = editingItemId ? '수정 저장' : '저장';
+        return showToast(`일정 ${editingItemId ? '수정' : '저장'} 실패: ` + result.error.message, true);
+      }
+
+      const savedRow = result.data;
+      if (!savedRow?.id) {
+        submit.disabled = false;
+        submit.textContent = editingItemId ? '수정 저장' : '저장';
+        return showToast('저장 결과를 서버에서 확인하지 못했어. 일정 창은 닫지 않았어.', true);
+      }
+
+      /* 저장 직후 서버에서 다시 한 번 읽어 실제 DB 값을 검증한다. */
+      const verifyResult = await supabaseApp
+        .from('itinerary_items')
+        .select('*')
+        .eq('id', savedRow.id)
+        .single();
+
+      if (verifyResult.error) {
+        submit.disabled = false;
+        submit.textContent = editingItemId ? '수정 저장' : '저장';
+        return showToast('저장 후 서버 확인에 실패했어: ' + verifyResult.error.message, true);
+      }
+
+      const verifiedRow = verifyResult.data;
+      const expectedLane = directTimelineLane(timelineLane);
+      const actualLane = directTimelineLane(verifiedRow?.timeline_lane);
+
+      if (itemType !== 'group' && actualLane !== expectedLane) {
+        submit.disabled = false;
+        submit.textContent = editingItemId ? '수정 저장' : '저장';
+        const expectedLabel = expectedLane === 'secondary' ? '오른쪽 일행' : '우리';
+        const actualLabel = actualLane === 'secondary' ? '오른쪽 일행' : '우리';
+        return showToast(
+          `위치 저장이 실제 DB에 반영되지 않았어. 선택: ${expectedLabel} / 서버값: ${actualLabel}`,
+          true
+        );
+      }
+
+      /* 전체 재조회 전에 검증된 서버 행을 현재 화면 데이터에 직접 반영 */
+      const savedIndex = itemsCache.findIndex(row => row.id === verifiedRow.id);
+      if (savedIndex >= 0) {
+        itemsCache[savedIndex] = verifiedRow;
+      } else {
+        itemsCache.push(verifiedRow);
+      }
+
       submit.disabled = false;
       submit.textContent = editingItemId ? '수정 저장' : '저장';
-
-      if (result.error) return showToast(`일정 ${editingItemId ? '수정' : '저장'} 실패: ` + result.error.message, true);
 
       const wasEditing = Boolean(editingItemId);
       editingItemId = null;
       closeModal('item-modal');
-      showToast(wasEditing ? '일정을 수정했어.' : '일정을 저장했어.');
-      await loadItineraryItems();
+      renderCurrentDayItems();
+      await renderCurrentDayMap();
+
+      const laneMessage = itemType === 'group'
+        ? ''
+        : (actualLane === 'secondary' ? ' · 오른쪽 일행으로 저장됨' : ' · 우리 일정으로 저장됨');
+      showToast((wasEditing ? '일정을 수정했어.' : '일정을 저장했어.') + laneMessage);
     }
 
     function openEditItemModal(itemId) {
@@ -5392,6 +5453,14 @@ let tripsCache = [];
       document.getElementById('item-timeline-lane').value = directTimelineLane(item.timeline_lane);
       syncGroupSecondaryNameField();
       syncTimelineLaneField();
+
+      const laneHelp = document.querySelector('#item-lane-field .help');
+      if (laneHelp && !document.getElementById('item-lane-field').classList.contains('hidden')) {
+        const savedLaneText = directTimelineLane(item.timeline_lane) === 'secondary'
+          ? '오른쪽 일행'
+          : '우리';
+        laneHelp.textContent = `현재 DB 저장 위치: ${savedLaneText} · 여기서 바꾼 값이 서버에도 같은 값으로 저장되는지 확인해.`;
+      }
 
       openModal('item-modal');
       setTimeout(() => document.getElementById('item-input-title').focus(), 60);
