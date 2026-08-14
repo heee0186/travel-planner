@@ -2272,6 +2272,7 @@ body{
 }
 
 #item-lane-field select,
+#group-primary-name,
 #group-secondary-name{
   width:100%;
 }
@@ -3183,6 +3184,24 @@ body.shared-view .readonly-note-chip{
   }
 }
 
+
+/* 분기 이름: 사람/코스/1안·2안 모두 사용 */
+#group-lane-name-fields{
+  align-items:start;
+}
+#group-lane-name-fields .field{
+  margin-top:0;
+}
+@media(max-width:560px){
+  #group-lane-name-fields{
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  #group-lane-name-fields input{
+    min-width:0;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3341,7 +3360,7 @@ body.shared-view .readonly-note-chip{
         <div class="day-toolbar">
           <h3 id="day-title">일정</h3>
           <div class="day-toolbar-actions">
-            <button id="add-group-btn" class="group-quick-btn" type="button" onclick="openItemModal('group')">👥 일행 표시</button>
+            <button id="add-group-btn" class="group-quick-btn" type="button" onclick="openItemModal('group')">↔ 분기</button>
             <button id="add-item-btn" class="primary-btn" type="button" onclick="openItemModal()">+ 일정 추가</button>
           </div>
         </div>
@@ -3503,7 +3522,7 @@ body.shared-view .readonly-note-chip{
               <option value="flight">✈️ 항공</option>
               <option value="transport">🚆 이동</option>
               <option value="shopping">🛍️ 쇼핑</option>
-              <option value="group">👥 일행 분기·합류</option>
+              <option value="group">↔ 분기</option>
               <option value="other">📝 기타</option>
             </select>
           </div>
@@ -3566,30 +3585,38 @@ body.shared-view .readonly-note-chip{
 
 
         <div id="group-fields" class="group-fields hidden">
-          <div class="group-fields-title">👥 일행 흐름 표시</div>
+          <div class="group-fields-title">↔ 분기</div>
           <div class="field">
-            <label for="group-event-kind">표시 종류</label>
+            <label for="group-event-kind">분기 종류</label>
             <select id="group-event-kind">
-              <option value="split">👤 분기</option>
-              <option value="join">👥 합류</option>
-              <option value="move">✈️ 별도 이동</option>
+              <option value="split">↔ 분기 시작</option>
+              <option value="join">↘ 분기 종료</option>
+              <option value="move">• 중간 표시</option>
             </select>
           </div>
-          <div id="group-secondary-name-field" class="field hidden">
-            <label for="group-secondary-name">오른쪽 일행 이름</label>
-            <input id="group-secondary-name" type="text" maxlength="40" placeholder="예: 호앗">
-            <div class="help">분기 시작일 때 오른쪽 타임라인에 표시할 이름이야.</div>
+
+          <div id="group-lane-name-fields" class="form-grid hidden">
+            <div class="field">
+              <label for="group-primary-name">왼쪽 이름</label>
+              <input id="group-primary-name" type="text" maxlength="40" placeholder="예: 1안 / 우리">
+            </div>
+            <div class="field">
+              <label for="group-secondary-name">오른쪽 이름</label>
+              <input id="group-secondary-name" type="text" maxlength="40" placeholder="예: 2안 / 호앗">
+            </div>
           </div>
-          <div class="help">일반 일정 카드가 아니라 타임라인 사이에 얇게 표시돼. 그날만 필요할 때 쓰면 돼.</div>
+          <div id="group-lane-name-help" class="help hidden">사람 이름이어도 되고, 1안·2안처럼 코스 이름이어도 돼.</div>
+
+          <div class="help">분기 시작과 종료는 일반 일정 카드가 아니라 타임라인 사이에 얇게 표시돼.</div>
         </div>
 
         <div id="item-lane-field" class="field hidden">
-          <label for="item-timeline-lane">분기 중 어느 쪽 일정?</label>
+          <label for="item-timeline-lane">분기 중 어느 쪽에 표시할까?</label>
           <select id="item-timeline-lane">
-            <option value="main">👭 우리</option>
-            <option value="secondary">👤 다른 일행</option>
+            <option value="main">① 왼쪽 일정</option>
+            <option value="secondary">② 오른쪽 일정</option>
           </select>
-          <div class="help">분기 구간에 들어가는 일정만 선택하면 돼. 저장된 값 그대로 왼쪽/오른쪽에 배치해.</div>
+          <div class="help">현재 분기에 설정한 두 이름 중 하나를 선택하면 돼.</div>
         </div>
 
         <div id="flight-fields" class="flight-fields hidden">
@@ -4596,7 +4623,7 @@ let tripsCache = [];
       flight: { label: '항공', icon: '✈️', className: 'flight' },
       transport: { label: '이동', icon: '🚆', className: 'transport' },
       shopping: { label: '쇼핑', icon: '🛍️', className: 'shopping' },
-      group: { label: '일행', icon: '👥', className: 'other' },
+      group: { label: '분기', icon: '↔', className: 'other' },
       other: { label: '기타', icon: '📝', className: 'other' }
     };
 
@@ -4619,9 +4646,9 @@ let tripsCache = [];
     }
 
     const GROUP_EVENT_KINDS = {
-      split: { label:'분기', icon:'👤', className:'split' },
-      join: { label:'합류', icon:'👥', className:'join' },
-      move: { label:'별도 이동', icon:'✈️', className:'move' }
+      split: { label:'분기 시작', icon:'↔', className:'split' },
+      join: { label:'분기 종료', icon:'↘', className:'join' },
+      move: { label:'중간 표시', icon:'•', className:'move' }
     };
 
     function normalizeGroupEventKind(value) {
@@ -4674,7 +4701,8 @@ let tripsCache = [];
           join,
           startMinute,
           endMinute:join ? itemMinuteValue(join) : 24 * 60 + 1,
-          secondaryLabel:String(item.secondary_lane_name || '다른 일행').trim() || '다른 일행'
+          primaryLabel:String(item.primary_lane_name || '우리').trim() || '우리',
+          secondaryLabel:String(item.secondary_lane_name || '다른 일정').trim() || '다른 일정'
         });
 
         if (join) {
@@ -4698,11 +4726,14 @@ let tripsCache = [];
       return segments.find(segment => minute >= segment.startMinute && minute < segment.endMinute) || segments[0];
     }
 
-    function syncGroupSecondaryNameField() {
+    function syncGroupLaneNameFields() {
       const type = normalizeItemType(document.getElementById('item-input-type').value);
       const kind = normalizeGroupEventKind(document.getElementById('group-event-kind').value);
-      const field = document.getElementById('group-secondary-name-field');
-      if (field) field.classList.toggle('hidden', !(type === 'group' && kind === 'split'));
+      const fields = document.getElementById('group-lane-name-fields');
+      const help = document.getElementById('group-lane-name-help');
+      const show = type === 'group' && kind === 'split';
+      if (fields) fields.classList.toggle('hidden', !show);
+      if (help) help.classList.toggle('hidden', !show);
     }
 
     function syncTimelineLaneField() {
@@ -4720,8 +4751,15 @@ let tripsCache = [];
       field.classList.toggle('hidden', !segment);
 
       if (segment) {
+        const primary = select.querySelector('option[value="main"]');
         const secondary = select.querySelector('option[value="secondary"]');
-        if (secondary) secondary.textContent = `👤 ${segment.secondaryLabel}`;
+        if (primary) primary.textContent = `① ${segment.primaryLabel}`;
+        if (secondary) secondary.textContent = `② ${segment.secondaryLabel}`;
+      } else {
+        const primary = select.querySelector('option[value="main"]');
+        const secondary = select.querySelector('option[value="secondary"]');
+        if (primary) primary.textContent = '① 왼쪽 일정';
+        if (secondary) secondary.textContent = '② 오른쪽 일정';
       }
     }
 
@@ -5043,11 +5081,11 @@ let tripsCache = [];
 
       const mainHead = document.createElement('div');
       mainHead.className = 'dual-timeline-head';
-      mainHead.textContent = '👭 우리';
+      mainHead.textContent = `① ${segment.primaryLabel}`;
 
       const secondaryHead = document.createElement('div');
       secondaryHead.className = 'dual-timeline-head secondary';
-      secondaryHead.textContent = `👤 ${segment.secondaryLabel}`;
+      secondaryHead.textContent = `② ${segment.secondaryLabel}`;
 
       heads.append(mainHead, secondaryHead);
 
@@ -5098,11 +5136,11 @@ let tripsCache = [];
 
       const mainOption = document.createElement('option');
       mainOption.value = 'main';
-      mainOption.textContent = '👭 우리 일정 보기';
+      mainOption.textContent = `① ${segment.primaryLabel} 일정 보기`;
 
       const secondaryOption = document.createElement('option');
       secondaryOption.value = 'secondary';
-      secondaryOption.textContent = `👤 ${segment.secondaryLabel} 일정 보기`;
+      secondaryOption.textContent = `② ${segment.secondaryLabel} 일정 보기`;
 
       select.append(mainOption, secondaryOption);
       mobileSwitch.appendChild(select);
@@ -5163,7 +5201,7 @@ let tripsCache = [];
       copy.className = 'group-event-copy';
 
       const title = document.createElement('strong');
-      title.textContent = `${kind.label} · ${item.place_name || '일행 일정'}`;
+      title.textContent = `${kind.label} · ${item.place_name || '분기'}`;
       copy.appendChild(title);
 
       if (item.memo) {
@@ -5541,8 +5579,7 @@ let tripsCache = [];
       initializeThemePicker();
       document.getElementById('item-input-type').addEventListener('change', syncItemTypeFields);
       document.getElementById('group-event-kind').addEventListener('change', () => {
-        syncGroupSecondaryNameField();
-        syncTimelineLaneField();
+        syncItemTypeFields();
       });
       document.getElementById('item-input-date').addEventListener('change', syncTimelineLaneField);
       document.getElementById('item-input-hour').addEventListener('change', syncTimelineLaneField);
@@ -6416,7 +6453,12 @@ let tripsCache = [];
 
       const titleInput = document.getElementById('item-input-title');
       if (isGroup) {
-        titleInput.placeholder = '예: 세 번째 일행 한국 출발 / 난바에서 합류';
+        const kind = normalizeGroupEventKind(document.getElementById('group-event-kind').value);
+        titleInput.placeholder = kind === 'split'
+          ? '예: 오전 코스 비교 / 자유 일정 나누기'
+          : kind === 'join'
+            ? '예: 분기 종료 / 다시 한 일정으로'
+            : '예: 중간 안내';
       } else {
         titleInput.placeholder = '예: 기요미즈데라, 교토역 점심';
       }
@@ -6427,7 +6469,7 @@ let tripsCache = [];
         if (airline || number) document.getElementById('item-input-title').value = [airline, number].filter(Boolean).join(' ');
       }
 
-      syncGroupSecondaryNameField();
+      syncGroupLaneNameFields();
       syncTimelineLaneField();
     }
 
@@ -6450,6 +6492,7 @@ let tripsCache = [];
       setTimeSelects(null);
       resetFlightFields();
       document.getElementById('group-event-kind').value = 'split';
+      document.getElementById('group-primary-name').value = '';
       document.getElementById('group-secondary-name').value = '';
       document.getElementById('item-timeline-lane').value = 'main';
       document.getElementById('item-input-must').checked = false;
@@ -6481,9 +6524,19 @@ let tripsCache = [];
       const timelineLane = itemType === 'group'
         ? 'main'
         : directTimelineLane(document.getElementById('item-timeline-lane').value);
-      const secondaryLaneName = (itemType === 'group' && groupEventKind === 'split')
-        ? (document.getElementById('group-secondary-name').value.trim() || '다른 일행')
+      const primaryLaneName = (itemType === 'group' && groupEventKind === 'split')
+        ? document.getElementById('group-primary-name').value.trim()
         : null;
+      const secondaryLaneName = (itemType === 'group' && groupEventKind === 'split')
+        ? document.getElementById('group-secondary-name').value.trim()
+        : null;
+
+      if (itemType === 'group' && groupEventKind === 'split') {
+        if (!primaryLaneName) return showToast('왼쪽 분기 이름을 입력해.', true);
+        if (!secondaryLaneName) return showToast('오른쪽 분기 이름을 입력해.', true);
+        if (primaryLaneName === secondaryLaneName) return showToast('두 분기 이름은 다르게 입력해.', true);
+      }
+
       const scheduleDate = document.getElementById('item-input-date').value || null;
       const timeResult = getSelectedTime();
       if (timeResult.error) return showToast(timeResult.error, true);
@@ -6571,6 +6624,7 @@ let tripsCache = [];
         is_must_do: isMustDo,
         group_event_kind: groupEventKind,
         timeline_lane: timelineLane,
+        primary_lane_name: primaryLaneName,
         secondary_lane_name: secondaryLaneName
       };
 
@@ -6590,7 +6644,7 @@ let tripsCache = [];
           .single();
       }
 
-      if (result.error && /(item_type|move_after|map_url|flight_details|is_must_do|group_event_kind|timeline_lane|secondary_lane_name)/i.test(String(result.error.message || ''))) {
+      if (result.error && /(item_type|move_after|map_url|flight_details|is_must_do|group_event_kind|timeline_lane|primary_lane_name|secondary_lane_name)/i.test(String(result.error.message || ''))) {
         submit.disabled = false;
         submit.textContent = editingItemId ? '수정 저장' : '저장';
         return showToast('새 일정 기능용 DB 컬럼이 아직 없어. 같이 준 SQL을 먼저 한 번 실행해 줘.', true);
@@ -6629,8 +6683,13 @@ let tripsCache = [];
       if (itemType !== 'group' && actualLane !== expectedLane) {
         submit.disabled = false;
         submit.textContent = editingItemId ? '수정 저장' : '저장';
-        const expectedLabel = expectedLane === 'secondary' ? '오른쪽 일행' : '우리';
-        const actualLabel = actualLane === 'secondary' ? '오른쪽 일행' : '우리';
+        const activeSegment = getParallelSegmentForForm();
+        const expectedLabel = expectedLane === 'secondary'
+          ? (activeSegment?.secondaryLabel || '오른쪽 일정')
+          : (activeSegment?.primaryLabel || '왼쪽 일정');
+        const actualLabel = actualLane === 'secondary'
+          ? (activeSegment?.secondaryLabel || '오른쪽 일정')
+          : (activeSegment?.primaryLabel || '왼쪽 일정');
         return showToast(
           `위치 저장이 실제 DB에 반영되지 않았어. 선택: ${expectedLabel} / 서버값: ${actualLabel}`,
           true
@@ -6654,9 +6713,12 @@ let tripsCache = [];
       renderCurrentDayItems();
       await renderCurrentDayMap();
 
+      const savedSegment = itemType === 'group' ? null : getParallelSegmentForForm();
       const laneMessage = itemType === 'group'
         ? ''
-        : (actualLane === 'secondary' ? ' · 오른쪽 일행으로 저장됨' : ' · 우리 일정으로 저장됨');
+        : actualLane === 'secondary'
+          ? ` · ${savedSegment?.secondaryLabel || '오른쪽 일정'}으로 저장됨`
+          : ` · ${savedSegment?.primaryLabel || '왼쪽 일정'}으로 저장됨`;
       showToast((wasEditing ? '일정을 수정했어.' : '일정을 저장했어.') + laneMessage);
     }
 
@@ -6673,7 +6735,8 @@ let tripsCache = [];
 
       document.getElementById('item-input-type').value = type;
       document.getElementById('group-event-kind').value = normalizeGroupEventKind(item.group_event_kind);
-      document.getElementById('group-secondary-name').value = item.secondary_lane_name || '';
+      document.getElementById('group-primary-name').value = item.primary_lane_name || (type === 'group' ? '우리' : '');
+      document.getElementById('group-secondary-name').value = item.secondary_lane_name || (type === 'group' ? '다른 일정' : '');
       document.getElementById('item-input-must').checked = Boolean(item.is_must_do);
       document.getElementById('item-input-date').value = item.schedule_date || getDateForDay(item.day_number) || '';
       setTimeSelects(item.start_time ? item.start_time.slice(0,5) : null);
@@ -6723,15 +6786,16 @@ let tripsCache = [];
 
       /* 중요: 좌우 위치는 이 값 하나만 사용하고, sync 뒤에 직접 세팅한다. */
       document.getElementById('item-timeline-lane').value = directTimelineLane(item.timeline_lane);
-      syncGroupSecondaryNameField();
+      syncGroupLaneNameFields();
       syncTimelineLaneField();
 
       const laneHelp = document.querySelector('#item-lane-field .help');
       if (laneHelp && !document.getElementById('item-lane-field').classList.contains('hidden')) {
+        const segment = getParallelSegmentForForm();
         const savedLaneText = directTimelineLane(item.timeline_lane) === 'secondary'
-          ? '오른쪽 일행'
-          : '우리';
-        laneHelp.textContent = `현재 DB 저장 위치: ${savedLaneText} · 여기서 바꾼 값이 서버에도 같은 값으로 저장되는지 확인해.`;
+          ? (segment?.secondaryLabel || '오른쪽 일정')
+          : (segment?.primaryLabel || '왼쪽 일정');
+        laneHelp.textContent = `현재 위치: ${savedLaneText}`;
       }
 
       openModal('item-modal');
