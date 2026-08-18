@@ -3202,6 +3202,228 @@ body.shared-view .readonly-note-chip{
   }
 }
 
+
+/* ==========================================================
+   일정 편집 바텀시트 + 안전한 편집창
+   - 바깥 클릭으로 닫히지 않음(JS에서 제거)
+   - 화면 아래에 붙는 sheet
+   - 저장/취소는 아래에 계속 보임
+   ========================================================== */
+#item-modal{
+  align-items:flex-end;
+  justify-content:center;
+  padding:18px 18px 0;
+  background:rgba(31,35,33,.42);
+}
+#item-modal .modal-box{
+  position:relative;
+  width:min(640px,100%);
+  max-height:min(92dvh,900px);
+  margin:0;
+  padding:16px 22px 0;
+  border-radius:22px 22px 0 0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  box-shadow:0 -12px 45px rgba(25,30,27,.18);
+}
+.item-sheet-handle{
+  width:42px;
+  height:5px;
+  margin:0 auto 13px;
+  border-radius:999px;
+  background:#d9dfe0;
+}
+#item-modal .modal-box h3{
+  margin-bottom:16px;
+}
+
+/* 지도/장소는 접어두는 한 줄 옵션 */
+.item-compact-details{
+  margin:4px 0 12px;
+  border:1px solid #dfe4e1;
+  border-radius:12px;
+  background:#fafbf9;
+  overflow:hidden;
+}
+.item-compact-details > summary{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:0 12px;
+  cursor:pointer;
+  list-style:none;
+  color:#526159;
+  font-size:13px;
+  font-weight:900;
+  user-select:none;
+}
+.item-compact-details > summary::-webkit-details-marker{
+  display:none;
+}
+.item-compact-details > summary::after{
+  content:'⌄';
+  flex:0 0 auto;
+  color:#7a857e;
+  font-size:13px;
+  transition:transform .15s ease;
+}
+.item-compact-details[open] > summary::after{
+  transform:rotate(180deg);
+}
+.item-compact-details > summary small{
+  margin-left:auto;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#f0f2ef;
+  color:#838b85;
+  font-size:10px;
+  font-weight:900;
+}
+.item-compact-details > summary small.configured{
+  background:#eaf3ed;
+  color:#52705d;
+}
+.item-compact-details-body{
+  padding:2px 12px 12px;
+  border-top:1px solid #ecefeb;
+}
+.item-compact-details-body .field{
+  margin-top:10px;
+}
+.compact-map-link-field{
+  margin-bottom:0;
+}
+.compact-map-help{
+  margin-top:6px !important;
+}
+
+/* 메모를 핵심 입력칸으로 */
+.item-memo-field{
+  margin-top:7px;
+}
+#item-modal .item-memo-field label{
+  font-size:14px;
+  font-weight:950;
+}
+#item-input-memo{
+  min-height:150px !important;
+  line-height:1.55;
+  resize:vertical;
+}
+
+/* 준비함 -> 이동 순으로 자연스럽게 */
+#normal-after-memo-fields{
+  display:block;
+}
+.item-prep-source-field{
+  margin-top:12px;
+}
+.item-move-field{
+  margin-top:12px;
+}
+
+/* 꼭 일정은 작은 토글 한 줄 */
+.item-must-field{
+  margin:8px 0 4px !important;
+}
+.must-check-label{
+  display:inline-flex !important;
+  width:auto;
+  min-height:0 !important;
+  align-items:center;
+  gap:7px;
+  margin:0 !important;
+  padding:7px 10px !important;
+  border:1px solid #e5dfcf !important;
+  border-radius:999px !important;
+  background:#fffdf7 !important;
+  cursor:pointer;
+}
+.must-check-box{
+  width:22px !important;
+  height:22px !important;
+  border-radius:7px !important;
+  font-size:12px !important;
+}
+.must-check-copy{
+  color:#665d49;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.must-check-label input:checked + .must-check-box{
+  background:#fff1be;
+}
+
+/* 저장/취소는 스크롤해도 하단에 유지 */
+#item-modal .item-modal-footer{
+  position:sticky;
+  z-index:8;
+  bottom:0;
+  margin:18px -22px 0;
+  padding:12px 22px max(12px,env(safe-area-inset-bottom));
+  border-top:1px solid #ece9e3;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+#item-modal .item-modal-footer-right{
+  flex:1;
+  justify-content:flex-end;
+}
+#item-modal .item-cancel-btn,
+#item-modal .item-save-btn{
+  min-width:92px;
+}
+
+/* 화면 밖 클릭은 닫히지 않는다는 느낌도 조금 더 분명하게 */
+#item-modal.open .modal-box{
+  animation:itemSheetUp .18s ease-out both;
+}
+@keyframes itemSheetUp{
+  from{transform:translateY(18px);opacity:.7}
+  to{transform:translateY(0);opacity:1}
+}
+
+@media(max-width:680px){
+  #item-modal{
+    padding:10px 0 0;
+  }
+  #item-modal .modal-box{
+    width:100%;
+    max-height:94dvh;
+    padding:13px 15px 0;
+    border-radius:20px 20px 0 0;
+  }
+  .item-sheet-handle{
+    margin-bottom:10px;
+  }
+  #item-input-memo{
+    min-height:140px !important;
+  }
+  #item-modal .item-modal-footer{
+    margin-left:-15px;
+    margin-right:-15px;
+    padding-left:15px;
+    padding-right:15px;
+  }
+  #item-modal .item-modal-footer-right{
+    display:grid;
+    grid-template-columns:1fr 1.35fr;
+  }
+  #item-modal .item-cancel-btn,
+  #item-modal .item-save-btn{
+    width:100%;
+    min-width:0;
+  }
+  #item-modal .item-delete-btn{
+    padding-left:9px;
+    padding-right:9px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3509,6 +3731,7 @@ body.shared-view .readonly-note-chip{
   <!-- 일정 추가/수정 모달 -->
   <div id="item-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
     <div class="modal-box">
+      <div class="item-sheet-handle" aria-hidden="true"></div>
       <h3 id="item-modal-title">일정 추가</h3>
       <form id="item-form">
         <div class="item-type-grid">
@@ -3547,42 +3770,27 @@ body.shared-view .readonly-note-chip{
         </div>
 
         <div id="normal-location-fields">
-          <div class="field">
-            <label>Google 장소 검색 · 선택</label>
-            <div id="place-autocomplete-host"></div>
-            <input id="item-input-place" type="hidden">
-            <div id="selected-place" class="selected-place hidden"></div>
-            <div class="place-help">지도에 찍고 싶은 일정만 검색 결과에서 장소를 선택하면 돼. 그냥 메모성 일정이면 비워둬도 돼.</div>
-          </div>
-
-          <div class="field">
-            <label for="item-input-map-url">Google 지도 링크 직접 넣기 · 선택</label>
-            <input id="item-input-map-url" type="url" placeholder="https://maps.app.goo.gl/...">
-            <div class="help">공유 링크가 있으면 카드의 지도 버튼이 이 링크를 먼저 열어.</div>
-          </div>
-
-          <div class="field">
-            <label for="item-input-move-after">다음 일정까지 이동 · 선택</label>
-            <textarea id="item-input-move-after" rows="2" maxlength="220" placeholder="예: 🚶 도보 5분&#10;큰길 따라 직진 후 오른쪽 골목"></textarea>
-            <div class="help">두 줄까지 편하게 적어도 돼. 현재 일정과 다음 일정 사이에 그대로 표시돼.</div>
-          </div>
-
-          <div id="item-prep-source-field" class="field item-prep-source-field hidden">
-            <label>준비함 원문 / 사진</label>
-            <div class="item-prep-source-panel">
-              <div>
-                <strong id="item-prep-source-status">연결된 준비함 원문이 없어.</strong>
-                <small id="item-prep-source-detail">준비함에 저장해둔 메모나 사진을 이 일정과 연결할 수 있어.</small>
+          <details id="item-map-details" class="item-compact-details">
+            <summary>
+              <span>📍 장소 · 지도</span>
+              <small id="item-map-summary-state">선택</small>
+            </summary>
+            <div class="item-compact-details-body">
+              <div class="field">
+                <label>Google 장소 검색</label>
+                <div id="place-autocomplete-host"></div>
+                <input id="item-input-place" type="hidden">
+                <div id="selected-place" class="selected-place hidden"></div>
               </div>
-              <div class="item-prep-source-actions">
-                <button id="item-prep-source-view" class="hidden" type="button">원문 보기</button>
-                <button id="item-prep-source-find" type="button">준비함에서 찾기</button>
-                <button id="item-prep-source-unlink" class="prep-unlink-btn hidden" type="button">연결 해제</button>
+
+              <div class="field compact-map-link-field">
+                <label for="item-input-map-url">지도 링크 직접 넣기</label>
+                <input id="item-input-map-url" type="url" placeholder="https://maps.app.goo.gl/...">
               </div>
+              <div class="help compact-map-help">지도에 표시할 일정만 설정하면 돼. 장소 검색이나 지도 링크 중 필요한 것만 써도 돼.</div>
             </div>
-          </div>
+          </details>
         </div>
-
 
         <div id="group-fields" class="group-fields hidden">
           <div class="group-fields-title">↔ 분기</div>
@@ -3678,21 +3886,40 @@ body.shared-view .readonly-note-chip{
         <input id="item-input-cost" type="hidden" value="">
         <input id="item-input-currency" type="hidden" value="KRW">
 
+        <div class="field item-memo-field">
+          <label for="item-input-memo">메모</label>
+          <textarea id="item-input-memo" maxlength="2000" placeholder="예약 정보, 준비물, 시간표, 참고사항 등 필요한 내용을 자유롭게 적어줘."></textarea>
+        </div>
+
+        <div id="normal-after-memo-fields">
+          <div id="item-prep-source-field" class="field item-prep-source-field hidden">
+            <label>준비함 원문 / 사진</label>
+            <div class="item-prep-source-panel">
+              <div>
+                <strong id="item-prep-source-status">연결된 준비함 원문이 없어.</strong>
+                <small id="item-prep-source-detail">준비함에 저장해둔 메모나 사진을 이 일정과 연결할 수 있어.</small>
+              </div>
+              <div class="item-prep-source-actions">
+                <button id="item-prep-source-view" class="hidden" type="button">원문 보기</button>
+                <button id="item-prep-source-find" type="button">준비함에서 찾기</button>
+                <button id="item-prep-source-unlink" class="prep-unlink-btn hidden" type="button">연결 해제</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field item-move-field">
+            <label for="item-input-move-after">다음 일정까지 이동</label>
+            <textarea id="item-input-move-after" rows="2" maxlength="220" placeholder="예: 🚶 도보 5분&#10;큰길 따라 직진 후 오른쪽 골목"></textarea>
+            <div class="help">현재 일정과 다음 일정 사이에 표시돼.</div>
+          </div>
+        </div>
 
         <div id="item-must-field" class="field item-must-field">
           <label class="must-check-label" for="item-input-must">
             <input id="item-input-must" type="checkbox">
             <span class="must-check-box">⭐</span>
-            <span>
-              <strong>꼭 해야 하는 일정으로 표시</strong>
-              <small>일정 카드에 ‘⭐ 꼭!’ 스티커가 붙어.</small>
-            </span>
+            <span class="must-check-copy">꼭 해야 하는 일정</span>
           </label>
-        </div>
-
-        <div class="field">
-          <label for="item-input-memo">메모 · 선택</label>
-          <textarea id="item-input-memo" maxlength="2000" placeholder="예약 정보, 준비물, 참고사항 등을 적어줘."></textarea>
         </div>
 
         <div class="item-modal-footer">
@@ -5606,6 +5833,7 @@ let tripsCache = [];
         if (item) openPrepSourceForItem(item, false);
       });
       document.getElementById('item-prep-source-unlink').addEventListener('click', unlinkPrepSourceFromSchedule);
+      document.getElementById('item-input-map-url').addEventListener('input', updateItemMapSummaryState);
       document.getElementById('schedule-note-form').addEventListener('submit', saveScheduleNote);
 
       window.addEventListener('scroll', updateScheduleStickyVisibility, { passive:true });
@@ -5617,12 +5845,6 @@ let tripsCache = [];
         closePlannerMenu();
         const stickyMobile = document.querySelector('.schedule-sticky-mobile');
         if (!stickyMobile?.contains(event.target)) closeScheduleStickyMobileMenu();
-      });
-
-      document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', event => {
-          if (event.target === modal) closeModal(modal.id);
-        });
       });
 
       supabaseApp.auth.onAuthStateChange((event, session) => {
@@ -6443,6 +6665,7 @@ let tripsCache = [];
       document.getElementById('flight-fields').classList.toggle('hidden', !isFlight);
       document.getElementById('group-fields').classList.toggle('hidden', !isGroup);
       document.getElementById('normal-location-fields').classList.toggle('hidden', isFlight || isGroup);
+      document.getElementById('normal-after-memo-fields').classList.toggle('hidden', isFlight || isGroup);
 
       const prepField = document.getElementById('item-prep-source-field');
       if (prepField && isGroup) prepField.classList.add('hidden');
@@ -6471,6 +6694,15 @@ let tripsCache = [];
 
       syncGroupLaneNameFields();
       syncTimelineLaneField();
+    }
+
+    function updateItemMapSummaryState() {
+      const state = document.getElementById('item-map-summary-state');
+      if (!state) return;
+      const hasPlace = Boolean(selectedGooglePlace);
+      const hasUrl = Boolean(document.getElementById('item-input-map-url')?.value.trim());
+      state.textContent = (hasPlace || hasUrl) ? '설정됨' : '선택';
+      state.classList.toggle('configured', hasPlace || hasUrl);
     }
 
     function resetFlightFields() {
@@ -6503,6 +6735,9 @@ let tripsCache = [];
       document.getElementById('item-input-currency').value = currentTrip.default_currency || 'KRW';
       document.getElementById('item-input-date').value = getDateForDay(currentDayNumber) || '';
       updateItemPrepSourceField(null);
+      const mapDetails = document.getElementById('item-map-details');
+      if (mapDetails) mapDetails.open = false;
+      updateItemMapSummaryState();
       syncItemTypeFields();
       openModal('item-modal');
       setTimeout(() => document.getElementById('item-input-title').focus(), 60);
@@ -6765,6 +7000,10 @@ let tripsCache = [];
         box.textContent = '';
         box.classList.add('hidden');
       }
+
+      const mapDetails = document.getElementById('item-map-details');
+      if (mapDetails) mapDetails.open = false;
+      updateItemMapSummaryState();
 
       resetFlightFields();
       if (type === 'flight') {
@@ -7188,6 +7427,7 @@ let tripsCache = [];
             const box = document.getElementById('selected-place');
             box.textContent = `선택됨: ${selectedGooglePlace.name}`;
             box.classList.remove('hidden');
+            updateItemMapSummaryState();
           } catch (error) {
             showToast('장소 정보를 가져오지 못했어: ' + error.message, true);
           }
