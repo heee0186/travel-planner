@@ -3481,6 +3481,7 @@ body.shared-view .readonly-note-chip{
         <div class="user-area">
           <span id="user-email" class="user-email"></span>
           <button class="ghost-btn" type="button" onclick="openPreparationBox()">여행 준비함</button>
+          <button class="ghost-btn" type="button" onclick="openChecklist()">체크리스트</button>
           <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
         </div>
       </header>
@@ -3503,6 +3504,7 @@ body.shared-view .readonly-note-chip{
         <div id="planner-owner-user" class="user-area">
           <span id="planner-user-email" class="user-email"></span>
           <button class="ghost-btn" type="button" onclick="openPreparationBox()">여행 준비함</button>
+          <button class="ghost-btn" type="button" onclick="openChecklist()">체크리스트</button>
           <button class="ghost-btn" type="button" onclick="logout()">로그아웃</button>
         </div>
         <div id="planner-public-user" class="user-area hidden">
@@ -5962,6 +5964,13 @@ let tripsCache = [];
         localStorage.setItem('travel_prep_current_trip', currentTrip.id);
       }
       window.location.href = './prep.html';
+    }
+
+    function openChecklist() {
+      if (currentTrip?.id) {
+        localStorage.setItem('travel_prep_current_trip', currentTrip.id);
+      }
+      window.location.href = './prep.html#checklist';
     }
 
     async function logout() {

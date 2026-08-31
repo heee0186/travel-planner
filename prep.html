@@ -914,6 +914,242 @@ button{cursor:pointer}
   }
 }
 
+
+/* ==========================================================
+   체크리스트
+   - 준비함 / 비교함 / 일정과 같은 레벨의 별도 화면
+   - 체크 상태는 현재 브라우저 localStorage에 여행별 저장
+   - 기존 Supabase 데이터/테이블은 건드리지 않음
+   ========================================================== */
+.checklist-hero{
+  padding-bottom:23px;
+}
+.checklist-hero-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.checklist-progress{
+  flex:0 0 auto;
+  min-width:150px;
+  padding:13px 15px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--paper-warm);
+  text-align:right;
+}
+.checklist-progress strong{
+  display:block;
+  color:var(--accent-dark);
+  font-size:20px;
+  line-height:1.15;
+}
+.checklist-progress span{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+.checklist-tabs{
+  display:flex;
+  gap:8px;
+  margin-top:18px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.checklist-tabs::-webkit-scrollbar{display:none}
+.checklist-tab{
+  flex:0 0 auto;
+  padding:10px 14px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:#fff;
+  color:#6a646e;
+  font-size:13px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.checklist-tab.active{
+  border-color:transparent;
+  background:var(--accent-soft);
+  color:var(--accent-dark);
+}
+.checklist-quick{
+  margin-top:16px;
+  padding:17px;
+  border:1px solid var(--line);
+  border-radius:19px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(49,42,56,.035);
+}
+.checklist-quick-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.checklist-quick-head b{
+  font-size:16px;
+}
+.checklist-quick-head span{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:850;
+}
+.checklist-groups{
+  display:grid;
+  gap:11px;
+  margin-top:16px;
+}
+.checklist-group{
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(49,42,56,.03);
+}
+.checklist-group summary{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:16px 17px;
+  cursor:pointer;
+  list-style:none;
+  color:var(--text);
+  font-size:16px;
+  font-weight:950;
+}
+.checklist-group summary::-webkit-details-marker{display:none}
+.checklist-group summary::after{
+  content:"⌄";
+  flex:0 0 auto;
+  color:var(--muted);
+  font-size:16px;
+  transition:transform .16s ease;
+}
+.checklist-group[open] summary::after{
+  transform:rotate(180deg);
+}
+.checklist-group-count{
+  margin-left:auto;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+}
+.checklist-group-body{
+  padding:0 15px 15px;
+}
+.checklist-section + .checklist-section{
+  margin-top:15px;
+}
+.checklist-section-title{
+  margin:0 0 8px;
+  padding:0 2px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+}
+.checklist-items{
+  display:grid;
+  gap:7px;
+}
+.checklist-row{
+  width:100%;
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  padding:11px 12px;
+  border:1px solid #eee9e4;
+  border-radius:13px;
+  background:var(--paper-warm);
+  color:var(--text);
+  text-align:left;
+}
+.checklist-row:hover{
+  border-color:#d7cfdb;
+  background:#fff;
+}
+.checklist-box{
+  flex:0 0 23px;
+  width:23px;
+  height:23px;
+  display:grid;
+  place-items:center;
+  margin-top:1px;
+  border:1.5px solid #ccc4d0;
+  border-radius:7px;
+  background:#fff;
+  color:#fff;
+  font-size:13px;
+  font-weight:950;
+}
+.checklist-copy{
+  min-width:0;
+  flex:1;
+}
+.checklist-text{
+  display:block;
+  font-size:14px;
+  font-weight:850;
+  line-height:1.5;
+}
+.checklist-note{
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+.checklist-row.checked{
+  background:#f5f3f5;
+}
+.checklist-row.checked .checklist-box{
+  border-color:var(--accent);
+  background:var(--accent);
+}
+.checklist-row.checked .checklist-text{
+  color:#8b858d;
+}
+.checklist-empty{
+  padding:30px 18px;
+  color:var(--muted);
+  font-size:13px;
+  text-align:center;
+}
+@media(min-width:851px){
+  .checklist-progress{
+    min-width:165px;
+    padding:15px 17px;
+  }
+  .checklist-progress strong{font-size:22px}
+  .checklist-tab{font-size:14px}
+  .checklist-row{padding:13px 14px}
+  .checklist-text{font-size:15px}
+  .checklist-note{font-size:13px}
+}
+@media(max-width:600px){
+  .checklist-hero-row{display:block}
+  .checklist-progress{
+    width:max-content;
+    min-width:132px;
+    margin-top:14px;
+    text-align:left;
+  }
+  .checklist-group summary{
+    padding:14px 14px;
+    font-size:15px;
+  }
+  .checklist-group-body{
+    padding:0 12px 12px;
+  }
+  .checklist-row{
+    padding:11px;
+  }
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -977,6 +1213,7 @@ button{cursor:pointer}
         <button class="nav-btn active" type="button" data-screen="home">준비함 <small>0</small></button>
         <button class="nav-btn" type="button" data-screen="compare">비교함 <small>0</small></button>
         <button class="nav-btn" type="button" data-screen="schedule">일정 <small>0</small></button>
+        <button class="nav-btn" type="button" data-screen="checklist">체크리스트 <small>2</small></button>
       </nav>
       <div class="sidebar-note">
         링크와 메모를 차곡차곡 저장하자.<br>
@@ -1100,6 +1337,27 @@ button{cursor:pointer}
           <button class="secondary" type="button" id="mapButton">오늘 동선 지도에서 보기</button>
         </div>
       </section>
+
+      <section class="screen" id="checklist">
+        <div class="hero checklist-hero">
+          <div class="checklist-hero-row">
+            <div>
+              <div class="eyebrow">TRAVEL · CHECKLIST</div>
+              <h2>하나씩 체크하고 가자</h2>
+              <p id="checklistSubtitle">여행 준비와 숙소 체크인을 한곳에서 확인해.</p>
+            </div>
+            <div class="checklist-progress">
+              <strong id="checklistProgress">0 / 0</strong>
+              <span>완료</span>
+            </div>
+          </div>
+          <div class="checklist-tabs" id="checklistTabs"></div>
+        </div>
+
+        <div id="checklistQuick"></div>
+        <div class="checklist-groups" id="checklistGroups"></div>
+      </section>
+
     </main>
   </div>
 </div>
@@ -1663,6 +1921,13 @@ button{cursor:pointer}
   $$('.nav-btn').forEach(button => button.addEventListener('click', () => showScreen(button.dataset.screen)));
   $$('[data-go]').forEach(button => button.addEventListener('click', () => showScreen(button.dataset.go)));
 
+  // URL의 #checklist로 직접 들어오면 체크리스트 화면으로 이동
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#checklist' && !$('#appRoot').hidden) {
+      showScreen('checklist');
+    }
+  });
+
   async function init() {
     setLoading(true);
     const { data: { session } } = await db.auth.getSession();
@@ -1683,6 +1948,12 @@ button{cursor:pointer}
     $('#authScreen').hidden = true;
     $('#appRoot').hidden = false;
     await loadTrips();
+
+    // 기본 일정앱의 '체크리스트' 버튼으로 들어온 경우 바로 체크리스트 화면을 연다.
+    if (window.location.hash === '#checklist') {
+      showScreen('checklist');
+    }
+
     setLoading(false);
   }
 
@@ -1849,6 +2120,406 @@ button{cursor:pointer}
     setLoading(false);
   }
 
+
+  /* ===== 체크리스트 ===== */
+  const CHECKLIST_STORAGE_PREFIX = 'travel_prep_checklists_v1:';
+  let activeChecklistId = 'travel-prep';
+
+  const CHECKLISTS = [
+    {
+      id:'travel-prep',
+      title:'여행 준비',
+      subtitle:'오사카·교토 여행 최종 준비',
+      quickIds:['visit-japan','haruka','rapit','amazing-pass','kaiyukan-ticket','esim-buy'],
+      groups:[
+        {
+          title:'지금 ~ 8월 31일',
+          sections:[
+            {
+              title:'티켓·필수 준비',
+              items:[
+                {id:'visit-japan',text:'Visit Japan Web 등록 완료'},
+                {id:'visit-japan-group',text:'동행자 Visit Japan Web 등록 확인'},
+                {id:'haruka',text:'HARUKA 2장 구매',note:'9/17 간사이공항 → 교토'},
+                {id:'rapit',text:'라피트 3장 구매',note:'9/20 난바 → 간사이공항'},
+                {id:'amazing-pass',text:'오사카 주유패스 2일권 3장 구매',note:'사용 예정: 9/19 ~ 9/20'},
+                {id:'kaiyukan-ticket',text:'가이유칸 입장권 구매',initial:true},
+                {id:'kaiyukan-time',text:'가이유칸 방문 시간대 최종 확정',initial:true},
+                {id:'esim-buy',text:'eSIM 구매'}
+              ]
+            },
+            {
+              title:'예약·기본 확인',
+              items:[
+                {id:'seat',text:'항공사 좌석 지정 여부 확인'},
+                {id:'insurance',text:'여행자보험 가입 여부 결정'},
+                {id:'flight-reservation',text:'항공권 예약 내역 다시 확인'},
+                {id:'kyoto-hotel',text:'교토 숙소 예약 확인'},
+                {id:'osaka-hotel',text:'오사카 숙소 예약 확인'},
+                {id:'passport-valid',text:'여권 유효기간 확인'}
+              ]
+            }
+          ]
+        },
+        {
+          title:'9월 1일 ~ 9월 6일',
+          sections:[{
+            title:'식당·세부 일정 정리',
+            items:[
+              {id:'sat-sushi',text:'9/19 토요일 점심 스시집 최종 결정',note:'신세카이 / 츠텐카쿠 근처'},
+              {id:'sat-kushi',text:'9/19 토요일 저녁 쿠시카츠집 최종 결정',note:'신사이바시 · 생맥주 같이 먹는 일정'},
+              {id:'fri-dinner',text:'금요일 저녁 오코노미야키·철판요리 식당 최종 결정'},
+              {id:'thu-kix-lunch',text:'목요일 KIX 점심 메뉴 후보 정리',note:'라멘 우선 / 스시 가능'},
+              {id:'shinsaibashi-route',text:'신사이바시 쇼핑 동선 정리',note:'STÜSSY · COMME des GARÇONS · 가챠 · 푸리쿠라'},
+              {id:'hankai-route',text:'토요일 한카이전차 에비스초 → 스미요시 동선 최종 저장'},
+              {id:'sumiyoshi-route',text:'스미요시 → 신사이바시 이동 방법 저장',note:'버스 → 타마데 → 요츠바시선 안 · 상황 따라 다른 경로 사용 가능'}
+            ]
+          }]
+        },
+        {
+          title:'9월 7일 ~ 9월 10일',
+          sections:[
+            {
+              title:'교통 QR·예약자료 정리',
+              items:[
+                {id:'haruka-qr',text:'HARUKA QR / 예약정보 캡처'},
+                {id:'rapit-qr',text:'라피트 QR / 예약정보 캡처'},
+                {id:'pass-qr',text:'주유패스 QR / 이용방법 캡처'},
+                {id:'kaiyukan-qr',text:'가이유칸 티켓 캡처'},
+                {id:'boarding-info',text:'항공권 모바일 탑승 관련 정보 정리'},
+                {id:'kyoto-hotel-info',text:'교토 숙소 주소·전화번호 캡처'},
+                {id:'osaka-hotel-info',text:'오사카 숙소 주소·전화번호 캡처'},
+                {id:'ticket-folder',text:'필요한 티켓을 휴대폰 한 폴더에 모아두기'}
+              ]
+            },
+            {
+              title:'돈·결제',
+              items:[
+                {id:'card-overseas',text:'일본에서 쓸 카드 해외결제 가능 여부 확인'},
+                {id:'card-block',text:'카드 해외사용 차단 여부 확인'},
+                {id:'payment-method',text:'삼성페이 / 실물카드 중 실제 사용할 수단 정리'},
+                {id:'cash-amount',text:'엔화 현금을 얼마나 가져갈지 결정'},
+                {id:'cash-small',text:'소액 현금 준비'}
+              ]
+            }
+          ]
+        },
+        {
+          title:'9월 11일 ~ 9월 13일',
+          sections:[
+            {
+              title:'통신·휴대폰',
+              items:[
+                {id:'esim-install',text:'eSIM 설치'},
+                {id:'esim-not-active',text:'아직 활성화는 하지 않기'},
+                {id:'esim-info',text:'eSIM QR 또는 설치정보 캡처'},
+                {id:'esim-setting',text:'한국 SIM과 일본 eSIM 설정 방법 확인'},
+                {id:'offline-map',text:'Google Maps 오사카·교토 오프라인 지도 저장'},
+                {id:'schedule-capture',text:'여행 일정 주요 화면 캡처'}
+              ]
+            },
+            {
+              title:'일정 최종 확인',
+              items:[
+                {id:'whole-plan-review',text:'여행 전체 일정 한 번 훑기'},
+                {id:'opening-hours',text:'관광지 휴무 / 운영시간 최종 확인'},
+                {id:'shopping-hours',text:'STÜSSY · 꼼데 영업시간 확인'},
+                {id:'tsutenkaku-hours',text:'츠텐카쿠 · 타워슬라이더 운영시간 확인'},
+                {id:'hankai-time',text:'한카이전차 토요일 시간표 확인'},
+                {id:'santamaria',text:'산타마리아 크루즈 탈지 최종 결정 및 시간 확인'}
+              ]
+            }
+          ]
+        },
+        {
+          title:'9월 14일 ~ 9월 15일',
+          sections:[
+            {
+              title:'날씨·옷',
+              items:[
+                {id:'weather',text:'오사카·교토 최신 날씨 확인'},
+                {id:'rain',text:'비 예보 확인'},
+                {id:'clothes',text:'옷 최종 구성 결정'},
+                {id:'umbrella',text:'우산 또는 초경량 우산 준비'},
+                {id:'shoes',text:'걷기 편한 운동화 준비'}
+              ]
+            },
+            {
+              title:'짐 싸기 시작',
+              items:[
+                {id:'pack-passport',text:'여권'},
+                {id:'pack-wallet',text:'지갑'},
+                {id:'pack-cards',text:'실물 신용 / 체크카드'},
+                {id:'pack-yen',text:'엔화'},
+                {id:'pack-charger',text:'충전기'},
+                {id:'pack-powerbank',text:'보조배터리'},
+                {id:'pack-cable',text:'케이블'},
+                {id:'pack-medicine',text:'상비약'},
+                {id:'pack-toiletries',text:'세면·화장품'},
+                {id:'pack-personal',text:'여행 중 필요한 개인용품'},
+                {id:'pack-ankle',text:'발목 부담 대비 용품 필요 시 준비'}
+              ]
+            }
+          ]
+        },
+        {
+          title:'9월 16일 — 출국 전날',
+          sections:[{
+            title:'반드시 확인',
+            items:[
+              {id:'daybefore-passport',text:'여권 가방에 넣기'},
+              {id:'daybefore-flight',text:'항공권 예약 상태 확인'},
+              {id:'online-checkin',text:'온라인 체크인 가능하면 완료'},
+              {id:'baggage-weight',text:'위탁수하물 무게 확인'},
+              {id:'prohibited',text:'기내 반입 금지물품 확인'},
+              {id:'powerbank-carry',text:'보조배터리는 위탁수하물에 넣지 않았는지 확인'},
+              {id:'vjw-final',text:'Visit Japan Web 내용 최종 확인'},
+              {id:'vjw-qr',text:'Visit Japan Web QR 캡처'},
+              {id:'all-qr',text:'모든 교통·관광 QR 캡처 확인'},
+              {id:'hotel-address',text:'숙소 주소 캡처 확인'},
+              {id:'full-charge',text:'휴대폰·보조배터리 완충'},
+              {id:'esim-ready',text:'eSIM 설정 준비 완료'},
+              {id:'alarm',text:'알람 설정'}
+            ]
+          }]
+        },
+        {
+          title:'9월 17일 — 출국 당일',
+          sections:[{
+            items:[
+              {id:'depart-passport',text:'여권'},
+              {id:'depart-phone',text:'휴대폰'},
+              {id:'depart-wallet',text:'지갑 / 카드 / 현금'},
+              {id:'depart-powerbank',text:'보조배터리'},
+              {id:'depart-bag',text:'캐리어 최종 확인'},
+              {id:'depart-airport',text:'공항 도착'},
+              {id:'depart-process',text:'출국 수속'},
+              {id:'jp-esim',text:'일본 도착 후 eSIM 활성화'},
+              {id:'jp-vjw',text:'Visit Japan Web QR 준비'},
+              {id:'jp-entry',text:'입국·세관 통과'},
+              {id:'kix-lunch',text:'간사이공항에서 점심',note:'라멘 우선 · 스시도 가능'},
+              {id:'haruka-use',text:'HARUKA 이용 → 교토 이동'}
+            ]
+          }]
+        },
+        {
+          title:'9월 19일 — 주유패스 첫날',
+          sections:[{
+            items:[
+              {id:'pass-start',text:'주유패스 활성화'},
+              {id:'osaka-castle',text:'오사카성'},
+              {id:'shinsekai-move',text:'신세카이 이동'},
+              {id:'sushi-lunch',text:'스시 점심'},
+              {id:'tsutenkaku',text:'츠텐카쿠'},
+              {id:'tower-slider',text:'타워슬라이더'},
+              {id:'shinsekai-look',text:'신세카이 구경'},
+              {id:'hankai-use',text:'한카이전차 에비스초 → 스미요시'},
+              {id:'sumiyoshi-look',text:'스미요시 주변은 시간·컨디션 따라 구경'},
+              {id:'shinsaibashi-move',text:'신사이바시 이동'},
+              {id:'stussy',text:'STÜSSY'},
+              {id:'comme',text:'COMME des GARÇONS'},
+              {id:'gacha-purikura',text:'가챠 / 푸리쿠라'},
+              {id:'kushikatsu-beer',text:'쿠시카츠 + 생맥주 저녁'}
+            ]
+          }]
+        },
+        {
+          title:'9월 20일 — 마지막 날',
+          sections:[{
+            items:[
+              {id:'pass-day2',text:'주유패스 2일차'},
+              {id:'kaiyukan-day',text:'가이유칸'},
+              {id:'tempozan',text:'덴포잔 일정'},
+              {id:'santamaria-day',text:'산타마리아 이용 시 시간 확인'},
+              {id:'luggage-pickup',text:'공항 이동 전에 짐 찾기'},
+              {id:'rapit-board',text:'난바에서 라피트 탑승'},
+              {id:'kix-arrive',text:'간사이공항 도착'},
+              {id:'return-process',text:'출국 수속'},
+              {id:'return-flight',text:'귀국편 탑승'}
+            ]
+          }]
+        }
+      ]
+    },
+    {
+      id:'osaka-self-checkin',
+      title:'숙소 체크인',
+      subtitle:'9/18 오사카 숙소 셀프 체크인',
+      groups:[
+        {
+          title:'출발 전 준비',
+          sections:[{
+            items:[
+              {id:'hotel-passport-photos',text:'투숙객 전원 여권 정보면 사진 준비'},
+              {id:'hotel-address-en',text:'한국 거주지 주소 영문 표기 준비'},
+              {id:'hotel-smartorder',text:'SmartOrder 셀프 체크인 링크 저장'},
+              {id:'hotel-code',text:'셀프 체크인 코드 / 예약 확인번호 저장'}
+            ]
+          }]
+        },
+        {
+          title:'9월 18일 — 숙소 도착',
+          sections:[{
+            items:[
+              {id:'hotel-luggage',text:'필요하면 체크인 전 짐 보관'},
+              {id:'hotel-early',text:'얼리 체크인 희망 시 당일 숙소에 가능 여부 확인'},
+              {id:'hotel-open-form',text:'SmartOrder 링크 또는 건물 입구 QR 스캔'},
+              {id:'hotel-enter-code',text:'셀프 체크인 코드 또는 예약 확인번호 입력'},
+              {id:'hotel-upload-passports',text:'투숙객 전원 여권 정보면 사진 업로드'},
+              {id:'hotel-enter-address',text:'영구 거주지 주소 입력'},
+              {id:'hotel-group-photo',text:'숙소와 투숙객 전원 단체사진 업로드'},
+              {id:'hotel-checkin-button',text:'Check-in 버튼 누르기'},
+              {id:'hotel-guide',text:'체크인 가이드 확인'},
+              {id:'hotel-entry-capture',text:'출입 방법 / 번호 / 열쇠 방법 캡처'}
+            ]
+          }]
+        },
+        {
+          title:'사전 작성했을 경우',
+          sections:[{
+            items:[
+              {id:'hotel-temp-photo',text:'사전 작성용 임시 사진 사용 여부 확인'},
+              {id:'hotel-replace-photo',text:'입실 후 객실 안에서 단체사진 찍어 기존 사진 교체'}
+            ]
+          }]
+        },
+        {
+          title:'마지막 확인',
+          sections:[{
+            items:[
+              {id:'hotel-original-passports',text:'여권 원본 소지'},
+              {id:'hotel-complete-screen',text:'체크인 완료 화면 확인'},
+              {id:'hotel-tax',text:'숙박세 안내 확인'}
+            ]
+          }]
+        }
+      ]
+    }
+  ];
+
+  function checklistItems(checklist) {
+    return checklist.groups.flatMap(group => (group.sections || []).flatMap(section => section.items || []));
+  }
+
+  function checklistStorageKey() {
+    return CHECKLIST_STORAGE_PREFIX + (currentTrip?.id || 'default');
+  }
+
+  function defaultChecklistState() {
+    const state = {};
+    CHECKLISTS.forEach(checklist => {
+      checklistItems(checklist).forEach(item => {
+        if(item.initial) state[item.id] = true;
+      });
+    });
+    return state;
+  }
+
+  function loadChecklistState() {
+    const defaults = defaultChecklistState();
+    try {
+      return {
+        ...defaults,
+        ...JSON.parse(localStorage.getItem(checklistStorageKey()) || '{}')
+      };
+    } catch(error) {
+      return defaults;
+    }
+  }
+
+  function saveChecklistState(state) {
+    localStorage.setItem(checklistStorageKey(), JSON.stringify(state));
+  }
+
+  function checklistItemHtml(item,state) {
+    const checked = Boolean(state[item.id]);
+    return `
+      <button class="checklist-row ${checked?'checked':''}" type="button" data-check-item="${escapeHtml(item.id)}">
+        <span class="checklist-box">${checked?'✓':''}</span>
+        <span class="checklist-copy">
+          <span class="checklist-text">${escapeHtml(item.text)}</span>
+          ${item.note?`<span class="checklist-note">${escapeHtml(item.note)}</span>`:''}
+        </span>
+      </button>
+    `;
+  }
+
+  function renderChecklist() {
+    const checklist = CHECKLISTS.find(item => item.id === activeChecklistId) || CHECKLISTS[0];
+    const state = loadChecklistState();
+    const items = checklistItems(checklist);
+    const done = items.filter(item => Boolean(state[item.id])).length;
+
+    $('#checklistSubtitle').textContent = checklist.subtitle;
+    $('#checklistProgress').textContent = `${done} / ${items.length}`;
+
+    $('#checklistTabs').innerHTML = CHECKLISTS.map(item => `
+      <button class="checklist-tab ${item.id===checklist.id?'active':''}" type="button" data-checklist-tab="${escapeHtml(item.id)}">
+        ${escapeHtml(item.title)}
+      </button>
+    `).join('');
+
+    if(checklist.quickIds?.length) {
+      const quickItems = checklist.quickIds
+        .map(id => items.find(item => item.id === id))
+        .filter(Boolean);
+      const quickDone = quickItems.filter(item => Boolean(state[item.id])).length;
+      $('#checklistQuick').innerHTML = `
+        <div class="checklist-quick">
+          <div class="checklist-quick-head">
+            <b>지금 당장</b>
+            <span>${quickDone} / ${quickItems.length} 완료</span>
+          </div>
+          <div class="checklist-items">
+            ${quickItems.map(item => checklistItemHtml(item,state)).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      $('#checklistQuick').innerHTML = '';
+    }
+
+    $('#checklistGroups').innerHTML = checklist.groups.map((group,index) => {
+      const groupItems = (group.sections || []).flatMap(section => section.items || []);
+      const groupDone = groupItems.filter(item => Boolean(state[item.id])).length;
+      const sections = (group.sections || []).map(section => `
+        <div class="checklist-section">
+          ${section.title?`<div class="checklist-section-title">${escapeHtml(section.title)}</div>`:''}
+          <div class="checklist-items">
+            ${(section.items || []).map(item => checklistItemHtml(item,state)).join('')}
+          </div>
+        </div>
+      `).join('');
+      return `
+        <details class="checklist-group" ${index<2?'open':''}>
+          <summary>
+            <span>${escapeHtml(group.title)}</span>
+            <span class="checklist-group-count">${groupDone} / ${groupItems.length}</span>
+          </summary>
+          <div class="checklist-group-body">${sections}</div>
+        </details>
+      `;
+    }).join('');
+  }
+
+  document.addEventListener('click', event => {
+    const tab = event.target.closest('[data-checklist-tab]');
+    if(tab) {
+      activeChecklistId = tab.dataset.checklistTab;
+      renderChecklist();
+      return;
+    }
+
+    const row = event.target.closest('[data-check-item]');
+    if(row) {
+      const state = loadChecklistState();
+      const id = row.dataset.checkItem;
+      state[id] = !state[id];
+      saveChecklistState(state);
+      renderChecklist();
+    }
+  });
+
   function renderAll() {
     renderCounts();
     renderLibrary();
@@ -1856,6 +2527,7 @@ button{cursor:pointer}
     renderComparisons();
     renderScheduleTabs();
     renderSchedule();
+    renderChecklist();
   }
 
   function renderCounts() {
